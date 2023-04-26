@@ -58,6 +58,8 @@ This constructor creates a Samantha object.
 
 - apiKey `string`  
 OpenAI API Key
+- model `string`  
+OpenAI Model to use
 
 <br/>
 
@@ -66,7 +68,7 @@ OpenAI API Key
 ```javascript
 import { Samantha } from 'socialAGI'
 
-const samantha = new Samantha('sk-123456789')
+const samantha = new Samantha('sk-123456789', 'gpt-4')
 ```
 
 <br/>
