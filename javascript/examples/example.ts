@@ -2,7 +2,7 @@ import * as readline from "readline";
 import { Samantha, Message, Thought, SamanthaConfig, Model } from "../src/index";
 
 
-const config = new SamanthaConfig({ apiKey: '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', model: Model.GPT_3_5 });
+const config = new SamanthaConfig({ model: Model.GPT_3_5 });
 const samantha = new Samantha(config);
 
 samantha.on("says", (message: Message) => {
