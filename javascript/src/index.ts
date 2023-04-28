@@ -13,7 +13,7 @@ export interface Thought {
 
 export enum Model {
   GPT_4 = "gpt-4",
-  GPT_3_5 = "gpt-3.5-turbo",
+  GPT_3_5_TURBO = "gpt-3.5-turbo",
 }
 
 class Samantha extends EventEmitter {
