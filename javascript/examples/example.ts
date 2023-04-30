@@ -1,16 +1,16 @@
 import * as readline from "readline";
-import { Samantha, Message, Thought, SamanthaConfig, Model } from "../src/index";
+import { Samantha, Message, Thought, OpenaiConfig, OpenaiModel } from "../src/index";
 
 
-const config = new SamanthaConfig({ apiKey: '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', model: Model.GPT_3_5 });
+const config = new OpenaiConfig({ model: OpenaiModel.gpt_3_5_turbo });
 const samantha = new Samantha(config);
 
-samantha.on("says", (message: Message) => {
-  console.log("Samantha says: ", message.text);
+samantha.on("says", (text : String) => {
+  console.log("\nSamantha says: ", text);
 });
 
-samantha.on("thinks", (thought: Thought) => {
-  console.log("Samantha thinks: ", thought.text);
+samantha.on("thinks", (text : String) => {
+  console.log("\nSamantha thinks: ", text);
 });
 
 const rl = readline.createInterface({
@@ -28,7 +28,10 @@ rl.on("line", async (line) => {
         samantha.reset();
     }
     else {
-        const message = {text : line}
-        await samantha.tell(message);
+        const text : String = line;
+        samantha.tell(text);
   }
 });
+
+
+
