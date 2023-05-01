@@ -1,13 +1,17 @@
 {
   "name": "socialagi",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Simple, opinionated framework for creating digital souls",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "npm run build",
     "test-example": "ts-node examples/example.ts"
   },
+  "files": [
+  "dist"
+],
   "keywords": [
     "soul",
     "entity",
