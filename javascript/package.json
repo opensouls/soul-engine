@@ -1,7 +1,7 @@
 {
-  "name": "javascript",
-  "version": "1.0.0",
-  "description": "",
+  "name": "socialagi",
+  "version": "0.0.1",
+  "description": "Create digital souls",
   "main": "index.js",
   "scripts": {
     "build": "tsc",
