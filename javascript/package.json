@@ -1,15 +1,40 @@
 {
   "name": "socialagi",
   "version": "0.0.1",
-  "description": "Create digital souls",
+  "description": "Simple, opinionated framework for creating digital souls",
   "main": "index.js",
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "npm run build",
     "test-example": "ts-node examples/example.ts"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "soul",
+    "entity",
+    "personality",
+    "dialog",
+    "chatbot",
+    "agent",
+    "chat",
+    "llm",
+    "ai",
+    "gpt3",
+    "gpt4",
+    "linguistic programming",
+    "chain",
+    "prompt",
+    "prompt engineering",
+    "chatgpt",
+    "personality",
+    "ml",
+    "machine learning",
+    "openai"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Methexis-Inc/SocialAGI.git"
+  },
+  "author": "SocialAGI",
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^18.16.2",
