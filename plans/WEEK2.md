@@ -23,20 +23,22 @@ A socialagi server is:
 - public/private code (public resource requires public code)
 - takes in session ids
 - takes in user ids
-- unique entity name
+- unique entity name per creator
 - has a set of dynamic fields (e.g. characterTraits) 
 - has an openai key associated with it
 
-Any accessible served entity can be accessed via `api.souls.chat/EntityName` with a developer's api key
+Any accessible served entity can be accessed via `api.souls.chat/creator/EntityName` with a developer's api key
 
 Socialagi servers define classes of entities that can be created:
 - one server hosts many different entities
 
 There's a magic deployment command which pushes a socialagi server to `souls.chat`, default is private resource, public code
 
-Allow for custom domain mapping to `souls.chat/EntityName`
+Allow for custom domain mapping to `souls.chat/creator/EntityName`
 
-Entities are at `souls.chat/EntityName`, and are unique
+`souls.chat/creator` showcases a creators creations
+
+Entities are at `souls.chat/creator/EntityName`, and are unique
 
 Servers are at `servers.souls.chat`
 
