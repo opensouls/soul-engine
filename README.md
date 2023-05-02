@@ -1,4 +1,4 @@
-# Social AGI
+# 🤖+👱 SocialAGI
 
 ⚡ Simple, opinionated framework for creating digital souls ⚡
 
