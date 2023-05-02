@@ -1,10 +1,10 @@
-## 🤖+👱 SocialAGI
+# 🤖+👱 SocialAGI
 
 ⚡ Simple, opinionated framework for creating digital souls ⚡
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg) ![Twitter](https://img.shields.io/twitter/url/https/twitter.com/socialagi.svg?style=social&label=Follow%20%40socialagi)](https://twitter.com/socialagi) [![](https://dcbadge.vercel.app/api/server/Dx3FYccm?compact=true&style=flat)](https://discord.gg/Dx3FYccm)
 
-### Quick Install
+## Quick Install
 
 ```$ yarn add socialagi```
 
@@ -27,7 +27,7 @@ samantha.on("thinks", (text : String) => {
 samantha.tell("Hi Samantha!)
 ```
 
-### 🤔 What is this?
+## 🤔 What is this?
 
 We aim to simplify the developer experience as much as possible in creating agentic chatbots called digital souls. Unlike traditional chatbots, digital souls have personality, drive, ego, and will. 
 
@@ -35,17 +35,17 @@ As you might imagine, there's a bunch of small complexities with developing digi
 
 This library provides tools to easily sculpt digital souls.
 
-### Features
+## Features
 
 - Flexible API for tuning the personality of digital souls
 - Manages internal agentic thought processes
 - Dialog intricacies like double texting automatically handled
 - Automatic memory management
 
-### Quick Start
+## Quick Start
 
-TODO: The quickest way to get started with `socialagi` is to utilize the executable `create-socialagi-app`
+We provide a simple way to create a server that hosts a `socialagi` digital soul like `samantha` - check out the [`create-socialagi-server` NPM package](https://www.npmjs.com/package/create-socialagi-server)
 
-### Documentation
+## Documentation
 
-TODO: lol
+TODO !!!!!: lol
