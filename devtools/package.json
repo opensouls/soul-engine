@@ -1,6 +1,6 @@
 {
   "name": "socialagi-devtools",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Browser devtools for socialagi-server",
   "scripts": {
     "dev": "next dev",
@@ -10,6 +10,10 @@
   "license": "ISC",
   "bin": {
     "socialagi-devtools": "./bin/socialagi-devtools.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Methexis-Inc/SocialAGI.git"
   },
   "keywords": [
     "soul",
