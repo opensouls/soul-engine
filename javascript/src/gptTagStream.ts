@@ -1,24 +1,49 @@
 import { EventEmitter } from "events";
 import { Configuration, OpenAIApi } from "openai";
 import { OpenAIExt } from "openai-ext";
-import { systemPrompt, remembrancePrompt } from "./utils";
 
 
 //SAMANTHA AI
 
-export interface Tag {
-    role: TagRole;
-    type: TagType;
-    text: String;
-}
+export class Tag {
+    role: string;
+    type: string;
+    text: string;
 
-export enum TagRole {
-    assistant = "assistant",
-    user = "user",
-}
-export enum TagType {
-    thought = "thought",
-    message = "message",
+    constructor(role: string, type: string, text: string) {
+        this.role = role;
+        this.type = type;
+        this.text = text;
+        this.format();
+    }
+
+    format() {
+        this.role = this.role.toUpperCase()
+        this.type = this.type.toUpperCase()
+    }
+
+    setRole(role: string) {
+        this.role = role;
+        this.format();
+    }
+    setType(type: string) {
+        this.type = type;
+        this.format();
+    }
+    setText(text: string) {
+        this.text = text;
+        this.format();
+    }
+
+    //Role:
+    isRoleAssistant(): Boolean {
+        return (this.role === "ASSISTANT");
+    }
+
+    //Type:
+    isTypeMessage(): Boolean {
+        return (this.type === "MESSAGE");
+    }
 }
 
 
@@ -44,8 +69,8 @@ export class OpenaiConfig {
 }
 
 interface OpenaiMessage {
-    role: String;
-    content: String;
+    role: string;
+    content: string;
 }
 
 
@@ -53,30 +78,33 @@ interface OpenaiMessage {
 
 export class GPT extends EventEmitter {
     private openaiConfig: OpenaiConfig;
-    private stream: any;
+    private stream: any = null;
 
     constructor(config: OpenaiConfig) {
         super();
         this.openaiConfig = config
-        this.stream = null;
     }
 
-    public stopGeneration() : void {
-        if (this.stream) {
-            this.stream.destroy()
-            this.stream = null;
-        }
-        this.stream = null;
-    }
-
-    private deliverTag(tag: Tag) {
+    private emitTagEvent(tag: Tag) {
         this.emit("tag", tag);
     }
-    private deliverGenerateCompleteUpdate() {
-        this.emit("generateComplete");
+    private emitGeneratedEvent() {
+        this.emit("generated");
     }
 
-    public isGenerating() : Boolean {
+    public stopGenerate(): void {
+        if (this.stream) {
+            try {
+                this.stream.destroy();
+            } catch (error) {
+                console.error('Failed to destroy the stream:', error);
+            } finally {
+                this.stream = null;
+            }
+        }
+    }
+
+    public isGenerating(): Boolean {
         if (this.stream) {
             return true
         } else {
@@ -85,11 +113,7 @@ export class GPT extends EventEmitter {
     }
 
 
-    public async generate(tags: Tag[]) {
-
-        console.log("🔥", tags.slice(-5), "🔥")
-
-        const messages = this.tagsToMessages(tags);
+    public async generate(tags: Tag[], systemPrompt : string, remembrancePrompt : string) {
 
         const apiKey = this.openaiConfig.apiKey;
         const model = this.openaiConfig.model;
@@ -101,12 +125,13 @@ export class GPT extends EventEmitter {
             openai: openaiApi,
             handler: {
                 onContent: (content: string, isFinal: boolean, stream: any) => {
-                    const tag = this.messageToTag(content, isFinal);
-                    if (tag) { this.deliverTag(tag) }
+
+                    const tag = this.contentToTag(content, isFinal);
+                    if (tag) { this.emitTagEvent(tag) }
                 },
                 onDone: (stream: any) => {
-                    this.deliverGenerateCompleteUpdate();
-                    this.stopGeneration();
+                    this.emitGeneratedEvent();
+                    this.stopGenerate();
                 },
                 onError: (error: Error, stream: any) => {
                     // console.error("Openai Stream Error: ", error);
@@ -114,7 +139,9 @@ export class GPT extends EventEmitter {
             },
         };
 
-        // console.log("🔥", messages, "🔥")
+        const messages = this.tagsToMessages(tags, systemPrompt, remembrancePrompt);
+        console.log("\n<🫥\n", messages, "\n🫥>\n")
+
         const openaiStreamResponse = await OpenAIExt.streamServerChatCompletion(
             {
                 model: model,
@@ -122,18 +149,22 @@ export class GPT extends EventEmitter {
             },
             openaiStreamConfig
         );
+
         this.stream = openaiStreamResponse.data;
     }
 
 
 
-    private tagsToMessages(tags: Tag[]): OpenaiMessage[] {
+    private tagsToMessages(tags: Tag[], systemPrompt : string, remembrancePrompt : string): OpenaiMessage[] {
         // First, map each tag to an OpenaiMessage
         const initialMessages = tags.map(tag => {
-            const messageContent = `<${tag.type.toUpperCase()}>\n${tag.text}\n</${tag.type.toUpperCase()}>`;
+            let content = tag.text;
+            if (tag.isRoleAssistant()) {
+                content = `<${tag.type}>${tag.text}</${tag.type}>`;
+            }
             return {
-                role: tag.role,
-                content: messageContent
+                role: tag.role.toLowerCase(),
+                content: content
             } as OpenaiMessage;
         });
 
@@ -155,13 +186,25 @@ export class GPT extends EventEmitter {
 
 
 
-        let truncatedMessages = this.truncateItems(reducedMessages)
+        let truncatedMessages = reducedMessages
+        if (reducedMessages.length > 10) {
+            if (reducedMessages.length === 11) {
+                truncatedMessages = reducedMessages.slice(0, 1).concat(reducedMessages.slice(2));
+            } else if (reducedMessages.length === 12) {
+                truncatedMessages = reducedMessages.slice(0, 2).concat(reducedMessages.slice(3));
+            } else if (reducedMessages.length === 13) {
+                truncatedMessages = reducedMessages.slice(0, 3).concat(reducedMessages.slice(4));
+            } else {
+                truncatedMessages = reducedMessages.slice(0, 3).concat(reducedMessages.slice(-10));
+            }
+        }
 
 
         let finalMessages = truncatedMessages;
-        finalMessages = [{ role: "system", content: systemPrompt }].concat(
-            finalMessages
-        );
+        finalMessages = [{
+            role: "system",
+            content: systemPrompt
+        }].concat(finalMessages);
         if (truncatedMessages.length > 0) {
             // add in rememberence at end of system prompt to ensure output format from GPT is fixed
             // only necessary after first message sent by user
@@ -173,48 +216,13 @@ export class GPT extends EventEmitter {
         return finalMessages;
     }
 
-
-    private truncateItems(messages: any[]): any[] {
-        let sentMessages = messages;
-        if (messages.length > 10) {
-            if (messages.length === 11) {
-                sentMessages = messages.slice(0, 1).concat(messages.slice(2));
-            } else if (messages.length === 12) {
-                sentMessages = messages.slice(0, 2).concat(messages.slice(3));
-            } else if (messages.length === 13) {
-                sentMessages = messages.slice(0, 3).concat(messages.slice(4));
-            } else {
-                sentMessages = messages.slice(0, 3).concat(messages.slice(-10));
-            }
-        }
-        return sentMessages;
-    }
-
-
-
-    private messageToTag(content: string, isFinal: boolean): Tag | null {
+    private contentToTag(content: string, isFinal: boolean): Tag | null {
+        // console.log("isFinal", isFinal, "content: ", content)
         if (isFinal) {
-            let inputString = content;
-            const openingTagRegex = /<([A-Z]+)[^>]*>/gi;
-            let match: RegExpExecArray | null;
-            let lastMatch: RegExpExecArray | null = null;
-            while ((match = openingTagRegex.exec(inputString)) !== null) {
-                lastMatch = match;
-            }
-            if (lastMatch) {
-                const type = lastMatch[1];
-                const startIndex = lastMatch.index + lastMatch[0].length;
-                const endIndex = inputString.lastIndexOf(`</${type}>`);
-                const text = inputString.slice(startIndex, endIndex).trim();
-                if (type.toUpperCase() === "MESSAGE") {
-                    return {role: TagRole.assistant, type: TagType.message, text: text}
-                } else {
-                    return {role: TagRole.assistant, type: TagType.thought, text: text}
-                }
-            }
+            //
         } else {
             let inputString = content;
-            const regex = /<\/([A-Z]+)>$/;
+            const regex = /<\/([A-Z\s]+)>$/;
             const match = inputString.trimEnd().match(regex);
             if (match) {
                 const type = match[1];
@@ -224,15 +232,13 @@ export class GPT extends EventEmitter {
                     const startIndex = openingTagMatch?.index !== undefined ? openingTagMatch.index + openingTagMatch[0].length : undefined;
                     const endIndex = match.index;
                     const text = inputString.slice(startIndex, endIndex).trim();
-                    if (type.toUpperCase() === "MESSAGE") {
-                        return {role: TagRole.assistant, type: TagType.message, text: text}
-                    } else {
-                        return {role: TagRole.assistant, type: TagType.thought, text: text}
-                    }
+
+                    return new Tag("ASSISTANT", type, text)
                 }
             }
         }
         return null;
     }
+
 
 }

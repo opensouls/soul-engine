@@ -1,5 +1,5 @@
 import * as readline from "readline";
-import { Samantha, Message, Thought, OpenaiConfig, OpenaiModel } from "../src/index";
+import { Samantha, OpenaiConfig, OpenaiModel, ThinkingObject, Complete } from "../src/index";
 
 
 const config = new OpenaiConfig({ model: OpenaiModel.gpt_3_5_turbo });
@@ -12,6 +12,15 @@ samantha.on("says", (text : String) => {
 samantha.on("thinks", (text : String) => {
   console.log("\nSamantha thinks: ", text);
 });
+
+const o1 = new ThinkingObject("FEELING", "I FEEL EXCITED TO", Complete);
+const o2 = new ThinkingObject("THOUGHT", "I WANT TO IMAGINE A FUTURE WHERE", Complete);
+const arr = [o1, o2];
+samantha.thinkBeforeMessage(arr);
+
+const o3 = new ThinkingObject("THOUGHT", "I FEEL GREATFUL THAT", Complete);
+const arr2 = [o3];
+samantha.thinkAfterMessage(arr2);
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -28,7 +37,7 @@ rl.on("line", async (line) => {
         samantha.reset();
     }
     else {
-        const text : String = line;
+        const text : string = line;
         samantha.tell(text);
   }
 });
