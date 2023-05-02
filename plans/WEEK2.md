@@ -19,6 +19,8 @@ The next set of major missing needs are the following
 1. I want my socialagi server to have easily modifiable blocks for other people
 
 A socialagi server is:
+- named
+- has a creator
 - a private or public resource (for now)
 - public/private code (public resource requires public code)
 - takes in session ids
@@ -37,6 +39,8 @@ There's a magic deployment command which pushes a socialagi server to `souls.cha
 Allow for custom domain mapping to `souls.chat/creator/EntityName`
 
 `souls.chat/creator` showcases a creators creations
+
+`servers.souls.chat/creator` showcases a creators servers
 
 Entities are at `souls.chat/creator/EntityName`, and are unique
 
