@@ -3,12 +3,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { Orbitron } from "next/font/google";
 import { isMobile } from "react-device-detect";
 import { Analytics } from "@vercel/analytics/react";
-import { Samantha, OpenaiConfig, OpenaiModel } from "socialagi";
-
-// const config = new OpenaiConfig({ model: OpenaiModel.gpt_3_5_turbo });
-// const samantha = new Samantha(config);
-
-
 
 const orbitron = Orbitron({ subsets: ["latin"] });
 
