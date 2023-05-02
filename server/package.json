@@ -1,8 +1,7 @@
 {
   "name": "create-socialagi-server",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Create a socialagi server that hosts a chattable digital soul",
-  "main": "index.js",
   "directories": {
     "example": "examples"
   },
@@ -36,5 +35,8 @@
     "ml",
     "machine learning",
     "openai"
-  ]
+  ],
+  "dependencies": {
+    "fs-extra": "^11.1.1"
+  }
 }
