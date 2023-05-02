@@ -1,12 +1,11 @@
 // Chat.js
-import React, { useState, useEffect, useRef } from "react";
+import React, { useCallback, useState, useEffect, useRef } from "react";
 import { Orbitron } from "next/font/google";
 import { isMobile } from "react-device-detect";
 import { Analytics } from "@vercel/analytics/react";
+import { useSocialAGI } from "./socialagiConnection";
 
 const orbitron = Orbitron({ subsets: ["latin"] });
-
-const samanthaServer = 'http://localhost:5001'
 
 const Chat = () => {
   const [message, setMessage] = useState("");
@@ -14,45 +13,43 @@ const Chat = () => {
   const aiMessagesEndRef = useRef(null);
   const [aiThoughts, setAiThoughts] = useState([]);
 
-  const tellSamantha = () => {
-    fetch(`${samanthaServer}/tell`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({message}),
-    })
+  const messageHandler = useCallback((newMessage) => {
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      { text: newMessage, sender: "ai" },
+    ]);
+    setAiThoughts((prevThoughts) => [
+      ...prevThoughts,
+      `I sent the message: ${newMessage}`,
+    ]);
+  }, []);
 
+  const thoughtHandler = useCallback((newThought) => {
+    setAiThoughts((prevThoughts) => [...prevThoughts, newThought]);
+  }, []);
+  const tellSocialAGI = useSocialAGI({ messageHandler, thoughtHandler });
+
+  const sendMessageToSocialAGI = () => {
+    tellSocialAGI(message);
     // clear message on send
     if (message.trim() !== "") {
       setMessages([...messages, { text: message, sender: "user" }]);
       setMessage("");
     }
-  }
+  };
 
   const scrollToBottomThoughts = () => {
     aiMessagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const firstRun = useRef(true)
+  const firstRun = useRef(true);
   useEffect(() => {
     if (firstRun.current) {
       firstRun.current = false;
 
-      const samanthaMessages = new EventSource(`${samanthaServer}/listenMessages`);
-      samanthaMessages.addEventListener('message', (event) => {
-        setMessages(prevMessages => [...prevMessages, { text: event.data, sender: "ai" }])
-        setAiThoughts(prevThoughts => [...prevThoughts, `I sent the message: ${event.data}`])
-      });
-
-      const samanthaThoughts = new EventSource(`${samanthaServer}/listenThoughts`);
-      samanthaThoughts.addEventListener('message', (event) => {
-        setAiThoughts(prevThoughts => [...prevThoughts, event.data])
-      });
-
-      setTimeout(() => tellSamantha("Hi Samantha!"), 200);
+      setTimeout(() => sendMessageToSocialAGI("Hi!"), 200);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
     scrollToBottomThoughts();
@@ -64,7 +61,7 @@ const Chat = () => {
 
   const handleSendMessage = (event) => {
     event.preventDefault();
-    tellSamantha(message)
+    sendMessageToSocialAGI(message);
   };
 
   return (
@@ -74,7 +71,7 @@ const Chat = () => {
           <h1
             className={`text-4xl text-white font-semibold mb-4 text-center pb-7 ${orbitron.className}`}
           >
-            SAMANTHA AGI
+            Social AGI
           </h1>
           <Messages
             handleMessageChange={handleMessageChange}
