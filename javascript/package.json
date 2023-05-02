@@ -10,8 +10,8 @@
     "test-example": "ts-node examples/example.ts"
   },
   "files": [
-  "dist"
-],
+    "dist"
+  ],
   "keywords": [
     "soul",
     "entity",

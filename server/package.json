@@ -1,0 +1,42 @@
+{
+  "name": "create-socialagi-server",
+  "version": "0.0.2",
+  "description": "Create a socialagi server that hosts a chattable digital soul",
+  "directories": {
+    "example": "examples"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Methexis-Inc/SocialAGI.git"
+  },
+  "bin": {
+    "create-socialagi-server": "./bin/create-socialagi-server.js"
+  },
+  "author": "socialagi",
+  "license": "ISC",
+  "keywords": [
+    "soul",
+    "entity",
+    "personality",
+    "dialog",
+    "chatbot",
+    "agent",
+    "chat",
+    "llm",
+    "ai",
+    "gpt3",
+    "gpt4",
+    "linguistic programming",
+    "chain",
+    "prompt",
+    "prompt engineering",
+    "chatgpt",
+    "personality",
+    "ml",
+    "machine learning",
+    "openai"
+  ],
+  "dependencies": {
+    "fs-extra": "^11.1.1"
+  }
+}

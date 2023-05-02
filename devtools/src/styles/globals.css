@@ -26,6 +26,11 @@ body {
     rgb(var(--background-start-rgb));
 }
 
+.orbitron {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 48px;
+}
+
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
