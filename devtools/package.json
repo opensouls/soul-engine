@@ -1,6 +1,6 @@
 {
   "name": "socialagi-devtools",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Browser devtools for socialagi-server",
   "scripts": {
     "dev": "next dev",

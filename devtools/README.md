@@ -16,4 +16,4 @@ and
 
 starts a devtools server at `http://localhost:3000` and listens for the socialagi server on `http://localhost:5001`
 
-![devtools.png](devtools.png)
+![devtools.png](https://github.com/Methexis-Inc/SocialAGI/blob/0c77bb11c37dfa4c07d1c3a21f0d13976c6947f9/devtools/devtools.png?raw=true)
