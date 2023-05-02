@@ -1,0 +1,25 @@
+{
+  "name": "socialagi-server",
+  "version": "0.0.0",
+  "description": "Run socialagi server",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "socialagi",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "socialagi": "^0.0.3",
+    "eslint": "7.32.0"
+  },
+  "devDependencies": {
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-config-recommended": "^4.1.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^2.7.1",
+    "socialagi-devtools": "^0.0.9"
+  }
+}

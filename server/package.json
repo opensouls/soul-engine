@@ -1,24 +1,40 @@
 {
-  "name": "socialagi-server",
-  "version": "0.0.0",
-  "description": "Run socialagi server",
-  "main": "server.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+  "name": "create-socialagi-server",
+  "version": "0.0.1",
+  "description": "Create a socialagi server that hosts a chattable digital soul",
+  "main": "index.js",
+  "directories": {
+    "example": "examples"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Methexis-Inc/SocialAGI.git"
+  },
+  "bin": {
+    "create-socialagi-server": "./bin/create-socialagi-server.js"
   },
   "author": "socialagi",
   "license": "ISC",
-  "dependencies": {
-    "cors": "^2.8.5",
-    "express": "^4.18.2",
-    "socialagi": "^0.0.3",
-    "eslint": "7.32.0"
-  },
-  "devDependencies": {
-    "eslint-config-prettier": "^8.5.0",
-    "eslint-config-recommended": "^4.1.0",
-    "eslint-plugin-prettier": "^4.2.1",
-    "prettier": "^2.7.1"
-  }
+  "keywords": [
+    "soul",
+    "entity",
+    "personality",
+    "dialog",
+    "chatbot",
+    "agent",
+    "chat",
+    "llm",
+    "ai",
+    "gpt3",
+    "gpt4",
+    "linguistic programming",
+    "chain",
+    "prompt",
+    "prompt engineering",
+    "chatgpt",
+    "personality",
+    "ml",
+    "machine learning",
+    "openai"
+  ]
 }

@@ -1,4 +1,4 @@
-import { setupEventStream } from "./utils";
+const { setupEventStream } = require("./utils");
 
 const { Samantha, OpenaiConfig } = require("socialagi");
 const express = require("express");
