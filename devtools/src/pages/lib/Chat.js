@@ -1,11 +1,8 @@
 // Chat.js
 import React, { useCallback, useState, useEffect, useRef } from "react";
-import { Orbitron } from "next/font/google";
 import { isMobile } from "react-device-detect";
 import { Analytics } from "@vercel/analytics/react";
 import { useSocialAGI } from "./socialagiConnection";
-
-const orbitron = Orbitron({ subsets: ["latin"] });
 
 const Chat = () => {
   const [message, setMessage] = useState("");
@@ -69,7 +66,7 @@ const Chat = () => {
       <div className="flex container px-4 py-12 justify-center">
         <div>
           <h1
-            className={`text-4xl text-white font-semibold mb-4 text-center pb-7 ${orbitron.className}`}
+            className={`text-4xl text-white font-semibold mb-4 text-center pb-7 orbitron`}
           >
             Social AGI
           </h1>

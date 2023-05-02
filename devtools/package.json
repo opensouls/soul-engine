@@ -1,14 +1,38 @@
 {
   "name": "socialagi-devtools",
-  "version": "0.0.4",
+  "version": "0.0.7",
   "description": "Browser devtools for socialagi-server",
   "scripts": {
     "dev": "next dev",
     "lint": "next lint"
   },
+  "author": "SocialAGI",
+  "license": "ISC",
   "bin": {
     "socialagi-devtools": "./bin/socialagi-devtools.js"
   },
+  "keywords": [
+    "soul",
+    "entity",
+    "personality",
+    "dialog",
+    "chatbot",
+    "agent",
+    "chat",
+    "llm",
+    "ai",
+    "gpt3",
+    "gpt4",
+    "linguistic programming",
+    "chain",
+    "prompt",
+    "prompt engineering",
+    "chatgpt",
+    "personality",
+    "ml",
+    "machine learning",
+    "openai"
+  ],
   "dependencies": {
     "@babel/preset-react": "^7.16.5",
     "@vercel/analytics": "^0.1.11",
