@@ -1,5 +1,9 @@
 # Social AGI
 
+⚡ Simple, opinionated framework for creating digital souls ⚡
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg) ![Twitter](https://img.shields.io/twitter/url/https/twitter.com/socialagi.svg?style=social&label=Follow%20%40socialagi)](https://twitter.com/socialagi) [![](https://dcbadge.vercel.app/api/server/Dx3FYccm?compact=true&style=flat)](https://discord.gg/Dx3FYccm)
+
 ## Why this repo exists
 
 This repo exists to research, build, and give life to Social AGIs together.
@@ -71,38 +75,27 @@ Samantha has a few tricks that I'll briefly mention:
 1. GPT-3.5 has trouble remembering the simulation, so a rememberence is put in the system message to remind in a reduced token way
 1. Open AI streaming is used, and the thoughts are parsed in real time to minimize latency
 
-### Getting Started
+### SocialAGI library
 
-Samantha is a Next.js project. It requires one environment variable to be set
-```
+Samantha is written with the [SocialAGI library](https://www.npmjs.com/package/socialagi), which you can easily use to get started on your own version of Samantha.
+
+### Example integration
+
+This repo has an example application of `socialagi` npm package: Samantha chat in a Next.js project. It requires one environment variable to be set
+```bash
 export OPENAI_API_KEY=your_api_key
 ```
 After installing npm locally,
-```
+```bash
 npm install
 ```
-Then, run the development server:
+Then, run both the `socialagi` server
+```bash
+npm run socialagi
+```
+and the development server:
 ```bash
 npm run dev
 ```
 
 Now you should have a local copy of Samantha running at [http://localhost:3000](http://localhost:3000) - open with your browser to see the result.
-
-OpenAI calls are served via Next.js edge functions as [API routes](https://nextjs.org/docs/api-routes/introduction) and can be accessed on [http://localhost:3000/api/reply](http://localhost:3000/api/reply). This endpoint can be edited in `pages/api/reply.js`.
-
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
-
-## Deploy on Vercel
-
-The easiest way to deploy a copy of Samantha is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme).
-
-Check out [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
-
-Roughly goes like install vercel
-```
-npm install -g vercel
-```
-and then run
-```
-vercel
-```

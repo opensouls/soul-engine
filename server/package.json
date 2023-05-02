@@ -1,0 +1,17 @@
+{
+  "name": "socialagi",
+  "version": "0.0.0",
+  "description": "Run socialagi chat",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "socialagi",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "socialagi": "^0.0.3"
+  }
+}
