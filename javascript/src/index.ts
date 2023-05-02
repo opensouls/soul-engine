@@ -2,106 +2,122 @@ import { EventEmitter } from "events";
 import { Configuration, OpenAIApi } from "openai";
 import { OpenAIExt } from "openai-ext";
 
-import { GPT, OpenaiConfig, OpenaiModel, Tag, TagRole, TagType } from "./gpt";
-import { type } from "os";
-import { text } from "stream/consumers";
+import { GPT, OpenaiConfig, OpenaiModel, Tag } from "./gptTagStream";
 export { OpenaiConfig, OpenaiModel };
 
-export interface Message {
-  text: string;
-}
+import { ThinkingObject, Complete, Customization } from "./customization";
+export { ThinkingObject, Complete }
 
-export interface Thought {
-  text: string;
-}
+
 
 export class Samantha extends EventEmitter {
-  private openaiConfig: OpenaiConfig;
+
+  private config : OpenaiConfig;
   private gpt: GPT;
+  private customization : Customization;
+
   private tags: Tag[] = [];
-  private newTags: Tag[] = [];
-  private tagQueue: Tag[] = [];
+  private generatedTags: Tag[] = [];
+  private msgQueue: string[] = [];
+
   constructor(config: OpenaiConfig) {
     super();
-    this.openaiConfig = config;
+    this.config = config;
     this.gpt = new GPT(config);
+    this.customization = new Customization();
 
     this.gpt.on("tag", (tag: Tag) => {
-
-      console.log("\n🌵NEW TAG --", tag.role, tag.type);
-      this.newTags.push(tag);
-
-      if (tag.role === TagRole.assistant) {
-        if (tag.type === TagType.message) {
-          this.emit("says", tag.text);
-        } else {
-          this.emit("thinks", tag.text)
-        }
-      }
+      this.onNewTag(tag);
     });
-    this.gpt.on("generateComplete", () => {
-
-      console.log("\n🌵GENERATE COMPLETE🌵\n")
-
-      //Add newly generated tags
-      console.log("New Tags🥎🥎", this.newTags.slice(-5), "🥎🥎")
-      console.log("🥎🥎", this.tags.slice(-5), "🥎🥎")
-      this.tags = this.tags.concat(this.newTags);
-      console.log("\n🌵ADDED NEW TAGS --", this.newTags.length);
-      this.newTags = []
-      console.log("🥎🥎🥎", this.tags.slice(-5), "🥎🥎🥎")
-      console.log("post-operation New Tags🥎🥎", this.newTags.slice(-5), "🥎🥎")
-
-      if (this.tagQueue.length > 0) {
-        this.tags = this.tags.concat(this.tagQueue);
-        console.log("\n🌵ADDED QUEUED TAGS --", this.tagQueue.length);
-        this.tagQueue = [];
-        console.log("\n🌵STARTING NEW GENERATE🌵\n")
-        this.gpt.generate(this.tags);
-      }
+    this.gpt.on("generated", () => {
+      this.onGenerated();
     })
   }
 
+  // Section - Utility
+
   public reset() {
-    this.gpt.stopGeneration()
+    this.gpt.stopGenerate()
     this.tags = []
-    this.tagQueue = []
-    this.newTags = []
+    this.msgQueue = []
+    this.generatedTags = []
   }
 
-  public tell(text : String): void {
-    
-    const tag = {role : TagRole.user, type : TagType.message, text : text};
+  // Section - Conversation between User and Samantha
+
+  private onNewTag(tag: Tag) {
+    this.generatedTags.push(tag);
+
+    if (tag.isRoleAssistant()) {
+
+      if (tag.isTypeMessage()) {
+
+        this.emit("says", tag.text);
+
+      } else {
+
+        this.emit("thinks", tag.text)
+
+      }
+    }
+  }
+  private onGenerated() {
+    this.tags = this.tags.concat(this.generatedTags);
+
+    this.generatedTags = []
+
+    if (this.msgQueue.length > 0) {
+
+      const msgTags = this.msgQueue.map(text => new Tag("USER", "MESSAGE", text));
+      this.tags = this.tags.concat(msgTags);
+      this.msgQueue = [];
+
+      this.gpt.generate(this.tags, this.customization.getSystemPrompt(), this.customization.getRemembrancePrompt());
+    }
+  }
+
+  public tell(text: string): void {
 
     if (this.gpt.isGenerating() === true) {
       console.log("\n🧠 SAMANTHA IS THINKING...");
 
-      const isRetrospecting = this.newTags.some(tag => tag?.type === TagType.message);
+      const isThinkingAfterMessage = this.generatedTags.some(tag => tag?.isTypeMessage());
 
-
-      if (isRetrospecting) {
-        console.log("\n🔥SAMANTHA IS THINKING ABOUT WHAT SHE SAID (PAST TENSE): ")
-        this.tagQueue.push(tag);
+      if (isThinkingAfterMessage) {
+        console.log("\n🔥SAMANTHA IS THINKING AFTER MESSAGE: ")
+        this.msgQueue.push(text);
       }
       else {
-        console.log("\n🔥SAMANTHA IS THINKING ABOUT WHAT TO SAY (FUTURE TENSE): ")
+        console.log("\n🔥SAMANTHA IS THINKING BEFORE MESSAGE: ")
 
-        this.gpt.stopGeneration();
-        this.newTags = []
+        const tag = new Tag("USER", "MESSAGE", text);
+
+        this.gpt.stopGenerate();
+        this.generatedTags = []
         this.tags.push(tag);
-        this.gpt.generate(this.tags);
+        this.gpt.generate(this.tags, this.customization.getSystemPrompt(), this.customization.getRemembrancePrompt());
       }
     }
     else {
       console.log("\n🧠 SAMANTHA IS NOT THINKING...");
-      
-      this.newTags = []
+
+      const tag = new Tag("USER", "MESSAGE", text);
+
       this.tags.push(tag);
-      this.gpt.generate(this.tags);
-    }
+      this.gpt.generate(this.tags, this.customization.getSystemPrompt(), this.customization.getRemembrancePrompt());
+      }
   }
+
+
+  // Section - Customizinig Samantha
+
+  public thinkBeforeMessage(arr : ThinkingObject[]) {
+    this.customization.thinkBeforeMessage(arr);
+  }
+
+  public thinkAfterMessage(arr : ThinkingObject[]) {
+    this.customization.thinkAfterMessage(arr);
+  }
+
+
 }
-
-
-
-//Configuration
