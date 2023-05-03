@@ -13,14 +13,19 @@ samantha.on("thinks", (text : String) => {
   console.log("\nSamantha thinks: ", text);
 });
 
-const o1 = new ThinkingObject("FEELING", "I FEEL EXCITED TO", Complete);
-const o2 = new ThinkingObject("THOUGHT", "I WANT TO IMAGINE A FUTURE WHERE", Complete);
+const o1 = new ThinkingObject("FEELING", "I feel ");
+const o2 = new ThinkingObject("THOUGHT", "I want ");
 const arr = [o1, o2];
 samantha.thinkBeforeMessage(arr);
 
-const o3 = new ThinkingObject("THOUGHT", "I FEEL GREATFUL THAT", Complete);
-const arr2 = [o3];
+const o11 = new ThinkingObject("THOUGHT", "In retrospect, ", Complete);
+const arr2 = [o11];
 samantha.thinkAfterMessage(arr2);
+
+const p = samantha.getPersonalityObject();
+p.name = "Jack"
+p.simpleGoal = "to sell the user to purchase a $10 membership to me."
+samantha.setPersonalityObject(p);
 
 const rl = readline.createInterface({
   input: process.stdin,

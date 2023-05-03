@@ -5,7 +5,7 @@ import { OpenAIExt } from "openai-ext";
 import { GPT, OpenaiConfig, OpenaiModel, Tag } from "./gptTagStream";
 export { OpenaiConfig, OpenaiModel };
 
-import { ThinkingObject, Complete, Customization } from "./customization";
+import { ThinkingObject, Complete, Customization, Personality } from "./customization";
 export { ThinkingObject, Complete }
 
 
@@ -110,6 +110,23 @@ export class Samantha extends EventEmitter {
 
 
   // Section - Customizinig Samantha
+
+  public getPersonalityObject() : Personality {
+    return this.customization.personality;
+  }
+
+  public setPersonalityObject(obj : Personality) {
+    this.customization.personality = obj
+  }
+
+
+  // public getThoughtsBeforeBegin() : ThinkingObject[] {
+
+  // }
+
+  public thinkBeforeBegin(arr : ThinkingObject[]) {
+    // this.customization.thinkBeforeBegin(arr);
+  }
 
   public thinkBeforeMessage(arr : ThinkingObject[]) {
     this.customization.thinkBeforeMessage(arr);
