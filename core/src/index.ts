@@ -1,20 +1,22 @@
 import { EventEmitter } from "events";
-import { Configuration, OpenAIApi } from "openai";
-import { OpenAIExt } from "openai-ext";
 
-import { GPT, OpenaiConfig, OpenaiModel, Tag } from "./gptTagStream";
+import { GPT, OpenaiConfig, OpenaiModel, Tag } from "./gptStream";
 export { OpenaiConfig, OpenaiModel };
 
-import { ThinkingObject, Complete, Customization, Personality } from "./customization";
-export { ThinkingObject, Complete }
+import { Personality, SamanthaPersonality } from "./personality";
+
+import { Thoughts, Complete, ThoughtPattern, ThoughtTiming } from "./thoughts";
+export { Complete, ThoughtPattern, ThoughtTiming }
 
 
+//TO DO: Turn Tags into Thoughts. Turn Thoughts into ThoughtPatterns
+export class Soul extends EventEmitter {
 
-export class Samantha extends EventEmitter {
-
-  private config : OpenaiConfig;
+  private config: OpenaiConfig;
   private gpt: GPT;
-  private customization : Customization;
+
+  private personality: Personality = new Personality()
+  private thoughts: Thoughts = new Thoughts()
 
   private tags: Tag[] = [];
   private generatedTags: Tag[] = [];
@@ -24,7 +26,6 @@ export class Samantha extends EventEmitter {
     super();
     this.config = config;
     this.gpt = new GPT(config);
-    this.customization = new Customization();
 
     this.gpt.on("tag", (tag: Tag) => {
       this.onNewTag(tag);
@@ -34,17 +35,50 @@ export class Samantha extends EventEmitter {
     })
   }
 
-  // Section - Utility
+  //TO DO: Document
+  public updatePersonality(obj : Partial<Personality>) {
+    Object.assign(this.personality, obj);
+  }
 
+  //TO DO: Document
+  public from(personalityType : string) : void {
+    //TO DO: FIX
+    if (personalityType.toUpperCase() === "SAMANTHA") {
+      this.personality = new SamanthaPersonality();
+    } else {
+      throw new Error("Invalid Personality Enum");
+    }
+  }
+
+  //TO DO: Document
+  public updateThoughts(timing : ThoughtTiming, pattern : ThoughtPattern[]) {
+    switch (timing) {
+      case ThoughtTiming.THOUGHTS_BEFORE_INTRO:
+        this.thoughts.thoughtsBeforeIntro = pattern
+        break;
+      case ThoughtTiming.THOUGHTS_AFTER_INTRO:
+        this.thoughts.thoughtsAfterIntro = pattern
+        break;
+      case ThoughtTiming.THOUGHTS_BEFORE_SPEAKING:
+        this.thoughts.thoughtsBeforeSpeaking = pattern
+        break;
+      case ThoughtTiming.THOUGHTS_AFTER_SPEAKING:
+        this.thoughts.thoughtsAfterSpeaking = pattern
+        break;
+      default:
+        throw new Error("Invalid ThoughtTiming Enum");
+    }
+  }
+
+  //TO DO: Document
   public reset() {
     this.gpt.stopGenerate()
     this.tags = []
     this.msgQueue = []
     this.generatedTags = []
   }
-
-  // Section - Conversation between User and Samantha
-
+  
+  //TO DO: Document
   private onNewTag(tag: Tag) {
     this.generatedTags.push(tag);
 
@@ -72,69 +106,40 @@ export class Samantha extends EventEmitter {
       this.tags = this.tags.concat(msgTags);
       this.msgQueue = [];
 
-      this.gpt.generate(this.tags, this.customization.getSystemPrompt(), this.customization.getRemembrancePrompt());
+      this.gpt.generate(this.tags, this.personality.createSystemPrompt(), this.thoughts.createRememberancePrompt());
     }
   }
 
   public tell(text: string): void {
 
+    const tag = new Tag("User", "Message", text);
+
     if (this.gpt.isGenerating() === true) {
-      console.log("\n🧠 SAMANTHA IS THINKING...");
+      console.log("\n🧠 Soul is Thinking...");
 
-      const isThinkingAfterMessage = this.generatedTags.some(tag => tag?.isTypeMessage());
+      const isThinkingBeforeSpeaking = (this.generatedTags.some(tag => tag?.isTypeMessage()) === false);
 
-      if (isThinkingAfterMessage) {
-        console.log("\n🔥SAMANTHA IS THINKING AFTER MESSAGE: ")
+      if (isThinkingBeforeSpeaking) {
+        console.log("\n🔥SOUL is thinking before speaking")
         this.msgQueue.push(text);
       }
       else {
-        console.log("\n🔥SAMANTHA IS THINKING BEFORE MESSAGE: ")
-
-        const tag = new Tag("USER", "MESSAGE", text);
+        console.log("\n🔥SOUL is thinking after speaking")
 
         this.gpt.stopGenerate();
         this.generatedTags = []
         this.tags.push(tag);
-        this.gpt.generate(this.tags, this.customization.getSystemPrompt(), this.customization.getRemembrancePrompt());
+        this.gpt.generate(this.tags, this.personality.createSystemPrompt(), this.thoughts.createRememberancePrompt());
       }
     }
     else {
-      console.log("\n🧠 SAMANTHA IS NOT THINKING...");
-
-      const tag = new Tag("USER", "MESSAGE", text);
+      console.log("\n🧠 Soul is not thinking...");
 
       this.tags.push(tag);
-      this.gpt.generate(this.tags, this.customization.getSystemPrompt(), this.customization.getRemembrancePrompt());
-      }
+      this.gpt.generate(this.tags, this.personality.createSystemPrompt(), this.thoughts.createRememberancePrompt());
+    }
   }
 
-
-  // Section - Customizinig Samantha
-
-  public getPersonalityObject() : Personality {
-    return this.customization.personality;
-  }
-
-  public setPersonalityObject(obj : Personality) {
-    this.customization.personality = obj
-  }
-
-
-  // public getThoughtsBeforeBegin() : ThinkingObject[] {
-
-  // }
-
-  public thinkBeforeBegin(arr : ThinkingObject[]) {
-    // this.customization.thinkBeforeBegin(arr);
-  }
-
-  public thinkBeforeMessage(arr : ThinkingObject[]) {
-    this.customization.thinkBeforeMessage(arr);
-  }
-
-  public thinkAfterMessage(arr : ThinkingObject[]) {
-    this.customization.thinkAfterMessage(arr);
-  }
 
 
 }

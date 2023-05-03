@@ -128,7 +128,10 @@ export class GPT extends EventEmitter {
 
                     // console.log("🌵", content, "🌵");
 
-                    let newTags = this.extractTags(content);
+                    //TO DO: Fix Bug where content ends on non-closing bracket.
+
+                    let newTags = this.extractTags(content.replace(/(\r\n|\n|\r)/gm, ""));
+                    // console.log("🔥", newTags);
                     let diffTags = this.getUniqueTags(newTags, this.oldTags)
                     this.oldTags = newTags;
                     diffTags.forEach(diffTag => {
