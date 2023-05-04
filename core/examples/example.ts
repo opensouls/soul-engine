@@ -1,10 +1,12 @@
 import * as readline from "readline";
 import { Soul, OpenaiConfig, OpenaiModel, Personality, Personalities } from "../src/index";
 
+const config = new OpenaiConfig({ apiKey: "...", model: OpenaiModel.gpt_3_5_turbo });
 
-// const config = new OpenaiConfig({ apiKey: "...", model: OpenaiModel.gpt_3_5_turbo });
 
-const personality = Personalities.Dustin;
+let personality = Personalities.Samantha;
+personality = new Personality("...", "...", "...", "...")
+
 const soul = new Soul(personality);
 
 soul.on("says", (text : String) => {

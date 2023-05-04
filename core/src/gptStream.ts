@@ -175,7 +175,9 @@ export class GPT extends EventEmitter {
         const initialMessages = tags.map(tag => {
             let content = tag.text;
             if (tag.isRoleAssistant()) {
-                content = `<${tag.type}>${tag.text}</${tag.type}>`;
+                content = `<${tag.type}>
+                ${tag.text}
+                </${tag.type}>`;
             }
             return {
                 role: tag.role.toLowerCase(),
@@ -233,7 +235,7 @@ export class GPT extends EventEmitter {
 
         for (const match of matches) {
             const [fullTag, tag, content] = match;
-            const completeTag = `<${tag}>${content}</${tag}>`;
+            //<${tag}>${content}</${tag}>
             const extractedTag = new Tag("assistant", tag, content);
             extractedTags.push(extractedTag);
         }
