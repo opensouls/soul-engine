@@ -15,6 +15,30 @@ This repo exists to solve problems all the way across the stack, including:
 - How do I manage dialog and cognitive memory?
 - How do I get away from boring technical details and instead sculpt personalities?
 
+## Hosted example
+
+Check out [Meet Samantha](http://meetsamantha.ai)
+
+Running off SocialAGI
+
+```
+import { Samantha } from "socialagi";
+
+const samantha = new Samantha();
+
+samantha.on("says", (text : String) => {
+  console.log("\nSamantha says: ", text);
+});
+
+samantha.on("thinks", (text : String) => {
+  console.log("\nSamantha thinks: ", text);
+});
+
+samantha.tell("Hi Samantha!")
+```
+
+<img width="500" alt="image" src="https://user-images.githubusercontent.com/8204988/236294504-a41af71f-bccf-44e5-b02a-60ab51982ccd.png">
+
 ## Repo structure
 
 The repository has three main components
@@ -25,9 +49,9 @@ The repository has three main components
 /server
 ```
 
-- `/core` contains the [`socialagi` NPM package source](https://www.npmjs.com/package/socialagi)
-- `/devtools` contains the [`socialagi-devtools` NPM package source](https://www.npmjs.com/package/socialagi-devtools)
-- `/server` contains the [`create-socialagi-server` NPM package source](https://www.npmjs.com/package/create-socialagi-server)
+- `/core` contains the library [`socialagi` NPM package source](https://www.npmjs.com/package/socialagi)
+- `/devtools` contains the devtools [`socialagi-devtools` NPM package source](https://www.npmjs.com/package/socialagi-devtools)
+- `/server` contains the server [`create-socialagi-server` NPM package source](https://www.npmjs.com/package/create-socialagi-server)
 
 The core library stands on its own, however, the devtools and server packages make it easy to get started on a production-ready project.
 
