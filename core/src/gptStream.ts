@@ -2,6 +2,8 @@ import { EventEmitter } from "events";
 import { Configuration, OpenAIApi } from "openai";
 import { OpenAIExt } from "openai-ext";
 
+import { devLog } from "./utils";
+
 
 //SAMANTHA AI
 
@@ -126,12 +128,9 @@ export class GPT extends EventEmitter {
             handler: {
                 onContent: (content: string, isFinal: boolean, stream: any) => {
 
-                    // console.log("🌵", content, "🌵");
-
                     //TO DO: Fix Bug where content ends on non-closing bracket.
 
                     let newTags = this.extractTags(content.replace(/(\r\n|\n|\r)/gm, ""));
-                    // console.log("🔥", newTags);
                     let diffTags = this.getUniqueTags(newTags, this.oldTags)
                     this.oldTags = newTags;
                     diffTags.forEach(diffTag => {
@@ -143,13 +142,13 @@ export class GPT extends EventEmitter {
                     this.stopGenerate();
                 },
                 onError: (error: Error, stream: any) => {
-                    // console.error("Openai Stream Error: ", error);
+                    console.error("Openai Stream Error: ", error);
                 },
             },
         };
 
         const messages = this.tagsToMessages(tags, systemPrompt, remembrancePrompt);
-        console.log("\n<🫥\n", messages, "\n🫥>\n")
+        devLog("\n💬\n" + messages + "\n💬\n")
 
         const openaiStreamResponse = await OpenAIExt.streamServerChatCompletion(
             {
@@ -228,7 +227,7 @@ export class GPT extends EventEmitter {
 
     private extractTags(content: string): Tag[] {
 
-        const regex = /<([A-Z]+)>(.*?)<\/\1>/g;
+        const regex = /<([A-Za-z0-9\s]+)>(.*?)<\/\1>/g;
         const matches = content.matchAll(regex);
         const extractedTags = [];
 
