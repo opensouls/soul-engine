@@ -11,7 +11,7 @@ personality = Personalities.Eileen
 
 personality = { name: "...", shortPersonality: "...", longPersonality: "...", initialPlan: "..." }
 
-personality = Personalities.Samantha
+personality = Personalities.Samantha;
 
 const soul = new Soul(personality);
 

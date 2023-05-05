@@ -272,5 +272,5 @@ export const Personalities = {
   Dustin: DUSTIN,
   Page: PAGE,
   Reggie: REGGIE,
-  Eileen: EILEEN,
+  Eileen: EILEEN
 };

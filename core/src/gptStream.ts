@@ -183,8 +183,8 @@ export class GPT extends EventEmitter {
       let content = tag.text;
       if (tag.isRoleAssistant()) {
         content = `<${tag.type}>
-                ${tag.text}
-                </${tag.type}>`;
+${tag.text}
+</${tag.type}>`;
       }
       return {
         role: tag.role.toLowerCase(),
@@ -234,12 +234,10 @@ export class GPT extends EventEmitter {
         content: systemPrompt,
       },
     ].concat(finalMessages);
-    if (truncatedMessages.length > 0) {
-      finalMessages = finalMessages.concat({
+    finalMessages = finalMessages.concat({
         role: "system",
         content: remembrancePrompt,
       });
-    }
     return finalMessages;
   }
 
