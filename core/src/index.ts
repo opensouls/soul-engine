@@ -1,5 +1,5 @@
-import { OpenaiConfig, OpenaiModel } from "./gptStream";
-export { OpenaiConfig, OpenaiModel };
+import { OpenAIConfig, OpenAIModel } from "./gptStream";
+export { OpenAIConfig, OpenAIModel };
 
 import { Soul } from "./soul";
 export { Soul };

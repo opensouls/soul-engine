@@ -1,25 +1,33 @@
 import * as readline from "readline";
-import { Soul, OpenaiConfig, OpenaiModel, Personality, Personalities } from "../src/index";
+import { OpenAIConfig, OpenAIModel, Personalities, Soul } from "../src";
 
-const config = new OpenaiConfig({ apiKey: "...", model: OpenaiModel.gpt_3_5_turbo });
+const config = new OpenAIConfig({
+  apiKey: "...",
+  model: OpenAIModel.gpt_3_5_turbo,
+});
 
 let personality = Personalities.Samantha;
-personality = Personalities.Dustin
-personality = Personalities.Page
-personality = Personalities.Reggie
-personality = Personalities.Eileen
+personality = Personalities.Dustin;
+personality = Personalities.Page;
+personality = Personalities.Reggie;
+personality = Personalities.Eileen;
 
-personality = { name: "...", shortPersonality: "...", longPersonality: "...", initialPlan: "..." }
+personality = {
+  name: "...",
+  shortPersonality: "...",
+  longPersonality: "...",
+  initialPlan: "...",
+};
 
 personality = Personalities.Samantha;
 
 const soul = new Soul(personality);
 
-soul.on("says", (text: String) => {
+soul.on("says", (text: string) => {
   console.log("👱", personality.name, " says: ", text);
 });
 
-soul.on("thinks", (text: String) => {
+soul.on("thinks", (text: string) => {
   console.log("👱", personality.name, " thinks: ", text);
 });
 
@@ -28,20 +36,17 @@ const rl = readline.createInterface({
   output: process.stdout,
 });
 
-console.log('- Type a message to send to Soul\n- Type "reset" to reset\n- Type "exit" to quit\n');
+console.log(
+  '- Type a message to send to Soul\n- Type "reset" to reset\n- Type "exit" to quit\n'
+);
 
 rl.on("line", async (line) => {
   if (line.toLowerCase() === "exit") {
     rl.close();
-  }
-  else if (line.toLowerCase() === "reset") {
+  } else if (line.toLowerCase() === "reset") {
     soul.reset();
-  }
-  else {
+  } else {
     const text: string = line;
     soul.tell(text);
   }
 });
-
-
-

@@ -1,6 +1,6 @@
 const { setupEventStream } = require("./utils");
 
-const { Samantha, OpenaiConfig } = require("socialagi");
+const { Samantha, OpenAIConfig } = require("socialagi");
 const express = require("express");
 const cors = require("cors");
 
@@ -10,7 +10,7 @@ app.use(cors());
 const SOCIALAGI_PORT = process.env.SOCIALAGI_PORT || 5001;
 const API_KEY = process.env.OPENAI_API_KEY;
 
-const config = new OpenaiConfig({ apiKey: API_KEY });
+const config = new OpenAIConfig({ apiKey: API_KEY });
 const samantha = new Samantha(config);
 
 app.listen(SOCIALAGI_PORT, () => {

@@ -49,18 +49,18 @@ export class Tag {
 
 //OPEN AI
 
-export enum OpenaiModel {
+export enum OpenAIModel {
   gpt_4 = "gpt-4",
   gpt_3_5_turbo = "gpt-3.5-turbo",
 }
 
-export class OpenaiConfig {
+export class OpenAIConfig {
   apiKey: string;
-  model: OpenaiModel;
+  model: OpenAIModel;
 
-  constructor(config?: Partial<OpenaiConfig>) {
+  constructor(config?: Partial<OpenAIConfig>) {
     this.apiKey = config?.apiKey || process.env.OPENAI_API_KEY || "";
-    this.model = config?.model || OpenaiModel.gpt_3_5_turbo;
+    this.model = config?.model || OpenAIModel.gpt_3_5_turbo;
     if (!this.apiKey) {
       throw new Error(
         "API key not provided and not found in environment variables."
@@ -75,12 +75,12 @@ interface OpenaiMessage {
 }
 
 export class GPT extends EventEmitter {
-  private openaiConfig: OpenaiConfig;
+  public OpenAIConfig: OpenAIConfig;
   private stream: any = null;
 
-  constructor(config: OpenaiConfig) {
+  constructor(config: OpenAIConfig) {
     super();
-    this.openaiConfig = config;
+    this.OpenAIConfig = config;
   }
 
   private emitTagEvent(tag: Tag) {
@@ -116,8 +116,8 @@ export class GPT extends EventEmitter {
     systemPrompt: string,
     remembrancePrompt: string
   ) {
-    const apiKey = this.openaiConfig.apiKey;
-    const model = this.openaiConfig.model;
+    const apiKey = this.OpenAIConfig.apiKey;
+    const model = this.OpenAIConfig.model;
 
     const configuration = new Configuration({ apiKey });
     const openaiApi = new OpenAIApi(configuration);
@@ -126,7 +126,7 @@ export class GPT extends EventEmitter {
       openai: openaiApi,
       handler: {
         onContent: (content: string, isFinal: boolean, stream: any) => {
-          //TO DO: Fix Bug where content ends on non-closing bracket.
+          //TODO: Fix Bug where content ends on non-closing bracket.
 
           const newTags = this.extractTags(
             content.replace(/(\r\n|\n|\r)/gm, "")
@@ -182,9 +182,7 @@ export class GPT extends EventEmitter {
     const initialMessages = tags.map((tag) => {
       let content = tag.text;
       if (tag.isRoleAssistant()) {
-        content = `<${tag.type}>
-${tag.text}
-</${tag.type}>`;
+        content = `<${tag.type}>${tag.text}</${tag.type}>\n`;
       }
       return {
         role: tag.role.toLowerCase(),
@@ -234,10 +232,12 @@ ${tag.text}
         content: systemPrompt,
       },
     ].concat(finalMessages);
-    finalMessages = finalMessages.concat({
+    if (truncatedMessages.length > 0) {
+      finalMessages = finalMessages.concat({
         role: "system",
         content: remembrancePrompt,
       });
+    }
     return finalMessages;
   }
 
