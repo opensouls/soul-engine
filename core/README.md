@@ -118,7 +118,7 @@ const SAMANTHA: Personality = {
   initialPlan: "...",
 }
 ```
-definitely check out the examples for what quality descriptions of [personalities](./src/personality.ts) look like.
+definitely check out the examples for what quality descriptions of [personalities](https://github.com/Methexis-Inc/SocialAGI/blob/main/core/src/personality.ts) look like.
 
 ### OpenAIConfig
 
