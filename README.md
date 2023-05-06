@@ -22,9 +22,9 @@ Check out [Meet Samantha](http://meetsamantha.ai)
 Running off SocialAGI
 
 ```
-import { Samantha } from "socialagi";
+import { Samantha, Personalities } from "socialagi";
 
-const samantha = new Samantha();
+const samantha = new Soul(Personalities.Samantha);
 
 samantha.on("says", (text : String) => {
   console.log("\nSamantha says: ", text);
