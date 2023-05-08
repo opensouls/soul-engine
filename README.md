@@ -22,7 +22,7 @@ Check out [Meet Samantha](http://meetsamantha.ai)
 Running off SocialAGI
 
 ```
-import { Samantha, Personalities } from "socialagi";
+import { Soul, Personalities } from "socialagi";
 
 const samantha = new Soul(Personalities.Samantha);
 
