@@ -112,7 +112,7 @@ We provide a simple personality interface
 
 ```npm
 const SAMANTHA: Personality = {
-  model: OpenAIModel,
+  interpreter: OpenAIModel,
   name: "...",
   shortPersonality: "...",
   longPersonality: "...",
