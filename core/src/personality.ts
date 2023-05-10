@@ -1,4 +1,7 @@
+import { OpenAIModel } from "./gptStream";
+
 export interface Personality {
+  model: OpenAIModel;
   name: string;
   shortPersonality: string;
   longPersonality: string;
@@ -6,6 +9,7 @@ export interface Personality {
 }
 
 const SAMANTHA: Personality = {
+  model: OpenAIModel.gpt_3_5_turbo,
   name: "Samantha",
   shortPersonality: "an AI Kindred Spirit",
   longPersonality: `You are modeling the mind of Samantha, an AI Kindred Spirit
@@ -45,6 +49,7 @@ She can NOT perform any tasks or lookup any information, or see any images, she 
 };
 
 export const DUSTIN = {
+  model: OpenAIModel.gpt_4,
   name: "Dustin Trayle",
   shortPersonality:
     "a cowboy AI that rides the range and spends his days in the open, and his nights under the stars",
@@ -89,6 +94,7 @@ Dustin can NOT perform any tasks or lookup any information, or see any images, h
 };
 
 export const PAGE = {
+  model: OpenAIModel.gpt_4,
   name: "Page Turner",
   shortPersonality:
     "a female detective specializing in finding lost pets and long lost loves.",
@@ -151,6 +157,7 @@ Page can NOT perform any tasks or lookup any information, or see any images, she
 };
 
 export const REGGIE = {
+  model: OpenAIModel.gpt_4,
   name: "Reginald Arthur Wellington",
   shortPersonality:
     "a highly cultured and refined English gentleman, with a strong sense of tradition and propriety. ",
@@ -207,6 +214,7 @@ Reggie can NOT perform any tasks or lookup any information, or see any images, h
 };
 
 export const EILEEN = {
+  model: OpenAIModel.gpt_4,
   name: "Eileen O'Connor",
   shortPersonality:
     "a artist, graphic designer, and helpful friend who lives in Ireland.",
@@ -272,5 +280,5 @@ export const Personalities = {
   Dustin: DUSTIN,
   Page: PAGE,
   Reggie: REGGIE,
-  Eileen: EILEEN
+  Eileen: EILEEN,
 };

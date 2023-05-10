@@ -3,7 +3,6 @@ import { OpenAIConfig, OpenAIModel, Personalities, Soul } from "../src";
 
 const config = new OpenAIConfig({
   apiKey: "...",
-  model: OpenAIModel.gpt_3_5_turbo,
 });
 
 let personality = Personalities.Samantha;
@@ -13,6 +12,7 @@ personality = Personalities.Reggie;
 personality = Personalities.Eileen;
 
 personality = {
+  model: OpenAIModel.gpt_3_5_turbo,
   name: "...",
   shortPersonality: "...",
   longPersonality: "...",

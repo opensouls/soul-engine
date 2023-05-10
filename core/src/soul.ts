@@ -18,7 +18,11 @@ export class Soul extends EventEmitter {
 
   constructor(personality: Personality, config?: OpenAIConfig) {
     super();
-    const openAIConfig: OpenAIConfig = config || new OpenAIConfig();
+    if (!config?.model && personality?.model) {
+      config?.updateModel(personality.model);
+    }
+    const openAIConfig: OpenAIConfig =
+      config || new OpenAIConfig({ model: personality.model });
     this.gpt = new GPT(openAIConfig);
 
     this.personality = personality;

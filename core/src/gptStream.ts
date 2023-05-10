@@ -67,6 +67,10 @@ export class OpenAIConfig {
       );
     }
   }
+
+  public updateModel(newModel: OpenAIModel) {
+    this.model = newModel;
+  }
 }
 
 interface OpenaiMessage {

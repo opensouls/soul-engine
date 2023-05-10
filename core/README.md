@@ -112,13 +112,14 @@ We provide a simple personality interface
 
 ```npm
 const SAMANTHA: Personality = {
+  model: OpenAIModel,
   name: "...",
   shortPersonality: "...",
   longPersonality: "...",
   initialPlan: "...",
 }
 ```
-definitely check out the examples for what quality descriptions of [personalities](https://github.com/Methexis-Inc/SocialAGI/blob/main/core/src/personality.ts) look like.
+definitely check out the examples for what quality descriptions of [personalities](https://github.com/Methexis-Inc/SocialAGI/blob/main/core/src/personality.ts) look like. One important point to note is that the specific model is required to fix the personality.
 
 ### OpenAIConfig
 
@@ -126,7 +127,7 @@ A `Soul` constructor takes an optional config object. By default, GPT 3.5 turbo 
 
 ```npm
 const config = OpenAIConfig({
-  model: OpenAIModel.gpt_3_5_turbo
   apiKey: "sk_..."
 })
 ```
+the config also takes an optional `model: OpenAIModel` to override the model specified in a personality config. **WARNING: this may cause unexpected entities to emerge. The specific model fixes the personality.**
