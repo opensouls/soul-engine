@@ -123,7 +123,7 @@ definitely check out the examples for what quality descriptions of [personalitie
 
 ### OpenAIConfig
 
-A `Soul` constructor takes an optional config object. By default, GPT 3.5 turbo is selected, and the apiKey is filled via environment variable `OPENAI_API_KEY`
+A `Soul` constructor takes an optional config object. By default, the apiKey is filled via environment variable `OPENAI_API_KEY`
 
 ```npm
 const config = OpenAIConfig({
