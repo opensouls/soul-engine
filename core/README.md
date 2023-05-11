@@ -34,6 +34,18 @@ As you might imagine, there's a bunch of small complexities with developing digi
 
 This library provides tools to easily sculpt digital souls.
 
+## !!! WARNING !!!
+
+Our intent is to empower developers with an incredible tool. This means that the tools in this project allow for logically consistent modeling of nearly any cognitive mind or mental processes, including across the full range of human emotion.
+
+If you are developing a soul, speaking to one, or deploying in production, there are application-dependent risks you should consider. In one case, if you just lost your grandparent, a virtual version of your grandparent might be exactly what you need. For another person, this soul recreation might be deeply troubling.
+
+The technology is quite new and creating a soul, especially one modeled on a real person (living or dead) can have unforseen consequences to those talking with it, and we take no responsibility for anything that might happen.
+
+While developer tools are on our roadmap to help mitigate these risks, we do not currently offer any solutions. Please take appropriate precautions when using the technology in this project.
+
+As made clear in the license, the software is provided without any form of warranty or liability of any kind.
+
 ## Features
 
 - Flexible API for tuning the personality of digital souls
