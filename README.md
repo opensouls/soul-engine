@@ -15,18 +15,6 @@ This repo exists to solve problems all the way across the stack, including:
 - How do I manage dialog and cognitive memory?
 - How do I get away from boring technical details and instead sculpt personalities?
 
-## !!! WARNING !!!
-
-Our intent is to empower developers with an incredible tool. This means that the tools in this project allow for logically consistent modeling of nearly any cognitive mind or mental processes, including across the full range of human emotion.
-
-If you are developing a soul, speaking to one, or deploying in production, there are application-dependent risks you should consider. In one case, if you just lost your grandparent, a virtual version of your grandparent might be exactly what you need. For another person, this soul recreation might be deeply troubling.
-
-The technology is quite new and creating a soul, especially one modeled on a real person (living or dead) can have unforseen consequences to those talking with it, and we take no responsibility for anything that might happen.
-
-While developer tools are on our roadmap to help mitigate these risks, we do not currently offer any solutions. Please take appropriate precautions when using the technology in this project.
-
-As made clear in the license, the software is provided without any form of warranty or liability of any kind.
-
 ## Hosted example
 
 Check out [Meet Samantha](http://meetsamantha.ai)
@@ -51,7 +39,7 @@ samantha.tell("Hi Samantha!")
 
 <img width="500" alt="image" src="https://user-images.githubusercontent.com/8204988/236294504-a41af71f-bccf-44e5-b02a-60ab51982ccd.png">
 
-## Repo structure
+## 📖 Repo structure
 
 The repository has three main components
 
@@ -67,7 +55,7 @@ The repository has three main components
 
 The core library stands on its own, however, the devtools and server packages make it easy to get started on a production-ready project.
 
-## Getting started
+## 🚀 Getting started
 
 The easiest way to get started developing with `socialagi` is to use [`create-socialagi-server` from the NPM release](https://www.npmjs.com/package/create-socialagi-server)
 
@@ -86,7 +74,7 @@ We'll need many new developments from:
 - Coherent theory of mind behind Social AGIs
 - Ways to test and debug Social AGIs
 
-## Philosophy
+## 💭 Philosophy
 
 This repo exists to research, build, and give life to Social AGIs together.
 
@@ -99,3 +87,23 @@ To realize this future, we'll need to build Social AGIs withs capacity to recogn
 While we're beginning to see the early stages of pro-social AGI behaviors, it's just the start of our journey - a journey that will define the future of our species and our relationship with machines.
 
 This repo serves as a starting point for building pro-social forms of intelligence, and we're excited to see what you might contribute along this journey. 
+
+## ⚠️ Your responsibility
+
+Our intent is to empower developers with an incredible tool. This means that the tools in this project allow for logically consistent modeling of nearly any cognitive mind or mental processes, including across the full range of human emotion.
+
+If you are developing a soul, speaking to one, or deploying in production, there are application-dependent risks you should consider. In one case, if someone lost their grandparent, a virtual version of their grandparent might be exactly what they need. For another person, this soul recreation might be deeply troubling.
+
+The technology is experimental and creating a soul, especially one modeled on a real person (living or dead) can have unforseen consequences to those talking with it, and the developers and contributors of this project take no responsibility for anything that might happen.
+
+While developer tools are on our roadmap to help you mitigate these risks, we do not currently offer any solutions. Please take appropriate precautions when using the technology in this project.
+
+## 🛡 Disclaimer
+
+This project, SocialAGI, is an experimental library and is provided "as-is" without any warranty, express or implied. By using this software, you agree to assume all risks associated with its use, including but not limited to changes in user mental cognition, emotional state, or any other issues that may arise.
+
+The owners, developers, contributors, and affiliates of this project do not accept any responsibility or liability for any losses, damages, or other consequences that may occur as a result of using this software. You are solely responsible for any decisions and actions taken based on the information provided by SocialAGI.
+
+Experimental souls from SocialAGI may generate content that is not in line with real-world legal requirements for your application. It is your responsibility to ensure that any content made based on the output of this software comply with all applicable laws, regulations, and ethical standards. The developers and contributors of this project shall not be held responsible for any consequences arising from the use of this software.
+
+By using SocialAGI, you agree to indemnify, defend, and hold harmless the owners, developers, contributors, and any affiliated parties from and against any and all claims, damages, losses, liabilities, costs, and expenses (including reasonable attorneys' fees) arising from your use of this software or your violation of these terms.
