@@ -4,9 +4,7 @@ import { OpenAIExt } from "openai-ext";
 
 import { devLog } from "./utils";
 
-//SAMANTHA AI
-
-export class Tag {
+export class Thought {
   role: string;
   type: string;
   text: string;
@@ -36,58 +34,35 @@ export class Tag {
     this.format();
   }
 
-  //Role:
   isRoleAssistant(): boolean {
     return this.role === "ASSISTANT";
   }
 
-  //Type:
   isTypeMessage(): boolean {
     return this.type === "MESSAGE";
   }
 }
 
-//OPEN AI
-
-export enum OpenAIModel {
+export enum LanguageProcessor {
   gpt_4 = "gpt-4",
   gpt_3_5_turbo = "gpt-3.5-turbo",
 }
 
-export class OpenAIConfig {
-  apiKey: string;
-  model: OpenAIModel;
-
-  constructor(config?: Partial<OpenAIConfig>) {
-    this.apiKey = config?.apiKey || process.env.OPENAI_API_KEY || "";
-    this.model = config?.model || OpenAIModel.gpt_3_5_turbo;
-    if (!this.apiKey) {
-      throw new Error(
-        "API key not provided and not found in environment variables."
-      );
-    }
-  }
-
-  public updateModel(newModel: OpenAIModel) {
-    this.model = newModel;
-  }
-}
-
-interface OpenaiMessage {
+interface Message {
   role: string;
   content: string;
 }
 
-export class GPT extends EventEmitter {
-  public OpenAIConfig: OpenAIConfig;
+export class LMStream extends EventEmitter {
   private stream: any = null;
+  private languageProcessor: LanguageProcessor;
 
-  constructor(config: OpenAIConfig) {
+  constructor(languageProcessor: LanguageProcessor) {
     super();
-    this.OpenAIConfig = config;
+    this.languageProcessor = languageProcessor;
   }
 
-  private emitTagEvent(tag: Tag) {
+  private emitThoughtEvent(tag: Thought) {
     this.emit("tag", tag);
   }
   private emitGeneratedEvent() {
@@ -114,14 +89,13 @@ export class GPT extends EventEmitter {
     }
   }
 
-  private oldTags: Tag[] = [];
+  private oldThoughts: Thought[] = [];
   public async generate(
-    tags: Tag[],
-    systemPrompt: string,
-    remembrancePrompt: string
+    thoughts: Thought[],
+    systemProgram: string,
+    remembranceProgram?: string
   ) {
-    const apiKey = this.OpenAIConfig.apiKey;
-    const model = this.OpenAIConfig.model;
+    const apiKey = process.env.OPENAI_API_KEY;
 
     const configuration = new Configuration({ apiKey });
     const openaiApi = new OpenAIApi(configuration);
@@ -129,34 +103,52 @@ export class GPT extends EventEmitter {
     const openaiStreamConfig = {
       openai: openaiApi,
       handler: {
-        onContent: (content: string, isFinal: boolean, stream: any) => {
-          //TODO: Fix Bug where content ends on non-closing bracket.
+        onContent: (content: string) => {
+          function extractThoughts(content: string): Thought[] {
+            const regex = /<([A-Za-z0-9\s_]+)>(.*?)<\/\1>/g;
+            const matches = content.matchAll(regex);
+            const extractedThoughts = [];
 
-          const newTags = this.extractTags(
+            for (const match of matches) {
+              const [_, tag, content] = match;
+              //<${tag}>${content}</${tag}>
+              const extractedThought = new Thought("assistant", tag, content);
+              extractedThoughts.push(extractedThought);
+            }
+
+            return extractedThoughts;
+          }
+          const newThoughts = extractThoughts(
             content.replace(/(\r\n|\n|\r)/gm, "")
           );
-          const diffTags = this.getUniqueTags(newTags, this.oldTags);
-          this.oldTags = newTags;
-          diffTags.forEach((diffTag) => {
-            this.emitTagEvent(diffTag);
+          const diffThoughts = this.getUniqueThoughts(
+            newThoughts,
+            this.oldThoughts
+          );
+          this.oldThoughts = newThoughts;
+          diffThoughts.forEach((diffThought) => {
+            this.emitThoughtEvent(diffThought);
           });
         },
-        onDone: (stream: any) => {
+        onDone: () => {
           this.emitGeneratedEvent();
           this.stopGenerate();
-        },
-        onError: (error: Error, stream: any) => {
-          console.error("Openai Stream Error: ", error);
         },
       },
     };
 
-    const messages = this.tagsToMessages(tags, systemPrompt, remembrancePrompt);
+    const messages = this.thoughtsToMessages(
+      thoughts,
+      systemProgram,
+      remembranceProgram
+    );
     devLog("\n💬\n" + messages + "\n💬\n");
 
+    // TODO: upstream lib parses stream chunks correctly but sometimes emits a spurious error
+    //   open PR to silence non-fatal errors in https://github.com/justinmahar/openai-ext
     const openaiStreamResponse = await OpenAIExt.streamServerChatCompletion(
       {
-        model: model,
+        model: this.languageProcessor,
         messages: messages,
       },
       openaiStreamConfig
@@ -165,25 +157,27 @@ export class GPT extends EventEmitter {
     this.stream = openaiStreamResponse.data;
   }
 
-  private getUniqueTags(newArray: Tag[], oldArray: Tag[]): Tag[] {
+  private getUniqueThoughts(
+    newArray: Thought[],
+    oldArray: Thought[]
+  ): Thought[] {
     return newArray.filter(
-      (newTag) =>
+      (newThought) =>
         !oldArray.some(
-          (oldTag) =>
-            newTag.role === oldTag.role &&
-            newTag.type === oldTag.type &&
-            newTag.text === oldTag.text
+          (oldThought) =>
+            newThought.role === oldThought.role &&
+            newThought.type === oldThought.type &&
+            newThought.text === oldThought.text
         )
     );
   }
 
-  private tagsToMessages(
-    tags: Tag[],
-    systemPrompt: string,
-    remembrancePrompt: string
-  ): OpenaiMessage[] {
-    // First, map each tag to an OpenaiMessage
-    const initialMessages = tags.map((tag) => {
+  private thoughtsToMessages(
+    thoughts: Thought[],
+    systemProgram: string,
+    remembranceProgram?: string
+  ): Message[] {
+    const initialMessages = thoughts.map((tag) => {
       let content = tag.text;
       if (tag.isRoleAssistant()) {
         content = `<${tag.type}>${tag.text}</${tag.type}>\n`;
@@ -191,12 +185,12 @@ export class GPT extends EventEmitter {
       return {
         role: tag.role.toLowerCase(),
         content: content,
-      } as OpenaiMessage;
+      } as Message;
     });
 
-    // Then, reduce the array of OpenaiMessages, merging consecutive messages with the same role
+    // Reduce the array of Messages, merging consecutive messages with the same role
     const reducedMessages = initialMessages.reduce(
-      (messages: OpenaiMessage[], currentMessage) => {
+      (messages: Message[], currentMessage) => {
         const previousMessage = messages[messages.length - 1];
         if (previousMessage && previousMessage.role === currentMessage.role) {
           previousMessage.content += currentMessage.content;
@@ -233,30 +227,15 @@ export class GPT extends EventEmitter {
     finalMessages = [
       {
         role: "system",
-        content: systemPrompt,
+        content: systemProgram,
       },
     ].concat(finalMessages);
-    if (truncatedMessages.length > 0) {
+    if (truncatedMessages.length > 0 && remembranceProgram !== undefined) {
       finalMessages = finalMessages.concat({
         role: "system",
-        content: remembrancePrompt,
+        content: remembranceProgram,
       });
     }
     return finalMessages;
-  }
-
-  private extractTags(content: string): Tag[] {
-    const regex = /<([A-Za-z0-9\s]+)>(.*?)<\/\1>/g;
-    const matches = content.matchAll(regex);
-    const extractedTags = [];
-
-    for (const match of matches) {
-      const [fullTag, tag, content] = match;
-      //<${tag}>${content}</${tag}>
-      const extractedTag = new Tag("assistant", tag, content);
-      extractedTags.push(extractedTag);
-    }
-
-    return extractedTags;
   }
 }

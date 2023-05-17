@@ -7,7 +7,8 @@
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "npm run build",
-    "test-example": "ts-node examples/example.ts"
+    "test-example": "ts-node examples/example.ts",
+    "test-example2": "ts-node examples/example2.ts"
   },
   "files": [
     "dist"
@@ -41,7 +42,7 @@
   "author": "SocialAGI",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "^18.16.2",
+    "@types/node": "^18.16.11",
     "@typescript-eslint/eslint-plugin": "^5.59.2",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.8.0",

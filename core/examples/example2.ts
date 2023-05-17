@@ -1,8 +1,16 @@
 import * as readline from "readline";
-import { Blueprints, Soul } from "../src";
+import { LanguageProcessor, Soul } from "../src";
+import { ThoughtFramework } from "../src/blueprint";
 
-const blueprint = Blueprints.SAMANTHA;
-const soul = new Soul(Blueprints.SAMANTHA);
+const blueprint = {
+  name: "James",
+  essence: "An emotionally focused therapist, always here to listen",
+  initialPlan: "Ask how the patient is feeling",
+  languageProcessor: LanguageProcessor.gpt_4,
+  thoughtFramework: ThoughtFramework.ReflectiveLP,
+};
+
+const soul = new Soul(blueprint);
 
 soul.on("says", (text: string) => {
   console.log("👱", blueprint.name, " says: ", text);

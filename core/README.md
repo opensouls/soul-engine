@@ -124,10 +124,10 @@ We provide a simple personality interface
 
 ```npm
 const SAMANTHA: Personality = {
-  interpreter: OpenAIModel,
+  interpreter: LanguageProcessor,
   name: "...",
-  shortPersonality: "...",
-  longPersonality: "...",
+  essence: "...",
+  personality: "...",
   initialPlan: "...",
 }
 ```
@@ -142,4 +142,4 @@ const config = OpenAIConfig({
   apiKey: "sk_..."
 })
 ```
-the config also takes an optional `model: OpenAIModel` to override the model specified in a personality config. **WARNING: this may cause unexpected entities to emerge. The specific model fixes the personality.**
+the config also takes an optional `model: LanguageProcessor` to override the model specified in a personality config. **WARNING: this may cause unexpected entities to emerge. The specific model fixes the personality.**
