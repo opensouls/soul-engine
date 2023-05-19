@@ -29,6 +29,14 @@ export class Soul extends EventEmitter {
     if (this.blueprint?.thoughtFramework === undefined) {
       this.blueprint.thoughtFramework = ThoughtFramework.Introspective;
     }
+    if (
+      this.blueprint.thoughtFramework === ThoughtFramework.ReflectiveLP &&
+      this.blueprint.languageProcessor !== LanguageProcessor.GPT_4
+    ) {
+      throw new Error(
+        "ReflectiveLP ThoughtFramework requires the GPT4 language processor"
+      );
+    }
 
     this.lmStream = new LMStream(this.blueprint.languageProcessor);
     this.lmStream.on("tag", (tag: Thought) => {

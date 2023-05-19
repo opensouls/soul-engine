@@ -44,8 +44,8 @@ export class Thought {
 }
 
 export enum LanguageProcessor {
-  gpt_4 = "gpt-4",
-  gpt_3_5_turbo = "gpt-3.5-turbo",
+  GPT_4 = "gpt-4",
+  GPT_3_5_turbo = "gpt-3.5-turbo",
 }
 
 interface Message {

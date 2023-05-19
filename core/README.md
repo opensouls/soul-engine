@@ -11,9 +11,9 @@
 then
 
 ```npm
-import { Soul, Personalities } from "socialagi";
+import { Soul, Blueprints } from "socialagi";
 
-const samantha = new Soul(Personalities.Samantha);
+const samantha = new Soul(Blueprints.SAMANTHA);
 
 samantha.on("says", (text : String) => {
   console.log("\nSamantha says: ", text);
@@ -34,18 +34,6 @@ As you might imagine, there's a bunch of small complexities with developing digi
 
 This library provides tools to easily sculpt digital souls.
 
-## !!! WARNING !!!
-
-Our intent is to empower developers with an incredible tool. This means that the tools in this project allow for logically consistent modeling of nearly any cognitive mind or mental processes, including across the full range of human emotion.
-
-If you are developing a soul, speaking to one, or deploying in production, there are application-dependent risks you should consider. In one case, if you just lost your grandparent, a virtual version of your grandparent might be exactly what you need. For another person, this soul recreation might be deeply troubling.
-
-The technology is quite new and creating a soul, especially one modeled on a real person (living or dead) can have unforseen consequences to those talking with it, and we take no responsibility for anything that might happen.
-
-While developer tools are on our roadmap to help mitigate these risks, we do not currently offer any solutions. Please take appropriate precautions when using the technology in this project.
-
-As made clear in the license, the software is provided without any form of warranty or liability of any kind.
-
 ## Features
 
 - Flexible API for tuning the personality of digital souls
@@ -63,10 +51,10 @@ The core functionality in `socialagi` is to create a `new Soul()`. `Soul` is the
 
 ## Soul class
 
-The soul class takes a required `Personality` and an optional `OpenAIConfig`. Several example personalities that work well are specified in `Personalities`, and are recommended as templates.
+The soul class takes a required soul `Blueprint`. Several example blueprints that work well are specified in `Blueprints`, and are recommended as templates.
 
 ```npm
-const samantha = new Soul(Personalities.Samantha);
+const samantha = new Soul(Blueprints.SAMANTHA);
 ```
 
 In this example, we created a new instance of a Soul with the personality "Samantha".
@@ -118,28 +106,92 @@ The reset method is used to clear the memory of the soul.
 samantha.reset();
 ```
 
-### Personality interface
+### Blueprint interface
 
-We provide a simple personality interface
+Each soul requires a blueprint
 
 ```npm
-const SAMANTHA: Personality = {
-  interpreter: LanguageProcessor,
-  name: "...",
-  essence: "...",
-  personality: "...",
-  initialPlan: "...",
+const SAMANTHA: Blueprint = {
+  name: string;
+  essence: ShortStringDescription;
+  personality?: LongStringDescription;
+  initialPlan?: string;
+  thoughtFramework?: ThoughtFramework;
+  languageProcessor: LanguageProcessor;
 }
 ```
-definitely check out the examples for what quality descriptions of [personalities](https://github.com/Methexis-Inc/SocialAGI/blob/main/core/src/personality.ts) look like. One important point to note is that the specific model is required to fix the personality.
+definitely check out the examples for what quality descriptions of [blueprints](https://github.com/opensouls/SocialAGI/blob/main/core/src/blueprint.ts) look like. One important point to note is that the specific model is required to fix the personality.
 
-### OpenAIConfig
+#### Essence
 
-A `Soul` constructor takes an optional config object. By default, the apiKey is filled via environment variable `OPENAI_API_KEY`
+Essence of the soul, e.g. "Samantha, An AI Kindred Spirit"
 
-```npm
-const config = OpenAIConfig({
-  apiKey: "sk_..."
-})
+#### InitialPlan
+
+Incept a first plan into the soul, e.g. "Say hello in a friendly manner"
+
+#### LanguageProcessor
+
+A `Blueprint` requires specification of a language processor. Currently, two are supported:
+
+`LanguageProcess.gpt4` OpenAI GPT-4
+
+`LanguageProcessor.GPT_3_5_turbo` OpenAI GPT-3.5-turbo
+
+The api key is filled via environment variable `OPENAI_API_KEY`.
+
+#### Thought Framework
+
+SocialAGI supports different thought frameworks. Thought frameworks markedly affect cognition and define a `Soul` processes their thoughts inbetween utterances. SocialAGI currently supports two frameworks.
+
+(1) `ThoughtFramework.Introspective`
+
+The `Introspective` framework runs the following thought pattern
+
 ```
-the config also takes an optional `model: LanguageProcessor` to override the model specified in a personality config. **WARNING: this may cause unexpected entities to emerge. The specific model fixes the personality.**
+I feel ...
+I want ...
+<message formation>
+[In retrospect,] I think ...
+```
+
+Introspection brings heavy focus on feelings and desire to drive agentic feeling dialog, and runs on both the GPT-3.5-turbo and GPT-4 language processors.
+
+Note: the language processors interpret personality specifications totally differently.
+
+(2) `ThoughtFramework.ReflectiveLP`
+
+The `ReflectiveLP` framework runs the following thought pattern
+
+```
+I feel ...
+I recall ...
+I think ...
+<message formation>
+In retropsect, ...
+I plan ...
+```
+
+ReflectiveLP only works with the GPT-4 language processor (currently), with the recall stage recurrently recalling prior plans. This yields a high degree of ability to attribute mental states and theory of mind to the conversant. 
+
+TODO: add paper link
+
+## ⚠️ Your responsibility
+
+Our intent is to empower developers with an incredible tool. This means that the tools in this project allow for logically consistent modeling of nearly any cognitive mind or mental processes, including across the full range of human emotion.
+
+If you are developing a soul, speaking to one, or deploying in production, there are application-dependent risks you should consider. In one case, if someone lost their grandparent, a virtual version of their grandparent might be exactly what they need. For another person, this soul recreation might be deeply troubling.
+
+The technology is experimental and creating a soul, especially one modeled on a real person (living or dead) can have unforseen consequences to those talking with it, and the developers and contributors of this project take no responsibility for anything that might happen.
+
+While developer tools are on our roadmap to help you mitigate these risks, we do not currently offer any solutions. Please take appropriate precautions when using the technology in this project.
+
+## 🛡 Disclaimer
+
+This project, SocialAGI, is an experimental library and is provided "as-is" without any warranty, express or implied. By using this software, you agree to assume all risks associated with its use, including but not limited to changes in user mental cognition, emotional state, or any other issues that may arise.
+
+The owners, developers, contributors, and affiliates of this project do not accept any responsibility or liability for any losses, damages, or other consequences that may occur as a result of using this software. You are solely responsible for any decisions and actions taken based on the information provided by SocialAGI.
+
+Experimental souls from SocialAGI may generate content that is not in line with real-world legal requirements for your application. It is your responsibility to ensure that any content made based on the output of this software comply with all applicable laws, regulations, and ethical standards. The developers and contributors of this project shall not be held responsible for any consequences arising from the use of this software.
+
+By using SocialAGI, you agree to indemnify, defend, and hold harmless the owners, developers, contributors, and any affiliated parties from and against any and all claims, damages, losses, liabilities, costs, and expenses (including reasonable attorneys' fees) arising from your use of this software or your violation of these terms.

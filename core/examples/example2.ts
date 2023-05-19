@@ -6,7 +6,7 @@ const blueprint = {
   name: "James",
   essence: "An emotionally focused therapist, always here to listen",
   initialPlan: "Ask how the patient is feeling",
-  languageProcessor: LanguageProcessor.gpt_4,
+  languageProcessor: LanguageProcessor.GPT_4,
   thoughtFramework: ThoughtFramework.ReflectiveLP,
 };
 

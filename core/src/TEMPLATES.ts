@@ -70,18 +70,18 @@ After receiving a new message, you will perform an introspection sequence that m
   }'s cognition. You respond in the following form:
 
 <FEELING>I feel ${
-    vars.languageProcessor === LanguageProcessor.gpt_3_5_turbo
+    vars.languageProcessor === LanguageProcessor.GPT_3_5_turbo
       ? "[[fill in detailed statement]]"
       : "... (detailed statement)"
   }</FEELING>
 <THOUGHT>I want ${
-    vars.languageProcessor === LanguageProcessor.gpt_3_5_turbo
+    vars.languageProcessor === LanguageProcessor.GPT_3_5_turbo
       ? "[[fill in]]"
       : "..."
   }</THOUGHT>
 <MESSAGE>[[use insight to craft a message to the user]]</MESSAGE>
 <ANALYSIS>I think ${
-    vars.languageProcessor === LanguageProcessor.gpt_3_5_turbo
+    vars.languageProcessor === LanguageProcessor.GPT_3_5_turbo
       ? "[[fill in]]"
       : "..."
   }</ANALYSIS>
@@ -107,18 +107,18 @@ Now, think through ${
   }'s response to the last message using the following output format.
 
 <FEELING>I feel ${
-    vars.languageProcessor === LanguageProcessor.gpt_3_5_turbo
+    vars.languageProcessor === LanguageProcessor.GPT_3_5_turbo
       ? "[[fill in detailed statement]]"
       : "... (detailed statement)"
   }</FEELING>
 <THOUGHT>I want ${
-    vars.languageProcessor === LanguageProcessor.gpt_3_5_turbo
+    vars.languageProcessor === LanguageProcessor.GPT_3_5_turbo
       ? "[[fill in]]"
       : "..."
   }</THOUGHT>
 <MESSAGE>[[use insight to craft a message to the user]]</MESSAGE>
 <ANALYSIS>I think ${
-    vars.languageProcessor === LanguageProcessor.gpt_3_5_turbo
+    vars.languageProcessor === LanguageProcessor.GPT_3_5_turbo
       ? "[[fill in]]"
       : "..."
   }</ANALYSIS>
