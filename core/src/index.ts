@@ -1,8 +1,8 @@
-import { OpenAIConfig, OpenAIModel } from "./gptStream";
-export { OpenAIConfig, OpenAIModel };
+import { LanguageProcessor } from "./lmStream";
+export { LanguageProcessor };
 
 import { Soul } from "./soul";
 export { Soul };
 
-import { Personality, Personalities } from "./personality";
-export { Personality, Personalities };
+import { Blueprint, Blueprints } from "./blueprint";
+export { Blueprint, Blueprints };
