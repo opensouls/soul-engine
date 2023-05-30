@@ -41,19 +41,15 @@ samantha.tell("Hi Samantha!")
 
 ## 📖 Repo structure
 
-The repository has three main components
+The repository has two main components
 
 ```
-/core
-/devtools
+/integrations
 /server
 ```
 
 - `/core` contains the library [`socialagi` NPM package source](https://www.npmjs.com/package/socialagi)
-- `/devtools` contains the devtools [`socialagi-devtools` NPM package source](https://www.npmjs.com/package/socialagi-devtools)
-- `/server` contains the server [`create-socialagi-server` NPM package source](https://www.npmjs.com/package/create-socialagi-server)
-
-The core library stands on its own, however, the devtools and server packages make it easy to get started on a production-ready project.
+- `/integrations/` contains examples of the library in action. Right now contains several stand-alone discord bot repos
 
 ## 🚀 Getting started
 

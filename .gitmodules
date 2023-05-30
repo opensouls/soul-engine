@@ -1,3 +1,6 @@
 [submodule "integrations/discord_bots/opensouls-discordbot"]
 	path = integrations/discord_bots/opensouls-discordbot
 	url = git@github.com:opensouls/opensouls-discordbot.git
+[submodule "integrations/discord_bots/samantha-discordbot"]
+	path = integrations/discord_bots/samantha-discordbot
+	url = git@github.com:opensouls/samantha-discordbot.git
