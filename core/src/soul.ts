@@ -156,23 +156,23 @@ export class Soul extends EventEmitter {
     }
 
     let truncatedMessages = initialMessages;
-    if (initialMessages.length > 30) {
-      if (initialMessages.length === 31) {
+    if (initialMessages.length > 10) {
+      if (initialMessages.length === 11) {
         truncatedMessages = initialMessages
           .slice(0, 1)
           .concat(initialMessages.slice(2));
-      } else if (initialMessages.length === 32) {
+      } else if (initialMessages.length === 12) {
         truncatedMessages = initialMessages
           .slice(0, 2)
           .concat(initialMessages.slice(3));
-      } else if (initialMessages.length === 33) {
+      } else if (initialMessages.length === 13) {
         truncatedMessages = initialMessages
           .slice(0, 3)
           .concat(initialMessages.slice(4));
       } else {
         truncatedMessages = initialMessages
           .slice(0, 3)
-          .concat(initialMessages.slice(-30));
+          .concat(initialMessages.slice(-10));
       }
     }
 
