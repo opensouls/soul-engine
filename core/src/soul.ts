@@ -75,6 +75,7 @@ export class Soul extends EventEmitter {
           Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
 
         const sendFollowup = () => this.emit("says", followupQuestion);
+        this.emit("thinking");
         setTimeout(sendFollowup, randomDelay);
       } else {
         this.emit("says", thought.memory.content);
