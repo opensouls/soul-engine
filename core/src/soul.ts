@@ -193,7 +193,7 @@ export class Soul extends EventEmitter {
   }
 
   private think() {
-    this.emit("thinking")
+    this.emit("thinking");
     devLog("🧠 SOUL is starting thinking...");
 
     let systemProgram, remembranceProgram, vars;
@@ -239,29 +239,7 @@ export class Soul extends EventEmitter {
       content: text,
     });
 
-    if (this.thoughtGenerator.isThinking()) {
-      devLog("🧠 SOUL is thinking...");
-
-      const isThinkingBeforeSpeaking = !this.generatedThoughts.some((thought) =>
-        thought?.isMessage()
-      );
-
-      if (isThinkingBeforeSpeaking) {
-        devLog("🧠 SOUL is thinking before speaking...");
-        this.msgQueue.push(text);
-      } else {
-        devLog("🧠 SOUL is thinking after speaking...");
-
-        this.thoughtGenerator.interrupt();
-        this.generatedThoughts = [];
-        this.thoughts.push(memory);
-        this.think();
-      }
-    } else {
-      devLog("🧠 SOUL is not thinking.");
-
-      this.thoughts.push(memory);
-      this.think();
-    }
+    this.thoughts.push(memory);
+    this.think();
   }
 }

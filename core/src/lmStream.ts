@@ -63,14 +63,12 @@ export class ThoughtGenerator extends EventEmitter {
   }
 
   public interrupt(): void {
-    if (this.stream) {
-      try {
-        this.stream.destroy();
-      } catch (error) {
-        console.error("Failed to destroy the stream:", error);
-      } finally {
-        this.stream = null;
-      }
+    try {
+      this.stream?.destroy();
+    } catch (error) {
+      console.error("Failed to destroy the stream:", error);
+    } finally {
+      this.stream = null;
     }
   }
 
@@ -78,14 +76,16 @@ export class ThoughtGenerator extends EventEmitter {
     return !(this.stream === null);
   }
 
-  private oldThoughts: Memory[] = [];
   public async generate(records: MRecord[]) {
+    if (this.stream !== null) return;
+    this.stream?.destroy();
     this.stream = undefined;
     const apiKey = process.env.OPENAI_API_KEY;
 
     const configuration = new Configuration({ apiKey });
     const openaiApi = new OpenAIApi(configuration);
 
+    let oldThoughts: Memory[] = [];
     const openaiStreamConfig = {
       openai: openaiApi,
       handler: {
@@ -112,11 +112,8 @@ export class ThoughtGenerator extends EventEmitter {
           const newThoughts = extractThoughts(
             content.replace(/(\r\n|\n|\r)/gm, "")
           );
-          const diffThoughts = this.getUniqueThoughts(
-            newThoughts,
-            this.oldThoughts
-          );
-          this.oldThoughts = newThoughts;
+          const diffThoughts = this.getUniqueThoughts(newThoughts, oldThoughts);
+          oldThoughts = newThoughts;
           diffThoughts.forEach((diffThought) => {
             this.emitThought(diffThought);
           });
