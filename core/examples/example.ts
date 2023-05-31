@@ -5,7 +5,7 @@ const blueprint = Blueprints.SAMANTHA;
 const soul = new Soul(Blueprints.SAMANTHA);
 
 soul.on("says", (text: string) => {
-  console.log("👱", blueprint.name, " says: ", text);
+  console.log(`👱 ${blueprint.name} says: \x1b[34m${text}\x1b[0m`);
 });
 
 soul.on("thinks", (text: string) => {

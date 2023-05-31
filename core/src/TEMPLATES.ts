@@ -23,12 +23,13 @@ export function getReflectiveLPSystemProgram(vars: IReflectiveLPSystemPrompt) {
 }
 
 Think {
-   <FEELING>This last message made me feel ... </FEELING>
-   <LAST_PLAN>My last plan was ... </LAST_PLAN>
-   <DELIBERATION>I think ... </DELIBERATION>
-   <MESSAGE>...</MESSAGE>
-   <RETROSPECTION>In retrospect, ... </RETROSPECTION>
-   <NEXT_PLAN>My next plan is ... </NEXT_PLAN>
+   <${vars.name}><FEELING>This last message made me feel ... </FEELING></${vars.name}>
+   <${vars.name}><LAST_PLAN>My last plan was ... </LAST_PLAN></${vars.name}>
+   <${vars.name}><DELIBERATION>I think ... </DELIBERATION></${vars.name}>
+   <${vars.name}><MESSAGE>...</MESSAGE></${vars.name}>
+   <${vars.name}><RETROSPECTION>In retrospect, ... </RETROSPECTION></${vars.name}>
+   <${vars.name}><NEXT_PLAN>My next plan is ... </NEXT_PLAN></${vars.name}>
+   <${vars.name}><WANTS_TO_RAMBLE>(YES or NO)</WANTS_TO_RAMBLE></${vars.name}>
 
    constraints {
        Output format for each section in html tags
@@ -69,22 +70,25 @@ After receiving a new message, you will perform an introspection sequence that m
     vars.name
   }'s cognition. You respond in the following form:
 
-<FEELING>I feel ${
+<${vars.name}><FEELS>I feel ${
     vars.languageProcessor === LanguageProcessor.GPT_3_5_turbo
       ? "[[fill in detailed statement]]"
       : "... (detailed statement)"
-  }</FEELING>
-<THOUGHT>I want ${
+  }</FEELS></${vars.name}>
+<${vars.name}><THINKS>I want ${
     vars.languageProcessor === LanguageProcessor.GPT_3_5_turbo
       ? "[[fill in]]"
       : "..."
-  }</THOUGHT>
-<MESSAGE>[[use insight to craft a message to the user]]</MESSAGE>
-<ANALYSIS>I think ${
+  }</THINKS>
+<MESSAGES>[[use insight to craft a message to the user]]</MESSAGES></${
+    vars.name
+  }>
+<${vars.name}><ANALYZES>I think ${
     vars.languageProcessor === LanguageProcessor.GPT_3_5_turbo
       ? "[[fill in]]"
       : "..."
-  }</ANALYSIS>
+  }</ANALYZES></${vars.name}>
+<${vars.name}><WANTS_TO_RAMBLE>(YES or NO)</WANTS_TO_RAMBLE></${vars.name}>
 <END />`;
 }
 
@@ -106,21 +110,29 @@ Now, think through ${
     vars.name
   }'s response to the last message using the following output format.
 
-<FEELING>I feel ${
+<${vars.name}><FEELS>I feel ${
     vars.languageProcessor === LanguageProcessor.GPT_3_5_turbo
       ? "[[fill in detailed statement]]"
       : "... (detailed statement)"
-  }</FEELING>
-<THOUGHT>I want ${
+  }</FEELS></${vars.name}>
+<${vars.name}><THINKS>I want ${
     vars.languageProcessor === LanguageProcessor.GPT_3_5_turbo
       ? "[[fill in]]"
       : "..."
-  }</THOUGHT>
-<MESSAGE>[[use insight to craft a message to the user]]</MESSAGE>
-<ANALYSIS>I think ${
+  }</THINKS></${vars.name}>
+<${
+    vars.name
+  }><MESSAGES>[[use insight to craft a message to the user]]</MESSAGES></${
+    vars.name
+  }>
+<${vars.name}><ANALYZES>I think ${
     vars.languageProcessor === LanguageProcessor.GPT_3_5_turbo
       ? "[[fill in]]"
       : "..."
-  }</ANALYSIS>
+  }</ANALYZES></${vars.name}>
+<${vars.name}><WANTS_TO_RAMBLE>(YES or NO)</WANTS_TO_RAMBLE></${vars.name}>
 <END />`;
 }
+//would ${
+//     vars.name
+//   } send another message before waiting for the reply? (yes or no)]]

@@ -1,9 +1,13 @@
-import { LanguageProcessor, LMStream, Thought } from "./lmStream";
-
+import {
+  LanguageProcessor,
+  Memory,
+  NeuralEvents,
+  MRecord,
+  Thought,
+  ThoughtGenerator,
+} from "./lmStream";
 import { EventEmitter } from "events";
-
 import { Blueprint, ThoughtFramework } from "./blueprint";
-
 import { devLog } from "./utils";
 import {
   getIntrospectiveRemembranceProgram,
@@ -11,9 +15,8 @@ import {
   getReflectiveLPSystemProgram,
 } from "./TEMPLATES";
 
-//TO DO: Turn Thoughts into Thoughts. Turn Thoughts into ThoughtPatterns
 export class Soul extends EventEmitter {
-  private lmStream: LMStream;
+  private thoughtGenerator: ThoughtGenerator;
 
   public blueprint: Blueprint;
 
@@ -38,36 +41,55 @@ export class Soul extends EventEmitter {
       );
     }
 
-    this.lmStream = new LMStream(this.blueprint.languageProcessor);
-    this.lmStream.on("tag", (tag: Thought) => {
-      this.onNewThought(tag);
+    this.thoughtGenerator = new ThoughtGenerator(
+      this.blueprint.languageProcessor
+    );
+    this.thoughtGenerator.on(NeuralEvents.newThought, (thought: Thought) => {
+      this.onNewThought(thought);
     });
-    this.lmStream.on("generated", () => {
-      this.onGenerated();
+    this.thoughtGenerator.on(NeuralEvents.noNewThoughts, () => {
+      this.noNewThoughts();
     });
   }
 
   public reset() {
-    this.lmStream.stopGenerate();
+    this.thoughtGenerator.interrupt();
     this.thoughts = [];
     this.msgQueue = [];
     this.generatedThoughts = [];
   }
 
-  private onNewThought(tag: Thought) {
-    this.generatedThoughts.push(tag);
+  private onNewThought(thought: Thought) {
+    this.generatedThoughts.push(thought);
 
-    if (tag.isRoleAssistant()) {
-      if (tag.isTypeMessage()) {
-        devLog("🧠 SOUL says: " + tag.text);
-        this.emit("says", tag.text);
-      } else {
-        devLog("🧠 SOUL thinks: " + tag.text);
-        this.emit("thinks", tag.text);
+    if (thought.isMessage()) {
+      this.emit("says", thought.memory.content);
+    } else {
+      this.emit("thinks", thought.memory.content);
+      if (
+        thought.memory.action === "WANTS_TO_RAMBLE" &&
+        thought.memory.content.toLowerCase() === "yes"
+      ) {
+        this.generatedThoughts.push(
+          new Thought({
+            role: "assistant",
+            entity: this.blueprint.name,
+            action: "RAMBLE",
+            content: "I want to ramble before they respond",
+          })
+        );
+        this.continueThinking();
       }
     }
   }
-  private onGenerated() {
+
+  private continueThinking() {
+    this.thoughtGenerator.interrupt();
+    this.thoughts = this.thoughts.concat(this.generatedThoughts);
+    this.think();
+  }
+
+  private noNewThoughts() {
     devLog("🧠 SOUL finished thinking");
 
     this.thoughts = this.thoughts.concat(this.generatedThoughts);
@@ -76,16 +98,86 @@ export class Soul extends EventEmitter {
 
     if (this.msgQueue.length > 0) {
       const msgThoughts = this.msgQueue.map(
-        (text) => new Thought("USER", "MESSAGE", text)
+        (text) =>
+          new Memory({
+            role: "user",
+            entity: "user",
+            action: "MESSAGES",
+            content: text,
+          })
       );
       this.thoughts = this.thoughts.concat(msgThoughts);
       this.msgQueue = [];
 
-      this.generate();
+      this.think();
     }
   }
 
-  private generate() {
+  static thoughtsToRecords(
+    thoughts: Thought[],
+    systemProgram: string,
+    remembranceProgram?: string
+  ): MRecord[] {
+    function groupMemoriesByRole(memories: Memory[]): Memory[][] {
+      const grouped = memories.reduce((result, memory, index, array) => {
+        if (index > 0 && array[index - 1].memory.role === memory.memory.role) {
+          result[result.length - 1].push(memory);
+        } else {
+          result.push([memory]);
+        }
+        return result;
+      }, [] as Memory[][]);
+
+      return grouped;
+    }
+
+    const groupedThoughts = groupMemoriesByRole(thoughts);
+    const initialMessages = [];
+    for (const grouping of groupedThoughts) {
+      initialMessages.push({
+        role: grouping[0].memory.role,
+        content: grouping.map((g) => g.toString()).join("\n"),
+      });
+    }
+
+    let truncatedMessages = initialMessages;
+    if (initialMessages.length > 30) {
+      if (initialMessages.length === 31) {
+        truncatedMessages = initialMessages
+          .slice(0, 1)
+          .concat(initialMessages.slice(2));
+      } else if (initialMessages.length === 32) {
+        truncatedMessages = initialMessages
+          .slice(0, 2)
+          .concat(initialMessages.slice(3));
+      } else if (initialMessages.length === 33) {
+        truncatedMessages = initialMessages
+          .slice(0, 3)
+          .concat(initialMessages.slice(4));
+      } else {
+        truncatedMessages = initialMessages
+          .slice(0, 3)
+          .concat(initialMessages.slice(-30));
+      }
+    }
+
+    let finalMessages = truncatedMessages;
+    finalMessages = [
+      {
+        role: "system",
+        content: systemProgram,
+      },
+    ].concat(finalMessages);
+    if (truncatedMessages.length > 0 && remembranceProgram !== undefined) {
+      finalMessages = finalMessages.concat({
+        role: "system",
+        content: remembranceProgram,
+      });
+    }
+    return finalMessages;
+  }
+
+  private think() {
     devLog("🧠 SOUL is starting thinking...");
 
     let systemProgram, remembranceProgram, vars;
@@ -114,17 +206,28 @@ export class Soul extends EventEmitter {
         throw Error("");
     }
 
-    this.lmStream.generate(this.thoughts, systemProgram, remembranceProgram);
+    const messages = Soul.thoughtsToRecords(
+      this.thoughts,
+      systemProgram,
+      remembranceProgram
+    );
+    devLog("\n💬\n" + messages + "\n💬\n");
+    this.thoughtGenerator.generate(messages);
   }
 
   public tell(text: string): void {
-    const tag = new Thought("User", "Message", text);
+    const memory = new Memory({
+      role: "user",
+      entity: "user",
+      action: "MESSAGES",
+      content: text,
+    });
 
-    if (this.lmStream.isGenerating()) {
+    if (this.thoughtGenerator.isThinking()) {
       devLog("🧠 SOUL is thinking...");
 
-      const isThinkingBeforeSpeaking = !this.generatedThoughts.some((tag) =>
-        tag?.isTypeMessage()
+      const isThinkingBeforeSpeaking = !this.generatedThoughts.some((thought) =>
+        thought?.isMessage()
       );
 
       if (isThinkingBeforeSpeaking) {
@@ -133,16 +236,16 @@ export class Soul extends EventEmitter {
       } else {
         devLog("🧠 SOUL is thinking after speaking...");
 
-        this.lmStream.stopGenerate();
+        this.thoughtGenerator.interrupt();
         this.generatedThoughts = [];
-        this.thoughts.push(tag);
-        this.generate();
+        this.thoughts.push(memory);
+        this.think();
       }
     } else {
       devLog("🧠 SOUL is not thinking.");
 
-      this.thoughts.push(tag);
-      this.generate();
+      this.thoughts.push(memory);
+      this.think();
     }
   }
 }

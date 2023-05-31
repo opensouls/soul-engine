@@ -4,56 +4,49 @@ import { OpenAIExt } from "openai-ext";
 
 import { devLog } from "./utils";
 
-export class Thought {
+export interface IMemory {
   role: string;
-  type: string;
-  text: string;
+  entity: string;
+  action: string;
+  content: string;
+}
 
-  constructor(role: string, type: string, text: string) {
-    this.role = role;
-    this.type = type;
-    this.text = text;
-    this.format();
-  }
+export class Memory {
+  memory: IMemory;
 
-  format() {
-    this.role = this.role.toUpperCase();
-    this.type = this.type.toUpperCase();
+  constructor(memory: IMemory) {
+    this.memory = memory;
+    this.memory.action = this.memory.action.toUpperCase();
   }
 
-  setRole(role: string) {
-    this.role = role;
-    this.format();
-  }
-  setType(type: string) {
-    this.type = type;
-    this.format();
-  }
-  setText(text: string) {
-    this.text = text;
-    this.format();
+  public isMessage() {
+    return this.memory.action === "MESSAGES";
   }
 
-  isRoleAssistant(): boolean {
-    return this.role === "ASSISTANT";
-  }
-
-  isTypeMessage(): boolean {
-    return this.type === "MESSAGE";
+  public toString() {
+    return `<${this.memory.entity}><${this.memory.action}>${this.memory.content}</${this.memory.action}></${this.memory.entity}>`;
   }
 }
+
+export class Thought extends Memory {}
 
 export enum LanguageProcessor {
   GPT_4 = "gpt-4",
   GPT_3_5_turbo = "gpt-3.5-turbo",
 }
 
-interface Message {
+export interface MRecord {
   role: string;
   content: string;
 }
 
-export class LMStream extends EventEmitter {
+export const NeuralEvents = {
+  newThought: "newThought",
+  noNewThoughts: "noNewThoughts",
+};
+
+/* Takes in a sequence of memories and generates thoughts until no more thoughts will come */
+export class ThoughtGenerator extends EventEmitter {
   private stream: any = null;
   private languageProcessor: LanguageProcessor;
 
@@ -62,14 +55,14 @@ export class LMStream extends EventEmitter {
     this.languageProcessor = languageProcessor;
   }
 
-  private emitThoughtEvent(tag: Thought) {
-    this.emit("tag", tag);
+  private emitThought(thought: Thought) {
+    this.emit(NeuralEvents.newThought, thought);
   }
-  private emitGeneratedEvent() {
-    this.emit("generated");
+  private emitThinkingFinished() {
+    this.emit(NeuralEvents.noNewThoughts);
   }
 
-  public stopGenerate(): void {
+  public interrupt(): void {
     if (this.stream) {
       try {
         this.stream.destroy();
@@ -81,20 +74,13 @@ export class LMStream extends EventEmitter {
     }
   }
 
-  public isGenerating(): boolean {
-    if (this.stream) {
-      return true;
-    } else {
-      return false;
-    }
+  public isThinking(): boolean {
+    return !(this.stream === null);
   }
 
-  private oldThoughts: Thought[] = [];
-  public async generate(
-    thoughts: Thought[],
-    systemProgram: string,
-    remembranceProgram?: string
-  ) {
+  private oldThoughts: Memory[] = [];
+  public async generate(records: MRecord[]) {
+    this.stream = undefined;
     const apiKey = process.env.OPENAI_API_KEY;
 
     const configuration = new Configuration({ apiKey });
@@ -105,14 +91,19 @@ export class LMStream extends EventEmitter {
       handler: {
         onContent: (content: string) => {
           function extractThoughts(content: string): Thought[] {
-            const regex = /<([A-Za-z0-9\s_]+)>(.*?)<\/\1>/g;
+            const regex =
+              /<([A-Za-z0-9\s_]+)><([A-Za-z0-9\s_]+)>(.*?)<\/\2><\/\1>/g;
             const matches = content.matchAll(regex);
             const extractedThoughts = [];
 
             for (const match of matches) {
-              const [_, tag, content] = match;
-              //<${tag}>${content}</${tag}>
-              const extractedThought = new Thought("assistant", tag, content);
+              const [_, entity, action, content] = match;
+              const extractedThought = new Thought({
+                role: "assistant",
+                entity,
+                action,
+                content,
+              });
               extractedThoughts.push(extractedThought);
             }
 
@@ -127,29 +118,22 @@ export class LMStream extends EventEmitter {
           );
           this.oldThoughts = newThoughts;
           diffThoughts.forEach((diffThought) => {
-            this.emitThoughtEvent(diffThought);
+            this.emitThought(diffThought);
           });
         },
         onDone: () => {
-          this.emitGeneratedEvent();
-          this.stopGenerate();
+          this.emitThinkingFinished();
+          this.interrupt();
         },
       },
     };
-
-    const messages = this.thoughtsToMessages(
-      thoughts,
-      systemProgram,
-      remembranceProgram
-    );
-    devLog("\n💬\n" + messages + "\n💬\n");
 
     // TODO: upstream lib parses stream chunks correctly but sometimes emits a spurious error
     //   open PR to silence non-fatal errors in https://github.com/justinmahar/openai-ext
     const openaiStreamResponse = await OpenAIExt.streamServerChatCompletion(
       {
         model: this.languageProcessor,
-        messages: messages,
+        messages: records,
       },
       openaiStreamConfig
     );
@@ -157,85 +141,12 @@ export class LMStream extends EventEmitter {
     this.stream = openaiStreamResponse.data;
   }
 
-  private getUniqueThoughts(
-    newArray: Thought[],
-    oldArray: Thought[]
-  ): Thought[] {
+  private getUniqueThoughts(newArray: Memory[], oldArray: Memory[]): Thought[] {
     return newArray.filter(
       (newThought) =>
         !oldArray.some(
-          (oldThought) =>
-            newThought.role === oldThought.role &&
-            newThought.type === oldThought.type &&
-            newThought.text === oldThought.text
+          (oldThought) => newThought.toString() === oldThought.toString()
         )
     );
-  }
-
-  private thoughtsToMessages(
-    thoughts: Thought[],
-    systemProgram: string,
-    remembranceProgram?: string
-  ): Message[] {
-    const initialMessages = thoughts.map((tag) => {
-      let content = tag.text;
-      if (tag.isRoleAssistant()) {
-        content = `<${tag.type}>${tag.text}</${tag.type}>\n`;
-      }
-      return {
-        role: tag.role.toLowerCase(),
-        content: content,
-      } as Message;
-    });
-
-    // Reduce the array of Messages, merging consecutive messages with the same role
-    const reducedMessages = initialMessages.reduce(
-      (messages: Message[], currentMessage) => {
-        const previousMessage = messages[messages.length - 1];
-        if (previousMessage && previousMessage.role === currentMessage.role) {
-          previousMessage.content += currentMessage.content;
-        } else {
-          messages.push(currentMessage);
-        }
-        return messages;
-      },
-      []
-    );
-
-    let truncatedMessages = reducedMessages;
-    if (reducedMessages.length > 10) {
-      if (reducedMessages.length === 11) {
-        truncatedMessages = reducedMessages
-          .slice(0, 1)
-          .concat(reducedMessages.slice(2));
-      } else if (reducedMessages.length === 12) {
-        truncatedMessages = reducedMessages
-          .slice(0, 2)
-          .concat(reducedMessages.slice(3));
-      } else if (reducedMessages.length === 13) {
-        truncatedMessages = reducedMessages
-          .slice(0, 3)
-          .concat(reducedMessages.slice(4));
-      } else {
-        truncatedMessages = reducedMessages
-          .slice(0, 3)
-          .concat(reducedMessages.slice(-10));
-      }
-    }
-
-    let finalMessages = truncatedMessages;
-    finalMessages = [
-      {
-        role: "system",
-        content: systemProgram,
-      },
-    ].concat(finalMessages);
-    if (truncatedMessages.length > 0 && remembranceProgram !== undefined) {
-      finalMessages = finalMessages.concat({
-        role: "system",
-        content: remembranceProgram,
-      });
-    }
-    return finalMessages;
   }
 }
