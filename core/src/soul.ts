@@ -193,6 +193,7 @@ export class Soul extends EventEmitter {
   }
 
   private think() {
+    this.emit("thinking")
     devLog("🧠 SOUL is starting thinking...");
 
     let systemProgram, remembranceProgram, vars;
