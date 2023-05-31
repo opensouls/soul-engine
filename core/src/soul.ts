@@ -63,7 +63,22 @@ export class Soul extends EventEmitter {
     this.generatedThoughts.push(thought);
 
     if (thought.isMessage()) {
-      this.emit("says", thought.memory.content);
+      const questionRegex = /^(.*[.?!]) ([^.?!]+\?[^?]*)$/;
+      const match = thought.memory.content.match(questionRegex);
+      if (match) {
+        const [_, message, followupQuestion] = match;
+        this.emit("says", message);
+
+        const minDelay = 2000;
+        const maxDelay = 4000;
+        const randomDelay =
+          Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
+
+        const sendFollowup = () => this.emit("says", followupQuestion);
+        setTimeout(sendFollowup, randomDelay);
+      } else {
+        this.emit("says", thought.memory.content);
+      }
     } else {
       this.emit("thinks", thought.memory.content);
       if (
