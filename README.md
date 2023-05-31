@@ -61,8 +61,6 @@ If this repo and its evolution is exciting, open an issue, a pull request, or si
 
 We're not sure exactly how the repo will evolve yet, but it's intended to become a testing bed for Social AGI, its development, and its testing.
 
-Outlines of execution plans are kept in `/plans`
-
 We'll need many new developments from:
 
 - New techniques to specify personality
