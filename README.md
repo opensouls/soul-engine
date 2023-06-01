@@ -45,11 +45,13 @@ The repository has two main components
 
 ```
 /integrations
+  /discord_bots
+  /telegram
 /server
 ```
 
 - `/core` contains the library [`socialagi` NPM package source](https://www.npmjs.com/package/socialagi)
-- `/integrations/` contains examples of the library in action. Right now contains several stand-alone discord bot repos
+- `/integrations/` contains examples of the library in action. Right now contains several stand-alone discord and telegram bot repos
 
 ## 🚀 Getting started
 
