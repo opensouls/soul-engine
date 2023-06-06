@@ -12,7 +12,7 @@ export class MentalModel {
   }
 }
 
-export class SentientModel extends MentalModel {
+export class PersonModel extends MentalModel {
   userName: string;
   observerBlueprint: Blueprint;
   name = "[[to learn]]";
@@ -21,6 +21,8 @@ export class SentientModel extends MentalModel {
   narrative = "[[to observe]]";
   goals = "[[to discover]]";
   state = "[[to discover]]";
+  likes = "[[to learn]]";
+  dislikes = "[[to learn]]";
   private buffer: ChatCompletionRequestMessage[] = [];
 
   constructor(userName: string, observerBlueprint: Blueprint) {
@@ -35,38 +37,46 @@ export class SentientModel extends MentalModel {
 Their historical memory reads:
 
 <ENTITY>
-<USERNAME>${this.userName}</USERNAME>
-<NAME>${this.name}</NAME>
-<DEMOGRAPHICS>${this.demographics}</DEMOGRAPHICS>
-<HISTORY>${this.narrative}</HISTORY>
-<GOALS>${this.goals}</GOALS>
-<MOOD>${this.mood}</MOOD>
-<MENTAL STATE>${this.state}</MENTAL STATE>
+  <USERNAME>${this.userName}</USERNAME>
+  <NAME>${this.name}</NAME>
+  <DEMOGRAPHICS>${this.demographics}</DEMOGRAPHICS>
+  <LIKES>${this.likes}</LIKES>
+  <DISLIKES>${this.dislikes}</DISLIKES>
+  <HISTORY>${this.narrative}</HISTORY>
+  <GOALS>${this.goals}</GOALS>
+  <MOOD>${this.mood}</MOOD>
+  <MENTAL STATE>${this.state}</MENTAL STATE>
 </ENTITY>`;
   }
 
   public async update({ role, content, name }: ChatCompletionRequestMessage) {
-    if (role !== "user") {
-      this.buffer.push({ role, content, name } as ChatCompletionRequestMessage);
+    this.buffer.push({ role, content, name } as ChatCompletionRequestMessage);
+    // only update on new user message
+    if (role !== "user" || this.userName !== name) {
       return;
+    }
+    if (this.buffer.length > 5) {
+      this.buffer = this.buffer.slice(-5);
     }
     const program = `<NEW ENTITY RECORD>After reading the new messages ${this.observerBlueprint.name}'s entity record of ${this.name} will read has the following format</NEW ENTITY RECORD>
 
 <ENTITY>
-<USERNAME>${this.userName}</USERNAME>
-<NAME>[[update from new messages]]</NAME>
-<DEMOGRAPHICS>[[update from new messages]]</DEMOGRAPHICS>
-<HISTORY>[[update from new messages]]</HISTORY>
-<GOALS>[[update from new messages]]</GOALS>
-<MOOD>[[update from new messages]]</MOOD>
-<MENTAL STATE>[[update from new messages]]</MENTAL STATE>
+  <USERNAME>${this.userName}</USERNAME>
+  <NAME>[[update from new messages]]</NAME>
+  <DEMOGRAPHICS>[[update from new messages]]</DEMOGRAPHICS>
+  <LIKES>[[update from new messages]]</LIKES>
+  <DISLIKES>[[update from new messages]]</DISLIKES>
+  <HISTORY>[[update from new messages]]</HISTORY>
+  <GOALS>[[update from new messages]]</GOALS>
+  <MOOD>[[update from new messages]]</MOOD>
+  <MENTAL STATE>[[update from new messages]]</MENTAL STATE>
 </ENTITY>
 
 Additionally the sections marked [[update from new messages]] have been filled in, noting the following:
 
 - ONLY information from the new messages is used to inform the updates
-- NAME is the userName's real name
-- The NAME should only be filled in when it is obvious, otherwise leave as [[to learn]]
+- NAME is the userName's real name, if they've stated their real name in conversation
+- LIKES/DISLIKES is basic facts about ${this.userName}, e.g. 'likes coffee'
 - The HISTORY is additive, rarely forgetting information
 - Where appropriate the HISTORY information has been condensed
 - The HISTORY contains a maximum of 20 bullet points
@@ -87,11 +97,8 @@ The new record reads:
           this.toString() + `\n\nThen, the following messages were exchanged.`,
       },
     ];
-    if (this.buffer.length > 0) {
-      instructions = instructions.concat(this.buffer as any);
-    }
+    instructions = instructions.concat(this.buffer as any);
     instructions = instructions.concat([
-      { role, content, name },
       { role: ChatCompletionRequestMessageRoleEnum.System, content: program },
     ] as any);
     const res = await processLMProgram(instructions);
@@ -103,5 +110,9 @@ The new record reads:
     this.narrative = getTag({ tag: "HISTORY", input: res });
     this.state = getTag({ tag: "MENTAL STATE", input: res });
     this.goals = getTag({ tag: "GOALS", input: res });
+    this.likes = getTag({ tag: "LIKES", input: res });
+    this.dislikes = getTag({ tag: "DISLIKES", input: res });
+
+    this.buffer = [];
   }
 }

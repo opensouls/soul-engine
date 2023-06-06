@@ -2,6 +2,7 @@ import { getTag, processLMProgram } from "./lmProcessing";
 import { ChatCompletionRequestMessageRoleEnum } from "openai";
 
 type AbstractTrue = {
+  reasoning: string;
   confidence: number;
   answer: boolean;
 };
@@ -45,44 +46,61 @@ The optimal assessment is given
   ];
   const res = await processLMProgram(instructions);
   const confidence = Number(getTag({ tag: "CONFIDENCE", input: res }));
+  const reasoning = getTag({ tag: "THINKING", input: res });
   return {
+    reasoning,
     confidence,
     answer: confidence > 0.5,
   } as AbstractTrue;
 }
 
-type StringGenerator = () => Promise<string>;
+type Generator = () => Promise<any>;
+type Conditional = {
+  getter?: (generation: any) => string;
+  condition: string;
+};
 
 export class AbstractSample {
-  public condition: string;
-  private generator: StringGenerator;
+  private generator: Generator;
   private generations: string[] = [];
-  private sample: AbstractTrue[] = [];
   private verbose = true;
 
-  constructor(generator: StringGenerator, condition: string, verbose = true) {
-    this.condition = condition;
+  constructor(generator: Generator, verbose = true) {
     this.generator = generator;
     this.verbose = verbose;
   }
 
-  public async generateSample(nTimes: number) {
+  public async generate(nTimes: number) {
     this.generations = await Promise.all(
       Array.from({ length: nTimes }).map(async () => await this.generator())
     );
-    this.sample = await Promise.all(
-      this.generations.map((s) => isAbstractTrue(s, this.condition))
-    );
   }
 
-  public allTrue() {
+  public async evaluate(conditional: string | Conditional) {
+    let expandedConditional: Conditional;
+    if (typeof conditional === "string") {
+      expandedConditional = {
+        condition: conditional,
+      };
+    } else {
+      expandedConditional = conditional;
+    }
+    const getter =
+      expandedConditional.getter === undefined
+        ? (text: string) => text
+        : expandedConditional.getter;
+    const sample = await Promise.all(
+      this.generations.map((s) =>
+        isAbstractTrue(getter(s), expandedConditional.condition)
+      )
+    );
     if (this.verbose) {
-      const data = this.sample.map((element, index) => [
+      const data = sample.map((element, index) => [
         element,
-        this.generations[index],
+        getter(this.generations[index]),
       ]);
       console.log("abstract samples", data);
     }
-    return this.sample.every((s) => s.answer);
+    return sample.every((s) => s.answer);
   }
 }

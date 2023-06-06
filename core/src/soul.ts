@@ -14,8 +14,18 @@ import {
   getIntrospectiveSystemProgram,
   getReflectiveLPSystemProgram,
 } from "./TEMPLATES";
-import { SentientModel, MentalModel } from "./mentalModels";
 import { ChatCompletionRequestMessage } from "openai";
+import { PeopleMemory } from "./memory";
+
+type Message = {
+  userName: string;
+  text: string;
+};
+
+export enum ParticipationStrategy {
+  ALWAYS_REPLY,
+  CONSUME_ONLY,
+}
 
 export class Soul extends EventEmitter {
   private thoughtGenerator: ThoughtGenerator;
@@ -23,7 +33,7 @@ export class Soul extends EventEmitter {
   public blueprint: Blueprint;
 
   private thoughts: Thought[] = [];
-  private mentalModels: MentalModel[] = [];
+  private peopleMemory: PeopleMemory;
 
   private generatedThoughts: Thought[] = [];
   private msgQueue: string[] = [];
@@ -45,7 +55,7 @@ export class Soul extends EventEmitter {
       );
     }
 
-    this.mentalModels = [new SentientModel("user", this.blueprint)];
+    this.peopleMemory = new PeopleMemory(this.blueprint);
     this.thoughtGenerator = new ThoughtGenerator(
       this.blueprint.languageProcessor,
       this.blueprint.name
@@ -56,12 +66,6 @@ export class Soul extends EventEmitter {
     this.thoughtGenerator.on(NeuralEvents.noNewThoughts, () => {
       this.noNewThoughts();
     });
-  }
-
-  private updateMentalModels(request: ChatCompletionRequestMessage) {
-    for (const model of this.mentalModels) {
-      model.update(request as ChatCompletionRequestMessage).catch();
-    }
   }
 
   public reset() {
@@ -121,7 +125,7 @@ export class Soul extends EventEmitter {
     devLog("🧠 SOUL finished thinking");
 
     const request = Soul.concatThoughts(this.generatedThoughts);
-    this.updateMentalModels(request as ChatCompletionRequestMessage);
+    this.peopleMemory.update(request as ChatCompletionRequestMessage);
     this.thoughts = this.thoughts.concat(this.generatedThoughts);
 
     this.generatedThoughts = [];
@@ -265,16 +269,36 @@ export class Soul extends EventEmitter {
       content: text,
     });
 
-    this.updateMentalModels({ role: "user", content: text, name: "user" });
+    this.peopleMemory.update({ role: "user", content: text, name: "user" });
 
     this.thoughts.push(memory);
     this.think();
   }
 
-  public inspectMemory(): any {
-    return {
-      thoughts: this.thoughts,
-      mentalModels: this.mentalModels,
-    };
+  public reads(
+    msg: Message,
+    participationStrategy: ParticipationStrategy
+  ): void {
+    const memory = new Memory({
+      role: "user",
+      entity: msg.userName,
+      action: "MESSAGES",
+      content: msg.text,
+    });
+
+    this.peopleMemory.update({
+      role: "user",
+      content: msg.text,
+      name: msg.userName,
+    });
+
+    this.thoughts.push(memory);
+    if (participationStrategy === ParticipationStrategy.ALWAYS_REPLY) {
+      this.think();
+    }
+  }
+
+  public inspectPeopleMemory(userName: string): string {
+    return this.peopleMemory.inspect(userName);
   }
 }
