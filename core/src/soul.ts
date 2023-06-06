@@ -14,6 +14,8 @@ import {
   getIntrospectiveSystemProgram,
   getReflectiveLPSystemProgram,
 } from "./TEMPLATES";
+import { SentientModel, MentalModel } from "./mentalModels";
+import { ChatCompletionRequestMessage } from "openai";
 
 export class Soul extends EventEmitter {
   private thoughtGenerator: ThoughtGenerator;
@@ -21,6 +23,8 @@ export class Soul extends EventEmitter {
   public blueprint: Blueprint;
 
   private thoughts: Thought[] = [];
+  private mentalModels: MentalModel[] = [];
+
   private generatedThoughts: Thought[] = [];
   private msgQueue: string[] = [];
 
@@ -41,8 +45,10 @@ export class Soul extends EventEmitter {
       );
     }
 
+    this.mentalModels = [new SentientModel("user", this.blueprint)];
     this.thoughtGenerator = new ThoughtGenerator(
-      this.blueprint.languageProcessor
+      this.blueprint.languageProcessor,
+      this.blueprint.name
     );
     this.thoughtGenerator.on(NeuralEvents.newThought, (thought: Thought) => {
       this.onNewThought(thought);
@@ -50,6 +56,12 @@ export class Soul extends EventEmitter {
     this.thoughtGenerator.on(NeuralEvents.noNewThoughts, () => {
       this.noNewThoughts();
     });
+  }
+
+  private updateMentalModels(request: ChatCompletionRequestMessage) {
+    for (const model of this.mentalModels) {
+      model.update(request as ChatCompletionRequestMessage).catch();
+    }
   }
 
   public reset() {
@@ -108,6 +120,8 @@ export class Soul extends EventEmitter {
   private noNewThoughts() {
     devLog("🧠 SOUL finished thinking");
 
+    const request = Soul.concatThoughts(this.generatedThoughts);
+    this.updateMentalModels(request as ChatCompletionRequestMessage);
     this.thoughts = this.thoughts.concat(this.generatedThoughts);
 
     this.generatedThoughts = [];
@@ -129,6 +143,14 @@ export class Soul extends EventEmitter {
     }
   }
 
+  static concatThoughts(grouping: Thought[]): MRecord {
+    return {
+      role: grouping[0].memory.role,
+      content: grouping.map((m) => m.toString()).join("\n"),
+      name: grouping[0].memory.entity,
+    };
+  }
+
   static thoughtsToRecords(
     thoughts: Thought[],
     systemProgram: string,
@@ -136,7 +158,11 @@ export class Soul extends EventEmitter {
   ): MRecord[] {
     function groupMemoriesByRole(memories: Memory[]): Memory[][] {
       const grouped = memories.reduce((result, memory, index, array) => {
-        if (index > 0 && array[index - 1].memory.role === memory.memory.role) {
+        if (
+          index > 0 &&
+          array[index - 1].memory.role === memory.memory.role &&
+          memory.memory.role === "assistant"
+        ) {
           result[result.length - 1].push(memory);
         } else {
           result.push([memory]);
@@ -150,10 +176,7 @@ export class Soul extends EventEmitter {
     const groupedThoughts = groupMemoriesByRole(thoughts);
     const initialMessages = [];
     for (const grouping of groupedThoughts) {
-      initialMessages.push({
-        role: grouping[0].memory.role,
-        content: grouping.map((g) => g.toString()).join("\n"),
-      });
+      initialMessages.push(Soul.concatThoughts(grouping) as any);
     }
 
     let truncatedMessages = initialMessages;
@@ -182,12 +205,14 @@ export class Soul extends EventEmitter {
       {
         role: "system",
         content: systemProgram,
+        name: "systemBrain",
       },
     ].concat(finalMessages);
     if (truncatedMessages.length > 0 && remembranceProgram !== undefined) {
       finalMessages = finalMessages.concat({
         role: "system",
         content: remembranceProgram,
+        name: "systemBrain",
       });
     }
     return finalMessages;
@@ -240,7 +265,16 @@ export class Soul extends EventEmitter {
       content: text,
     });
 
+    this.updateMentalModels({ role: "user", content: text, name: "user" });
+
     this.thoughts.push(memory);
     this.think();
+  }
+
+  public inspectMemory(): any {
+    return {
+      thoughts: this.thoughts,
+      mentalModels: this.mentalModels,
+    };
   }
 }

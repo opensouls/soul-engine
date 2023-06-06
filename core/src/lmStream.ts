@@ -2,8 +2,6 @@ import { EventEmitter } from "events";
 import { Configuration, OpenAIApi } from "openai";
 import { OpenAIExt } from "openai-ext";
 
-import { devLog } from "./utils";
-
 export interface IMemory {
   role: string;
   entity: string;
@@ -24,7 +22,7 @@ export class Memory {
   }
 
   public toString() {
-    return `<${this.memory.entity}><${this.memory.action}>${this.memory.content}</${this.memory.action}></${this.memory.entity}>`;
+    return `<${this.memory.action}>${this.memory.content}</${this.memory.action}>`;
   }
 }
 
@@ -38,6 +36,7 @@ export enum LanguageProcessor {
 export interface MRecord {
   role: string;
   content: string;
+  name?: string;
 }
 
 export const NeuralEvents = {
@@ -49,10 +48,12 @@ export const NeuralEvents = {
 export class ThoughtGenerator extends EventEmitter {
   private stream: any = null;
   private languageProcessor: LanguageProcessor;
+  private entity: string;
 
-  constructor(languageProcessor: LanguageProcessor) {
+  constructor(languageProcessor: LanguageProcessor, entity: string) {
     super();
     this.languageProcessor = languageProcessor;
+    this.entity = entity;
   }
 
   private emitThought(thought: Thought) {
@@ -86,18 +87,18 @@ export class ThoughtGenerator extends EventEmitter {
     const openaiApi = new OpenAIApi(configuration);
 
     let oldThoughts: Memory[] = [];
+    const entity = this.entity;
     const openaiStreamConfig = {
       openai: openaiApi,
       handler: {
         onContent: (content: string) => {
           function extractThoughts(content: string): Thought[] {
-            const regex =
-              /<([A-Za-z0-9\s_]+)><([A-Za-z0-9\s_]+)>(.*?)<\/\2><\/\1>/g;
+            const regex = /<([A-Za-z0-9\s_]+)>(.*?)<\/\1>/g;
             const matches = content.matchAll(regex);
             const extractedThoughts = [];
 
             for (const match of matches) {
-              const [_, entity, action, content] = match;
+              const [_, action, content] = match;
               const extractedThought = new Thought({
                 role: "assistant",
                 entity,

@@ -6,7 +6,8 @@
     "sourceType": "module"
   },
   "env": {
-    "node": true
+    "node": true,
+    "jest/globals": true
   },
   "extends": [
     "eslint:recommended",
@@ -15,6 +16,10 @@
   ],
   "plugins": [
     "@typescript-eslint",
-    "prettier"
-  ]
+    "prettier",
+    "jest"
+  ],
+  "rules": {
+    "jest/expect-expect": "error"
+  }
 }
