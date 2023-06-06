@@ -275,7 +275,7 @@ export class Soul extends EventEmitter {
     this.think();
   }
 
-  public reads(
+  public read(
     msg: Message,
     participationStrategy: ParticipationStrategy
   ): void {
