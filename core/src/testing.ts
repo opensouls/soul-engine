@@ -99,7 +99,7 @@ export class AbstractSample {
         element,
         getter(this.generations[index]),
       ]);
-      console.log("abstract samples", data);
+      console.log("abstract samples", data, getter(this.generations[0]));
     }
     return sample.every((s) => s.answer);
   }

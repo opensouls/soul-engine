@@ -27,7 +27,7 @@ export class PeopleMemory {
     );
   }
 
-  public inspect(userName: string): string {
+  public retrieve(userName: string): string {
     if (Object.keys(this.memory).includes(userName)) {
       return this.memory[userName].toString();
     }

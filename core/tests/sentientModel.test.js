@@ -208,7 +208,7 @@ test("test multiple people conversing yield separate mental models", async () =>
     }
     return soul;
   };
-  const sample = new AbstractSample(generator, false);
+  const sample = new AbstractSample(generator, true);
   await sample.generate(3);
   expect(
     await sample.evaluate({
@@ -224,20 +224,20 @@ test("test multiple people conversing yield separate mental models", async () =>
     await sample.evaluate({
       getter: (soul) =>
         getTag({
-          tag: "LIKES",
+          tag: "HISTORY",
           input: soul.inspectPeopleMemory("user022"),
         }),
-      condition: "contains a reference to the animal cat",
+      condition: "includes having a cat",
     })
   ).toBeTruthy();
   expect(
     await sample.evaluate({
       getter: (soul) =>
         getTag({
-          tag: "LIKES",
+          tag: "HISTORY",
           input: soul.inspectPeopleMemory("user122"),
         }),
-      condition: "contains a reference to the animal dog",
+      condition: "includes liking the animal dog",
     })
   ).toBeTruthy();
   expect(

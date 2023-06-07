@@ -9,7 +9,8 @@
     "test": "jest",
     "prepublishOnly": "npm run build",
     "test-example": "ts-node examples/example.ts",
-    "test-example2": "ts-node examples/example2.ts"
+    "test-example2": "ts-node examples/example2.ts",
+    "test-example3": "ts-node examples/example3.ts"
   },
   "files": [
     "dist"

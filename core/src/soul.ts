@@ -158,7 +158,8 @@ export class Soul extends EventEmitter {
   static thoughtsToRecords(
     thoughts: Thought[],
     systemProgram: string,
-    remembranceProgram?: string
+    remembranceProgram?: string,
+    memory?: MRecord
   ): MRecord[] {
     function groupMemoriesByRole(memories: Memory[]): Memory[][] {
       const grouped = memories.reduce((result, memory, index, array) => {
@@ -205,13 +206,17 @@ export class Soul extends EventEmitter {
     }
 
     let finalMessages = truncatedMessages;
-    finalMessages = [
+    const preamble = [
       {
         role: "system",
         content: systemProgram,
         name: "systemBrain",
       },
-    ].concat(finalMessages);
+    ] as MRecord[];
+    if (memory !== undefined) {
+      preamble.push(memory as MRecord);
+    }
+    finalMessages = preamble.concat(finalMessages);
     if (truncatedMessages.length > 0 && remembranceProgram !== undefined) {
       finalMessages = finalMessages.concat({
         role: "system",
@@ -252,10 +257,26 @@ export class Soul extends EventEmitter {
         throw Error("");
     }
 
+    const userNames = this.thoughts
+      .filter((t) => t.memory.role === "user")
+      .map((t) => t.memory.entity);
+    const lastUserName = userNames.slice(-1)[0];
+    let memory;
+    if (lastUserName !== undefined) {
+      try {
+        memory = {
+          role: "assistant",
+          content: this.peopleMemory.retrieve(lastUserName),
+          name: this.blueprint.name,
+        } as MRecord;
+      } catch {}
+    }
+
     const messages = Soul.thoughtsToRecords(
       this.thoughts,
       systemProgram,
-      remembranceProgram
+      remembranceProgram,
+      memory
     );
     devLog("\n💬\n" + messages + "\n💬\n");
     this.thoughtGenerator.generate(messages);
@@ -299,6 +320,6 @@ export class Soul extends EventEmitter {
   }
 
   public inspectPeopleMemory(userName: string): string {
-    return this.peopleMemory.inspect(userName);
+    return this.peopleMemory.retrieve(userName);
   }
 }
