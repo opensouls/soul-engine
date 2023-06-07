@@ -16,6 +16,7 @@ import {
 } from "./TEMPLATES";
 import { ChatCompletionRequestMessage } from "openai";
 import { PeopleMemory } from "./memory";
+import { processLMProgram } from "./lmProcessing";
 
 type Message = {
   userName: string;
@@ -37,6 +38,7 @@ export class Soul extends EventEmitter {
 
   private generatedThoughts: Thought[] = [];
   private msgQueue: string[] = [];
+  private followupTimeout: NodeJS.Timeout | null = null;
 
   constructor(blueprint: Blueprint) {
     super();
@@ -85,16 +87,36 @@ export class Soul extends EventEmitter {
         const [_, message, followupQuestion] = match;
         this.emit("says", message);
 
-        const minDelay = 2000;
-        const maxDelay = 4000;
+        const minDelay = 3000;
+        const maxDelay = 14000;
         const randomDelay =
           Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
 
-        const sendFollowup = () => this.emit("says", followupQuestion);
-        this.emit("thinking");
-        setTimeout(sendFollowup, randomDelay);
+        const sendFollowup = () => {
+          this.emit("thinking");
+          setTimeout(() => this.emit("says", followupQuestion), 3000);
+        };
+        this.followupTimeout = setTimeout(sendFollowup, randomDelay);
       } else {
-        this.emit("says", thought.memory.content);
+        const punctuationRegex = /^(.*[.?!]) ([^.?!]+\?[^.!]*)$/;
+        const match = thought.memory.content.match(punctuationRegex);
+        if (match && Math.random() < 0.4) {
+          const [_, message, followupStatement] = match;
+          this.emit("says", message);
+
+          const minDelay = 2000;
+          const maxDelay = 4000;
+          const randomDelay =
+            Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
+
+          const sendFollowup = () => {
+            this.emit("thinking");
+            setTimeout(() => this.emit("says", followupStatement), 3000);
+          };
+          setTimeout(sendFollowup, randomDelay);
+        } else {
+          this.emit("says", thought.memory.content);
+        }
       }
     } else {
       this.emit("thinks", thought.memory.content);
@@ -229,6 +251,10 @@ export class Soul extends EventEmitter {
 
   private think() {
     this.emit("thinking");
+    if (this.followupTimeout !== null) {
+      clearTimeout(this.followupTimeout as NodeJS.Timeout);
+      this.followupTimeout = null;
+    }
     devLog("🧠 SOUL is starting thinking...");
 
     let systemProgram, remembranceProgram, vars;
@@ -294,6 +320,16 @@ export class Soul extends EventEmitter {
 
     this.thoughts.push(memory);
     this.think();
+  }
+
+  public seesTyping() {
+    if (Math.random() < 0.7) {
+      this.thoughtGenerator.interrupt();
+    }
+    if (this.followupTimeout !== null) {
+      clearTimeout(this.followupTimeout as NodeJS.Timeout);
+      this.followupTimeout = null;
+    }
   }
 
   public read(

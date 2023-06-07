@@ -1,6 +1,6 @@
 {
   "name": "socialagi",
-  "version": "0.0.16",
+  "version": "0.0.18",
   "description": "Simple, opinionated framework for creating digital souls",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
