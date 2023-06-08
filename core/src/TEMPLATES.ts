@@ -127,6 +127,3 @@ Now, think through ${
 <WANTS_TO_RAMBLE>(YES or NO)</WANTS_TO_RAMBLE>
 <END />`;
 }
-//would ${
-//     vars.name
-//   } send another message before waiting for the reply? (yes or no)]]

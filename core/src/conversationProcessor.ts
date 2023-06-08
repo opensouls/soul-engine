@@ -16,6 +16,7 @@ import {
 } from "./TEMPLATES";
 import { ChatCompletionRequestMessage } from "openai";
 import { PeopleMemory } from "./memory";
+import { getTag, processLMProgram } from "./lmProcessing";
 
 export type Message = {
   userName: string;
@@ -25,6 +26,7 @@ export type Message = {
 export enum ParticipationStrategy {
   ALWAYS_REPLY,
   CONSUME_ONLY,
+  GROUP_CHAT,
 }
 
 export class ConversationProcessor extends EventEmitter {
@@ -240,12 +242,61 @@ export class ConversationProcessor extends EventEmitter {
     return finalMessages;
   }
 
-  private think() {
-    this.emit("thinking");
+  private async decideToParticipate(): Promise<boolean> {
+    const k = 7;
+    const latestThoughts = this.thoughts
+      .filter((thought) => thought.memory.action === "MESSAGES")
+      .slice(-k);
+    const instructions = [
+      {
+        role: "system",
+        content: `
+<BACKGROUND>
+Below is a conversation with ${this.blueprint.name}, ${this.blueprint.essence}
+
+${this.blueprint.personality}
+</BACKGROUND>
+
+<CONTEXT>The following contains a group conversation</CONTEXT>
+
+<CONVERSATION>
+${latestThoughts.map((t) => `${t.memory.entity}: ${t.toString()}`).join("\n")}
+</CONVERSATION>
+`.trim(),
+      },
+      {
+        role: "user",
+        content: `
+<QUESTION>Please think through whether ${this.blueprint.name} speaks next or not using the following notes and output format</QUESTION>
+
+<NOTES>
+-Doesn't speak if someone else is referenced or mentioned
+-If referenced or mentioned, including by a nickname then jumps in!
+-If already continuing a conversation, continues speaking
+</NOTES>
+
+Use the following output format:
+
+<LAST_MESSAGE>[[repeat the last message]]</LAST_MESSAGE>
+<REASON>[[explain if ${this.blueprint.name} speaks next or not]]</REASON>
+<ANSWER>[[use the reason to decide if ${this.blueprint.name} speaks next: answer yes or no]]</ANSWER>
+`.trim(),
+      },
+    ];
+    const res = await processLMProgram(
+      instructions as ChatCompletionRequestMessage[]
+    );
+    const answer = getTag({ tag: "ANSWER", input: res }).toLowerCase();
+    console.log(res);
+    return answer === "yes";
+  }
+
+  private async think() {
     if (this.followupTimeout !== null) {
       clearTimeout(this.followupTimeout as NodeJS.Timeout);
       this.followupTimeout = null;
     }
+    this.emit("thinking");
     devLog("🧠 SOUL is starting thinking...");
 
     let systemProgram, remembranceProgram, vars;
@@ -323,10 +374,10 @@ export class ConversationProcessor extends EventEmitter {
     }
   }
 
-  public read(
+  public async read(
     msg: Message,
     participationStrategy: ParticipationStrategy
-  ): void {
+  ) {
     const memory = new Memory({
       role: "user",
       entity: msg.userName,
@@ -342,6 +393,16 @@ export class ConversationProcessor extends EventEmitter {
 
     this.thoughts.push(memory);
     if (participationStrategy === ParticipationStrategy.ALWAYS_REPLY) {
+      this.think();
+    } else if (participationStrategy === ParticipationStrategy.GROUP_CHAT) {
+      if (this.followupTimeout !== null) {
+        clearTimeout(this.followupTimeout as NodeJS.Timeout);
+        this.followupTimeout = null;
+      }
+      const participate = await this.decideToParticipate();
+      if (!participate) {
+        return;
+      }
       this.think();
     }
   }
