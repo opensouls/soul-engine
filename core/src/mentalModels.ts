@@ -6,10 +6,8 @@ import {
 import { devLog } from "./utils";
 import { Blueprint } from "./blueprint";
 
-export class MentalModel {
-  public async update(msg: ChatCompletionRequestMessage) {
-    // overwrite
-  }
+export abstract class MentalModel {
+  abstract update(msg: ChatCompletionRequestMessage): void;
 }
 
 export class PersonModel extends MentalModel {
@@ -44,7 +42,11 @@ Their historical memory, which may include blanks yet to be learned from convers
 </ENTITY>`;
   }
 
-  public async update({ role, content, name }: ChatCompletionRequestMessage) {
+  public async update({
+    role,
+    content,
+    name,
+  }: ChatCompletionRequestMessage) {
     if ((role === "user" && this.userName === name) || role === "assistant") {
       this.buffer.push({ role, content, name } as ChatCompletionRequestMessage);
     }

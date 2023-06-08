@@ -1,8 +1,11 @@
 import { LanguageProcessor } from "./lmStream";
 export { LanguageProcessor };
 
-import { Soul, ParticipationStrategy } from "./soul";
-export { Soul, ParticipationStrategy };
+import { Soul } from "./soul";
+export { Soul };
+
+import { ParticipationStrategy } from "./conversationProcessor";
+export { ParticipationStrategy };
 
 import { Blueprint, Blueprints, ThoughtFramework } from "./blueprint";
 export { Blueprint, Blueprints, ThoughtFramework };
