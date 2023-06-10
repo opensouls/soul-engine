@@ -7,3 +7,6 @@
 [submodule "integrations/telegram/social-tele-bot"]
 	path = integrations/telegram/social-tele-bot
 	url = git@github.com:roevsky/social-tele-bot.git
+[submodule "integrations/discord_bots/emobot-discordbot"]
+	path = integrations/discord_bots/emobot-discordbot
+	url = git@github.com:opensouls/emobot-discordbot.git
