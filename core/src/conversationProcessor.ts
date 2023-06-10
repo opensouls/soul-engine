@@ -141,21 +141,27 @@ export class ConversationProcessor extends EventEmitter {
         }
       }
     } else {
-      if (thought.memory.action.toLowerCase() === "action") {
+      const actionThought = this.generatedThoughts.find(
+        (t) => t.memory.action.toLowerCase() === "action"
+      );
+      devLog(`\x1b[31m${actionThought} ${thought}\x1b[0m`);
+      if (
+        thought.memory.action.toLowerCase() === "action_input" &&
+        actionThought !== undefined
+      ) {
+        devLog(`\x1b[31m${actionThought} ${thought}\x1b[0m`);
         if (!thought.memory.content) {
           return;
         }
         const action = this.availableActions().find((a) => {
-          return a.name.toLowerCase() === thought.memory.content.toLowerCase();
+          return (
+            a.name.toLowerCase() === actionThought.memory.content.toLowerCase()
+          );
         });
         if (action) {
           action.execute(thought.memory.content, this.soul, this);
         }
 
-        return;
-      }
-      if (thought.memory.action.toLowerCase() === "action_input") {
-        devLog("ignoring action_input for now: " + thought.memory.content);
         return;
       }
       this.emit("thinks", thought.memory.content);
@@ -172,7 +178,7 @@ export class ConversationProcessor extends EventEmitter {
     devLog("🧠 SOUL finished thinking");
 
     const request = ConversationProcessor.concatThoughts(
-      this.generatedThoughts,
+      this.generatedThoughts
     );
     this.peopleMemory.update(request as ChatCompletionRequestMessage);
     this.thoughts = this.thoughts.concat(this.generatedThoughts);
@@ -187,7 +193,7 @@ export class ConversationProcessor extends EventEmitter {
             entity: "user",
             action: "MESSAGES",
             content: text,
-          }),
+          })
       );
       this.thoughts = this.thoughts.concat(msgThoughts);
       this.msgQueue = [];
@@ -208,7 +214,7 @@ export class ConversationProcessor extends EventEmitter {
     thoughts: Thought[],
     systemProgram: string,
     remembranceProgram?: string,
-    memory?: MRecord,
+    memory?: MRecord
   ): MRecord[] {
     function groupMemoriesByRole(memories: Memory[]): Memory[][] {
       const grouped = memories.reduce((result, memory, index, array) => {
@@ -231,7 +237,7 @@ export class ConversationProcessor extends EventEmitter {
     const initialMessages = [];
     for (const grouping of groupedThoughts) {
       initialMessages.push(
-        ConversationProcessor.concatThoughts(grouping) as any,
+        ConversationProcessor.concatThoughts(grouping) as any
       );
     }
 
@@ -320,7 +326,7 @@ Use the following output format:
       },
     ];
     const res = await processLMProgram(
-      instructions as ChatCompletionRequestMessage[],
+      instructions as ChatCompletionRequestMessage[]
     );
     const answer = getTag({ tag: "ANSWER", input: res }).toLowerCase();
     devLog(res);
@@ -382,9 +388,9 @@ Use the following output format:
 
     const messages = ConversationProcessor.thoughtsToRecords(
       this.thoughts,
-      systemProgram,  
+      systemProgram,
       remembranceProgram,
-      memory,
+      memory
     );
     // devLog("\n💬\n" + messages.map((m) => m.content).join(", ") + "\n💬\n");
     this.thoughtGenerator.generate(messages);
@@ -416,7 +422,7 @@ Use the following output format:
 
   public async read(
     msg: Message,
-    participationStrategy: ParticipationStrategy,
+    participationStrategy: ParticipationStrategy
   ) {
     const memory = new Memory({
       role: "user",
