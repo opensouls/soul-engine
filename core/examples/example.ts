@@ -2,13 +2,22 @@ import * as readline from "readline";
 import { Blueprints, Soul } from "../src";
 
 const blueprint = Blueprints.SAMANTHA;
+
+class TimeContext {
+  toString() {
+    return `Samantha is texting someone new at MeetSamantha.ai. The time and date is: ${new Date().toLocaleString()}}`;
+  }
+}
+
 const soul = new Soul(Blueprints.SAMANTHA);
 
-soul.on("says", (text: string) => {
+const conversation = soul.getConversation("example", new TimeContext());
+
+conversation.on("says", (text: string) => {
   console.log(`👱 ${blueprint.name} says: \x1b[34m${text}\x1b[0m`);
 });
 
-soul.on("thinks", (text: string) => {
+conversation.on("thinks", (text: string) => {
   console.log("👱", blueprint.name, " thinks: ", text);
 });
 
@@ -25,9 +34,9 @@ rl.on("line", async (line) => {
   if (line.toLowerCase() === "exit") {
     rl.close();
   } else if (line.toLowerCase() === "reset") {
-    soul.reset();
+    conversation.reset();
   } else {
     const text: string = line;
-    soul.tell(text);
+    conversation.tell(text);
   }
 });

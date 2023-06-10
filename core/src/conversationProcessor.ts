@@ -1,8 +1,7 @@
 import {
-  LanguageProcessor,
   Memory,
-  NeuralEvents,
   MRecord,
+  NeuralEvents,
   Thought,
   ThoughtGenerator,
 } from "./lmStream";
@@ -17,11 +16,17 @@ import {
 import { ChatCompletionRequestMessage } from "openai";
 import { PeopleMemory } from "./memory";
 import { getTag, processLMProgram } from "./lmProcessing";
+import { Soul } from "./soul";
+import { Action } from "./action";
 
 export type Message = {
   userName: string;
   text: string;
 };
+
+export interface ConversationalContext {
+  toString(): string;
+}
 
 export enum ParticipationStrategy {
   ALWAYS_REPLY,
@@ -32,6 +37,7 @@ export enum ParticipationStrategy {
 export class ConversationProcessor extends EventEmitter {
   private thoughtGenerator: ThoughtGenerator;
 
+  public soul: Soul;
   public blueprint: Blueprint;
 
   private thoughts: Thought[] = [];
@@ -40,11 +46,14 @@ export class ConversationProcessor extends EventEmitter {
   private generatedThoughts: Thought[] = [];
   private msgQueue: string[] = [];
   private followupTimeout: NodeJS.Timeout | null = null;
+  private context: ConversationalContext;
 
-  constructor(blueprint: Blueprint) {
+  constructor(soul: Soul, context: ConversationalContext) {
     super();
 
-    this.blueprint = blueprint;
+    this.soul = soul;
+    this.context = context;
+    this.blueprint = soul.blueprint;
 
     this.peopleMemory = new PeopleMemory(this.blueprint);
     this.thoughtGenerator = new ThoughtGenerator(
@@ -57,6 +66,30 @@ export class ConversationProcessor extends EventEmitter {
     this.thoughtGenerator.on(NeuralEvents.noNewThoughts, () => {
       this.noNewThoughts();
     });
+  }
+
+  private availableActions(): Action[] {
+    const rambleAction: Action = {
+      name: "rambleAfterResponding",
+      description:
+        "If you want to continue talking, without waiting for a response. Use YES or NO as input.",
+      execute: (input, _soul, conversation) => {
+        devLog(`executing ramble action with input: ${input}`);
+        if (input.toLowerCase() === "no") {
+          return;
+        }
+        conversation.generatedThoughts.push(
+          new Thought({
+            role: "assistant",
+            entity: this.blueprint.name,
+            action: "RAMBLE",
+            content: "I want to ramble before they respond",
+          })
+        );
+        conversation.continueThinking();
+      },
+    };
+    return [rambleAction].concat(this.soul.actions);
   }
 
   public reset() {
@@ -108,21 +141,24 @@ export class ConversationProcessor extends EventEmitter {
         }
       }
     } else {
-      this.emit("thinks", thought.memory.content);
-      if (
-        thought.memory.action === "WANTS_TO_RAMBLE" &&
-        thought.memory.content.toLowerCase() === "yes"
-      ) {
-        this.generatedThoughts.push(
-          new Thought({
-            role: "assistant",
-            entity: this.blueprint.name,
-            action: "RAMBLE",
-            content: "I want to ramble before they respond",
-          })
-        );
-        this.continueThinking();
+      if (thought.memory.action.toLowerCase() === "action") {
+        if (!thought.memory.content) {
+          return;
+        }
+        const action = this.availableActions().find((a) => {
+          return a.name.toLowerCase() === thought.memory.content.toLowerCase();
+        });
+        if (action) {
+          action.execute(thought.memory.content, this.soul, this);
+        }
+
+        return;
       }
+      if (thought.memory.action.toLowerCase() === "action_input") {
+        devLog("ignoring action_input for now: " + thought.memory.content);
+        return;
+      }
+      this.emit("thinks", thought.memory.content);
     }
   }
 
@@ -136,7 +172,7 @@ export class ConversationProcessor extends EventEmitter {
     devLog("🧠 SOUL finished thinking");
 
     const request = ConversationProcessor.concatThoughts(
-      this.generatedThoughts
+      this.generatedThoughts,
     );
     this.peopleMemory.update(request as ChatCompletionRequestMessage);
     this.thoughts = this.thoughts.concat(this.generatedThoughts);
@@ -151,7 +187,7 @@ export class ConversationProcessor extends EventEmitter {
             entity: "user",
             action: "MESSAGES",
             content: text,
-          })
+          }),
       );
       this.thoughts = this.thoughts.concat(msgThoughts);
       this.msgQueue = [];
@@ -172,7 +208,7 @@ export class ConversationProcessor extends EventEmitter {
     thoughts: Thought[],
     systemProgram: string,
     remembranceProgram?: string,
-    memory?: MRecord
+    memory?: MRecord,
   ): MRecord[] {
     function groupMemoriesByRole(memories: Memory[]): Memory[][] {
       const grouped = memories.reduce((result, memory, index, array) => {
@@ -195,7 +231,7 @@ export class ConversationProcessor extends EventEmitter {
     const initialMessages = [];
     for (const grouping of groupedThoughts) {
       initialMessages.push(
-        ConversationProcessor.concatThoughts(grouping) as any
+        ConversationProcessor.concatThoughts(grouping) as any,
       );
     }
 
@@ -284,10 +320,10 @@ Use the following output format:
       },
     ];
     const res = await processLMProgram(
-      instructions as ChatCompletionRequestMessage[]
+      instructions as ChatCompletionRequestMessage[],
     );
     const answer = getTag({ tag: "ANSWER", input: res }).toLowerCase();
-    console.log(res);
+    devLog(res);
     return answer === "yes";
   }
 
@@ -308,6 +344,8 @@ Use the following output format:
           essence: this.blueprint.essence,
           personality: this.blueprint.personality || "",
           languageProcessor: this.blueprint.languageProcessor,
+          context: this.context.toString(),
+          actions: this.availableActions(),
         };
         systemProgram = getIntrospectiveSystemProgram(vars);
         remembranceProgram = getIntrospectiveRemembranceProgram(vars);
@@ -318,6 +356,8 @@ Use the following output format:
           initialPlan: this.blueprint.initialPlan,
           essence: this.blueprint.essence,
           personality: this.blueprint.personality || "",
+          context: this.context.toString(),
+          actions: this.availableActions(),
         };
         systemProgram = getReflectiveLPSystemProgram(vars);
         break;
@@ -342,11 +382,11 @@ Use the following output format:
 
     const messages = ConversationProcessor.thoughtsToRecords(
       this.thoughts,
-      systemProgram,
+      systemProgram,  
       remembranceProgram,
-      memory
+      memory,
     );
-    devLog("\n💬\n" + messages + "\n💬\n");
+    // devLog("\n💬\n" + messages.map((m) => m.content).join(", ") + "\n💬\n");
     this.thoughtGenerator.generate(messages);
   }
 
@@ -376,7 +416,7 @@ Use the following output format:
 
   public async read(
     msg: Message,
-    participationStrategy: ParticipationStrategy
+    participationStrategy: ParticipationStrategy,
   ) {
     const memory = new Memory({
       role: "user",

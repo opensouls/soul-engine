@@ -1,6 +1,7 @@
 import { EventEmitter } from "events";
 import { Configuration, OpenAIApi } from "openai";
 import { OpenAIExt } from "openai-ext";
+import { devLog } from "./utils";
 
 export interface IMemory {
   role: string;
@@ -98,12 +99,12 @@ export class ThoughtGenerator extends EventEmitter {
             const extractedThoughts = [];
 
             for (const match of matches) {
-              const [_, action, content] = match;
+              const [_, action, internalContent] = match;
               const extractedThought = new Thought({
                 role: "assistant",
                 entity,
                 action,
-                content,
+                content: internalContent,
               });
               extractedThoughts.push(extractedThought);
             }
@@ -128,6 +129,7 @@ export class ThoughtGenerator extends EventEmitter {
 
     // TODO: upstream lib parses stream chunks correctly but sometimes emits a spurious error
     //   open PR to silence non-fatal errors in https://github.com/justinmahar/openai-ext
+    devLog("New stream");
     const openaiStreamResponse = await OpenAIExt.streamServerChatCompletion(
       {
         model: this.languageProcessor,
