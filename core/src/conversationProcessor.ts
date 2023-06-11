@@ -201,21 +201,24 @@ export class ConversationProcessor extends EventEmitter {
 
     this.generatedThoughts = [];
 
-    if (this.msgQueue.length > 0) {
-      const msgThoughts = this.msgQueue.map(
-        (text) =>
-          new Memory({
-            role: "user",
-            entity: "user",
-            action: "MESSAGES",
-            content: text,
-          }),
-      );
-      this.thoughts = this.thoughts.concat(msgThoughts);
-      this.msgQueue = [];
-
-      this.think();
+    if (this.msgQueue.length === 0) {
+      this.emit("break");
+      return;
     }
+
+    const msgThoughts = this.msgQueue.map(
+      (text) =>
+        new Memory({
+          role: "user",
+          entity: "user",
+          action: "MESSAGES",
+          content: text,
+        })
+    );
+    this.thoughts = this.thoughts.concat(msgThoughts);
+    this.msgQueue = [];
+
+    this.think();
   }
 
   static concatThoughts(grouping: Thought[]): MRecord {
@@ -252,9 +255,7 @@ export class ConversationProcessor extends EventEmitter {
     const groupedThoughts = groupMemoriesByRole(thoughts);
     const initialMessages = [];
     for (const grouping of groupedThoughts) {
-      initialMessages.push(
-        ConversationProcessor.concatThoughts(grouping) as any,
-      );
+      initialMessages.push(ConversationProcessor.concatThoughts(grouping));
     }
 
     let truncatedMessages = initialMessages;
@@ -399,7 +400,9 @@ Use the following output format:
           content: this.peopleMemory.retrieve(lastUserName),
           name: this.blueprint.name,
         } as MRecord;
-      } catch {}
+      } catch (err: any) {
+        devLog(`Error creating memory: ${err.toString()}`);
+      }
     }
 
     const messages = ConversationProcessor.thoughtsToRecords(
