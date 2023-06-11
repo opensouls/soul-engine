@@ -48,17 +48,20 @@ export class ConversationProcessor extends EventEmitter {
   private followupTimeout: NodeJS.Timeout | null = null;
   private context: ConversationalContext;
 
+  private sayWaitDisabled? = false;
+
   constructor(soul: Soul, context: ConversationalContext) {
     super();
 
     this.soul = soul;
     this.context = context;
     this.blueprint = soul.blueprint;
+    this.sayWaitDisabled = soul.options.disableSayDelay;
 
     this.peopleMemory = new PeopleMemory(this.blueprint);
     this.thoughtGenerator = new ThoughtGenerator(
       this.blueprint.languageProcessor,
-      this.blueprint.name
+      this.blueprint.name,
     );
     this.thoughtGenerator.on(NeuralEvents.newThought, (thought: Thought) => {
       this.onNewThought(thought);
@@ -84,7 +87,7 @@ export class ConversationProcessor extends EventEmitter {
             entity: this.blueprint.name,
             action: "RAMBLE",
             content: "I want to ramble before they respond",
-          })
+          }),
         );
         conversation.continueThinking();
       },
@@ -99,73 +102,86 @@ export class ConversationProcessor extends EventEmitter {
     this.generatedThoughts = [];
   }
 
-  private onNewThought(thought: Thought) {
-    this.generatedThoughts.push(thought);
+  private handleMessageThought(thought: Thought) {
+    if (this.sayWaitDisabled) {
+      return this.emit("says", thought.memory.content);
+    }
 
-    if (thought.isMessage()) {
-      const questionRegex = /^(.*[.?!]) ([^.?!]+\?[^?]*)$/;
-      const match = thought.memory.content.match(questionRegex);
-      if (match) {
-        const [_, message, followupQuestion] = match;
+    const questionRegex = /^(.*[.?!]) ([^.?!]+\?[^?]*)$/;
+    const match = thought.memory.content.match(questionRegex);
+    if (match) {
+      const [_, message, followupQuestion] = match;
+      this.emit("says", message);
+
+      const minDelay = 3000;
+      const maxDelay = 14000;
+      const randomDelay =
+        Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
+
+      const sendFollowup = () => {
+        this.emit("thinking");
+        setTimeout(() => this.emit("says", followupQuestion), 3000);
+      };
+      this.followupTimeout = setTimeout(sendFollowup, randomDelay);
+    } else {
+      const punctuationRegex = /^(.*[.?!]) ([^.?!]+\?[^.!]*)$/;
+      const match = thought.memory.content.match(punctuationRegex);
+      if (match && Math.random() < 0.4) {
+        const [_, message, followupStatement] = match;
         this.emit("says", message);
 
-        const minDelay = 3000;
-        const maxDelay = 14000;
+        const minDelay = 2000;
+        const maxDelay = 4000;
         const randomDelay =
           Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
 
         const sendFollowup = () => {
           this.emit("thinking");
-          setTimeout(() => this.emit("says", followupQuestion), 3000);
+          setTimeout(() => this.emit("says", followupStatement), 3000);
         };
-        this.followupTimeout = setTimeout(sendFollowup, randomDelay);
+        setTimeout(sendFollowup, randomDelay);
       } else {
-        const punctuationRegex = /^(.*[.?!]) ([^.?!]+\?[^.!]*)$/;
-        const match = thought.memory.content.match(punctuationRegex);
-        if (match && Math.random() < 0.4) {
-          const [_, message, followupStatement] = match;
-          this.emit("says", message);
-
-          const minDelay = 2000;
-          const maxDelay = 4000;
-          const randomDelay =
-            Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
-
-          const sendFollowup = () => {
-            this.emit("thinking");
-            setTimeout(() => this.emit("says", followupStatement), 3000);
-          };
-          setTimeout(sendFollowup, randomDelay);
-        } else {
-          this.emit("says", thought.memory.content);
-        }
+        this.emit("says", thought.memory.content);
       }
-    } else {
-      const actionThought = this.generatedThoughts.find(
-        (t) => t.memory.action.toLowerCase() === "action"
-      );
-      devLog(`\x1b[31m${actionThought} ${thought}\x1b[0m`);
-      if (
-        thought.memory.action.toLowerCase() === "action_input" &&
-        actionThought !== undefined
-      ) {
-        devLog(`\x1b[31m${actionThought} ${thought}\x1b[0m`);
-        if (!thought.memory.content) {
-          return;
-        }
-        const action = this.availableActions().find((a) => {
-          return (
-            a.name.toLowerCase() === actionThought.memory.content.toLowerCase()
-          );
-        });
-        if (action) {
-          action.execute(thought.memory.content, this.soul, this);
-        }
+    }
+  }
 
+  private handleInternalCognitionThought(thought: Thought) {
+    const actionThought = this.generatedThoughts.find(
+      (t) => t.memory.action.toLowerCase() === "action"
+    );
+    devLog(`\x1b[31m${actionThought} ${thought}\x1b[0m`);
+
+    if (
+      thought.memory.action.toLowerCase() === "action_input" &&
+      actionThought !== undefined
+    ) {
+      devLog(`\x1b[31m${actionThought} ${thought}\x1b[0m`);
+      if (!thought.memory.content) {
         return;
       }
-      this.emit("thinks", thought.memory.content);
+      const action = this.availableActions().find((a) => {
+        return (
+          a.name.toLowerCase() === actionThought.memory.content.toLowerCase()
+        );
+      });
+      if (action) {
+        action.execute(thought.memory.content, this.soul, this);
+      }
+
+      return;
     }
+    this.emit("thinks", thought.memory.content);
+  }
+
+  private onNewThought(thought: Thought) {
+    this.generatedThoughts.push(thought);
+
+    if (thought.isMessage()) {
+      return this.handleMessageThought(thought);
+    }
+
+    return this.handleInternalCognitionThought(thought);
   }
 
   private continueThinking() {
@@ -178,7 +194,7 @@ export class ConversationProcessor extends EventEmitter {
     devLog("🧠 SOUL finished thinking");
 
     const request = ConversationProcessor.concatThoughts(
-      this.generatedThoughts
+      this.generatedThoughts,
     );
     this.peopleMemory.update(request as ChatCompletionRequestMessage);
     this.thoughts = this.thoughts.concat(this.generatedThoughts);
@@ -193,7 +209,7 @@ export class ConversationProcessor extends EventEmitter {
             entity: "user",
             action: "MESSAGES",
             content: text,
-          })
+          }),
       );
       this.thoughts = this.thoughts.concat(msgThoughts);
       this.msgQueue = [];
@@ -214,7 +230,7 @@ export class ConversationProcessor extends EventEmitter {
     thoughts: Thought[],
     systemProgram: string,
     remembranceProgram?: string,
-    memory?: MRecord
+    memory?: MRecord,
   ): MRecord[] {
     function groupMemoriesByRole(memories: Memory[]): Memory[][] {
       const grouped = memories.reduce((result, memory, index, array) => {
@@ -237,7 +253,7 @@ export class ConversationProcessor extends EventEmitter {
     const initialMessages = [];
     for (const grouping of groupedThoughts) {
       initialMessages.push(
-        ConversationProcessor.concatThoughts(grouping) as any
+        ConversationProcessor.concatThoughts(grouping) as any,
       );
     }
 
@@ -326,7 +342,7 @@ Use the following output format:
       },
     ];
     const res = await processLMProgram(
-      instructions as ChatCompletionRequestMessage[]
+      instructions as ChatCompletionRequestMessage[],
     );
     const answer = getTag({ tag: "ANSWER", input: res }).toLowerCase();
     devLog(res);
@@ -390,7 +406,7 @@ Use the following output format:
       this.thoughts,
       systemProgram,
       remembranceProgram,
-      memory
+      memory,
     );
     // devLog("\n💬\n" + messages.map((m) => m.content).join(", ") + "\n💬\n");
     this.thoughtGenerator.generate(messages);
@@ -422,7 +438,7 @@ Use the following output format:
 
   public async read(
     msg: Message,
-    participationStrategy: ParticipationStrategy
+    participationStrategy: ParticipationStrategy,
   ) {
     const memory = new Memory({
       role: "user",

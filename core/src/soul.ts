@@ -15,6 +15,9 @@ type ConversationStore = {
 
 interface SoulOptions {
   defaultContext?: ConversationalContext;
+  // if you want to always get the entire "say" thought instead of streaming it out sentence by sentence,
+  // then turn on "disableSayDelay"
+  disableSayDelay?: boolean;
   actions?: Action[];
 }
 
@@ -22,13 +25,13 @@ export class Soul extends EventEmitter {
   conversations: ConversationStore = {};
   public blueprint: Blueprint;
 
-  public defaultContext: ConversationalContext;
   public actions: Action[];
+  readonly options: SoulOptions;
 
   constructor(blueprint: Blueprint, soulOptions: SoulOptions = {}) {
     super();
 
-    this.defaultContext = soulOptions.defaultContext || "";
+    this.options = soulOptions;
     this.actions = soulOptions.actions || [];
 
     this.blueprint = blueprint;
@@ -44,6 +47,10 @@ export class Soul extends EventEmitter {
         "ReflectiveLP ThoughtFramework requires the GPT4 language processor",
       );
     }
+  }
+
+  get defaultContext() {
+    return this.options.defaultContext || "";
   }
 
   public reset(): void {
