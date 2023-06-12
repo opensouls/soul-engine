@@ -33,11 +33,11 @@ and the condition to evaluate
       content: `Here is your output format
   
 <TEST>
-  <INPUT>[[fill in]]</TEST>
+  <INPUT>[[fill in]]</INPUT>
   <CONDITION>[[fill in]]</CONDITION>
   <THINKING>[[explain if the INPUT satisfies the CONDITION]]</THINKING>
   <CONFIDENCE>[[confidence score ranging from 0 to 1 if the input satisfies the condition]]</CONFIDENCE>
-<TEST>
+</TEST>
 
 The optimal assessment is given
 
