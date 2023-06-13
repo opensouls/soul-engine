@@ -14,10 +14,10 @@ import {
   getReflectiveLPSystemProgram,
 } from "./TEMPLATES";
 import { ChatCompletionRequestMessage } from "openai";
-import { PeopleMemory } from "./memory";
 import { getTag, processLMProgram } from "./lmProcessing";
 import { Soul } from "./soul";
 import { Action } from "./action";
+import { MentalModel } from "./mentalModels";
 
 export type Message = {
   userName: string;
@@ -40,25 +40,29 @@ export class ConversationProcessor extends EventEmitter {
   public soul: Soul;
   public blueprint: Blueprint;
 
-  private thoughts: Thought[] = [];
-  private peopleMemory: PeopleMemory;
+  public thoughts: Thought[];
 
-  private generatedThoughts: Thought[] = [];
-  private msgQueue: string[] = [];
+  private generatedThoughts: Thought[];
+  private msgQueue: string[];
   private followupTimeout: NodeJS.Timeout | null = null;
   private context: ConversationalContext;
 
   private sayWaitDisabled? = false;
 
+  public mentalModels: MentalModel[];
+
   constructor(soul: Soul, context: ConversationalContext) {
     super();
-
+    this.msgQueue = [];
+    this.thoughts = [];
+    this.generatedThoughts = [];
     this.soul = soul;
     this.context = context;
     this.blueprint = soul.blueprint;
     this.sayWaitDisabled = soul.options.disableSayDelay;
 
-    this.peopleMemory = new PeopleMemory(this.blueprint);
+    this.mentalModels = soul.mentalModels;
+
     this.thoughtGenerator = new ThoughtGenerator(
       this.blueprint.languageProcessor,
       this.blueprint.name,
@@ -148,7 +152,7 @@ export class ConversationProcessor extends EventEmitter {
 
   private handleInternalCognitionThought(thought: Thought) {
     const actionThought = this.generatedThoughts.find(
-      (t) => t.memory.action.toLowerCase() === "action"
+      (t) => t.memory.action.toLowerCase() === "action",
     );
     devLog(`\x1b[31m${actionThought} ${thought}\x1b[0m`);
 
@@ -193,11 +197,8 @@ export class ConversationProcessor extends EventEmitter {
   private noNewThoughts() {
     devLog("🧠 SOUL finished thinking");
 
-    const request = ConversationProcessor.concatThoughts(
-      this.generatedThoughts,
-    );
-    this.peopleMemory.update(request as ChatCompletionRequestMessage);
     this.thoughts = this.thoughts.concat(this.generatedThoughts);
+    this.mentalModels.forEach((m) => m.update(this.generatedThoughts, this));
 
     this.generatedThoughts = [];
 
@@ -213,7 +214,7 @@ export class ConversationProcessor extends EventEmitter {
           entity: "user",
           action: "MESSAGES",
           content: text,
-        })
+        }),
     );
     this.thoughts = this.thoughts.concat(msgThoughts);
     this.msgQueue = [];
@@ -388,42 +389,45 @@ Use the following output format:
         throw Error("");
     }
 
-    const userNames = this.thoughts
-      .filter((t) => t.memory.role === "user")
-      .map((t) => t.memory.entity);
-    const lastUserName = userNames.slice(-1)[0];
-    let memory;
-    if (lastUserName !== undefined) {
-      try {
-        memory = {
-          role: "assistant",
-          content: this.peopleMemory.retrieve(lastUserName),
-          name: this.blueprint.name,
-        } as MRecord;
-      } catch (err: any) {
-        devLog(`Error creating memory: ${err.toString()}`);
-      }
-    }
-
     const messages = ConversationProcessor.thoughtsToRecords(
       this.thoughts,
       systemProgram,
       remembranceProgram,
-      memory,
+      this.mentalModelLinguisticProgram()
     );
     // devLog("\n💬\n" + messages.map((m) => m.content).join(", ") + "\n💬\n");
     this.thoughtGenerator.generate(messages);
   }
 
-  public tell(text: string): void {
+  private mentalModelLinguisticProgram(): MRecord | undefined {
+    try {
+      const mentalModelprograms = this.mentalModels
+        .map((m) => m.toLinguisticProgram(this))
+        .filter(Boolean);
+
+      if (!mentalModelprograms) {
+        return;
+      }
+
+      return {
+        role: "assistant",
+        content: mentalModelprograms.join("\n"),
+        name: this.blueprint.name,
+      } as MRecord;
+    } catch (err: any) {
+      devLog(`Error creating memory: ${err.toString()}`);
+    }
+  }
+
+  public tell(text: string, asUser?: string): void {
     const memory = new Memory({
       role: "user",
-      entity: "user",
+      entity: asUser || "user",
       action: "MESSAGES",
       content: text,
     });
 
-    this.peopleMemory.update({ role: "user", content: text, name: "user" });
+    this.mentalModels.forEach((m) => m.update([memory], this));
 
     this.thoughts.push(memory);
     this.think();
@@ -450,11 +454,7 @@ Use the following output format:
       content: msg.text,
     });
 
-    this.peopleMemory.update({
-      role: "user",
-      content: msg.text,
-      name: msg.userName,
-    });
+    this.mentalModels.forEach((m) => m.update([memory], this));
 
     this.thoughts.push(memory);
     if (participationStrategy === ParticipationStrategy.ALWAYS_REPLY) {
@@ -472,7 +472,4 @@ Use the following output format:
     }
   }
 
-  public inspectPeopleMemory(userName: string): string {
-    return this.peopleMemory.retrieve(userName);
-  }
 }

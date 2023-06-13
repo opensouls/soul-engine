@@ -3,6 +3,7 @@ const { Blueprints } = require("../src/blueprint");
 const { Soul } = require("../src/soul");
 const { ParticipationStrategy } = require("../src/soul");
 const { isAbstractTrue, AbstractSample } = require("../src/testing");
+const { PeopleMemory } = require("../src/memory");
 
 function delay(milliseconds) {
   return new Promise((resolve) => {
@@ -20,7 +21,22 @@ afterAll(() => {
   errorSpy.mockRestore();
 });
 
+const mentalModelForUser = (soul, userName) => {
+  const peopleMemory = soul.mentalModels.find((model) =>
+    PeopleMemory.is(model)
+  );
+  if (!peopleMemory) {
+    throw new Error("no people memory");
+  }
+  const userMemory = peopleMemory.mentalModels[userName];
+  if (!userMemory) {
+    throw new Error("no user memory");
+  }
+  return userMemory.toLinguisticProgram();
+}
+
 test("test sorrowful conversation history accumulates", async () => {
+
   const generator = async () => {
     const soul = new Soul(Blueprints.SAMANTHA);
     const messagesToSend = [
@@ -36,7 +52,7 @@ test("test sorrowful conversation history accumulates", async () => {
     }
     return getTag({
       tag: "HISTORY",
-      input: soul.inspectPeopleMemory("user"),
+      input: mentalModelForUser(soul, "user"),
     });
   };
   const sample = new AbstractSample(generator);
@@ -64,7 +80,7 @@ test("test sorrowful conversation gives interesting mental model", async () => {
     }
     return getTag({
       tag: "MENTAL STATE",
-      input: soul.inspectPeopleMemory("user"),
+      input: mentalModelForUser(soul, "user"),
     });
   };
   const sample = new AbstractSample(generator);
@@ -111,7 +127,7 @@ test("test capture name", async () => {
     }
     return getTag({
       tag: "NAME",
-      input: soul.inspectPeopleMemory("user"),
+      input: mentalModelForUser(soul, "user"),
     });
   }
   const results = await Promise.all([1, 2, 3, 4, 5].map(() => testSoul()));
@@ -133,7 +149,7 @@ test("test capture name update", async () => {
     }
     return getTag({
       tag: "NAME",
-      input: soul.inspectPeopleMemory("user"),
+      input: mentalModelForUser(soul, "user"),
     });
   }
   const results = await Promise.all([1, 2, 3, 4, 5].map(() => testSoul()));
@@ -152,7 +168,7 @@ test("test capture goals", async () => {
     }
     const goals = getTag({
       tag: "GOALS",
-      input: soul.inspectPeopleMemory("user"),
+      input: mentalModelForUser(soul, "user"),
     });
     const estimate = await isAbstractTrue(
       goals,
@@ -179,7 +195,7 @@ test("test capture goals update", async () => {
     }
     const goals = getTag({
       tag: "GOALS",
-      input: soul.inspectPeopleMemory("user"),
+      input: mentalModelForUser(soul, "user"),
     });
     const estimate = await isAbstractTrue(
       goals,
@@ -215,7 +231,7 @@ test("test multiple people conversing yield separate mental models", async () =>
       getter: (soul) =>
         getTag({
           tag: "NAME",
-          input: soul.inspectPeopleMemory("user122"),
+          input: mentalModelForUser(soul, "user122"),
         }),
       condition: "contains 'Kevin'",
     })
@@ -225,7 +241,7 @@ test("test multiple people conversing yield separate mental models", async () =>
       getter: (soul) =>
         getTag({
           tag: "HISTORY",
-          input: soul.inspectPeopleMemory("user022"),
+          input: mentalModelForUser(soul, "user022"),
         }),
       condition: "includes having a cat",
     })
@@ -235,7 +251,7 @@ test("test multiple people conversing yield separate mental models", async () =>
       getter: (soul) =>
         getTag({
           tag: "HISTORY",
-          input: soul.inspectPeopleMemory("user122"),
+          input: mentalModelForUser(soul, "user122"),
         }),
       condition: "includes liking the animal dog",
     })
@@ -245,7 +261,7 @@ test("test multiple people conversing yield separate mental models", async () =>
       getter: (soul) =>
         getTag({
           tag: "NAME",
-          input: soul.inspectPeopleMemory("user022"),
+          input: mentalModelForUser(soul, "user022"),
         }),
       condition: "contains 'Bob'",
     })

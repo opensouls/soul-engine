@@ -1,20 +1,26 @@
-import { PersonModel } from "./mentalModels";
-import { ChatCompletionRequestMessage } from "openai";
+import { MentalModel, PersonModel } from "./mentalModels";
 import { Blueprint } from "./blueprint";
+import { Thought } from "./lmStream";
+import { ConversationProcessor } from "./conversationProcessor";
 
 interface MentalModels {
   [key: string]: PersonModel;
 }
 
-export class PeopleMemory {
-  private memory: MentalModels = {};
+export class PeopleMemory implements MentalModel {
+  public memory: MentalModels;
   private readonly observerBlueprint: Blueprint;
 
   constructor(observerBlueprint: Blueprint) {
+    this.memory = {};
     this.observerBlueprint = observerBlueprint;
   }
 
-  public async update({ role, content, name }: ChatCompletionRequestMessage) {
+  public async update(
+    thoughts: Thought[],
+    conversation: ConversationProcessor,
+  ) {
+    const { entity: name } = thoughts[0].memory;
     if (name === undefined) {
       throw new Error("PeopleMemory requires named messages to be passed in");
     }
@@ -23,14 +29,26 @@ export class PeopleMemory {
       this.memory[name] = new PersonModel(name, this.observerBlueprint);
     }
     return await Promise.all(
-      Object.values(this.memory).map((m) => m.update({ role, content, name }))
+      Object.values(this.memory).map((m) => m.update(thoughts, conversation)),
     );
   }
 
-  public retrieve(userName: string): string {
-    if (Object.keys(this.memory).includes(userName)) {
-      return this.memory[userName].toString();
+  public toLinguisticProgram(conversation: ConversationProcessor): string {
+    const userNames = conversation.thoughts
+      .filter((t) => t.memory.role === "user")
+      .map((t) => t.memory.entity);
+
+    const lastUserName = userNames.slice(-1)[0];
+
+    if (!lastUserName) {
+      console.error("No last person in conversation");
+      return "";
     }
-    throw new Error(`no userName: ${userName} in memory found`);
+
+    const memory = this.memory[lastUserName];
+    if (!memory) {
+      return "";
+    }
+    return memory.toLinguisticProgram(conversation);
   }
 }

@@ -5,12 +5,15 @@ import {
 } from "openai";
 import { devLog } from "./utils";
 import { Blueprint } from "./blueprint";
+import { Thought } from "./lmStream";
+import { ConversationProcessor } from "./conversationProcessor";
 
-export abstract class MentalModel {
-  abstract update(msg: ChatCompletionRequestMessage): void;
+export interface MentalModel {
+  update: (thoughts: Thought[], conversation: ConversationProcessor) => void;
+  toLinguisticProgram: (conversation: ConversationProcessor) => string | undefined;
 }
 
-export class PersonModel extends MentalModel {
+export class PersonModel implements MentalModel {
   userName: string;
   observerBlueprint: Blueprint;
   name = "I'm not yet sure their real name";
@@ -18,15 +21,15 @@ export class PersonModel extends MentalModel {
   narrative = `- they're messaging me for the first time`;
   goals = "Because they're messaging me they probably want to interact";
   state = "Interested to engage";
-  private buffer: ChatCompletionRequestMessage[] = [];
+  private buffer: ChatCompletionRequestMessage[];
 
   constructor(userName: string, observerBlueprint: Blueprint) {
-    super();
+    this.buffer = [];
     this.userName = userName;
     this.observerBlueprint = observerBlueprint;
   }
 
-  public toString() {
+  public toLinguisticProgram(_conversation: ConversationProcessor) {
     return `<CONTEXT>To date, ${this.observerBlueprint.name} remembers the following about ${this.name}, including records of their NAME, basic FACTS, current HISTORY narrative, personal GOALS, MOOD, and MENTAL STATE.</CONTEXT>
 
 Their historical memory, which may include blanks yet to be learned from conversation, reads:
@@ -42,11 +45,13 @@ Their historical memory, which may include blanks yet to be learned from convers
 </ENTITY>`;
   }
 
-  public async update({
-    role,
-    content,
-    name,
-  }: ChatCompletionRequestMessage) {
+  public async update(
+    thoughts: Thought[],
+    conversation: ConversationProcessor,
+  ) {
+    const { role, entity: name } = thoughts[0].memory;
+    const content = thoughts.map((t) => t.memory.content).join("\n");
+
     if ((role === "user" && this.userName === name) || role === "assistant") {
       this.buffer.push({ role, content, name } as ChatCompletionRequestMessage);
     }
@@ -107,7 +112,8 @@ and reads
       {
         role: ChatCompletionRequestMessageRoleEnum.System,
         content:
-          this.toString() + `\n\nThen, the following messages were exchanged.`,
+          this.toLinguisticProgram(conversation) +
+          `\n\nThen, the following messages were exchanged.`,
       },
     ];
     instructions = instructions.concat(this.buffer as any);

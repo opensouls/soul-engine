@@ -8,6 +8,8 @@ import {
   ParticipationStrategy,
 } from "./conversationProcessor";
 import { Action } from "./action";
+import { MentalModel } from "./mentalModels";
+import { PeopleMemory } from "./memory";
 
 type ConversationStore = {
   [convoName: string]: ConversationProcessor;
@@ -19,6 +21,7 @@ interface SoulOptions {
   // then turn on "disableSayDelay"
   disableSayDelay?: boolean;
   actions?: Action[];
+  mentalModels?: MentalModel[];
 }
 
 export class Soul extends EventEmitter {
@@ -27,12 +30,16 @@ export class Soul extends EventEmitter {
 
   public actions: Action[];
   readonly options: SoulOptions;
+  readonly mentalModels: MentalModel[];
 
   constructor(blueprint: Blueprint, soulOptions: SoulOptions = {}) {
     super();
 
     this.options = soulOptions;
     this.actions = soulOptions.actions || [];
+
+    this.mentalModels = soulOptions.mentalModels || [new PeopleMemory(blueprint)];
+
 
     this.blueprint = blueprint;
     // soul blueprint validation
@@ -97,9 +104,5 @@ export class Soul extends EventEmitter {
     convoName = "default",
   ): void {
     this.getConversation(convoName).read(msg, participationStrategy);
-  }
-
-  public inspectPeopleMemory(userName: string, convoName = "default"): string {
-    return this.getConversation(convoName).inspectPeopleMemory(userName);
   }
 }
