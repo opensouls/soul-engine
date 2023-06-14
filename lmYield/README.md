@@ -12,6 +12,7 @@ Features:
 
  - [x] Simple, intuitive syntax, based on Handlebars templating.
  - [x] Rich output structure with speculative caching and multiple generations to ensure desired schema.
+ - [x] Designed specifically for agentic chain of thought.
  - [x] Typescript not python
 
 ## Quick Install
@@ -128,7 +129,7 @@ type Yield {
 
 ### Roadmap
 
-- Reimplement parser
+- Reimplement parser to support more complex nesting and informative error handling
 - Testing for the parser
 - Streaming for partial generations
 - Max generations plus informative failure
@@ -180,6 +181,20 @@ which causes emission of `LMYieldEvents.generation` and `LMYieldEvents.done`. Al
 
 ```npm
 const generations = await lmYield.generate()
+```
+
+### events
+
+`LMYield` currently emits two types of events: `generation` events:
+
+```npm
+lmYield.on(LMYieldEvents.generation, (generation: Yield) => console.log(generation))
+```
+
+and `done` events:
+
+```npm
+lmYield.on(LMYieldEvents.done, () => console.log("DONE")))
 ```
 
 ## Full example
@@ -242,7 +257,7 @@ Then, Bogus had the following <INTERNAL_DIALOG />
 There's a few pieces in here to note for effective usage.
 
 1. The number of API calls required by `LMYield` is minimized if the output structure is guessed correctly by the model, this means that it's often advantageous to provide the expected model output structure in the context. `LMYield` doesn't enforce this standard, however, to ensure a minimal API for the language itself, and ensure the features provided do not limit developer freedom.
-1. The output structure should refer back to a single unique reference (not multiple in the history) - note how <INTERNAL_DIALOG /> only references the context block. The historical generations are given a different `<MEMORY />` designation.
+1. The output structure should refer back to a single unique reference (not multiple in the history) - note how `<INTERNAL_DIALOG />` only references the context block. The historical generations are given a different `<MEMORY />` designation.
 
 ## FAQ
 
