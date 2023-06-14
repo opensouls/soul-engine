@@ -6,7 +6,7 @@
 
 ## 🤔 What is this?
 
-LMYield enables you to control OpenAI's Chat API generations into arbitrary output schema.
+LMYield enables you to control OpenAI's Chat API generations into arbitrary output schema, and is specifically designed to enhance chain of thought prompting for agents.
 
 Features:
 
