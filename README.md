@@ -41,21 +41,25 @@ samantha.tell("Hi Samantha!")
 
 ## 📖 Repo structure
 
-The repository has two main components
+The repository has three main components
 
 ```
+/core
+/lmYield
 /integrations
   /discord_bots
   /telegram
-/server
 ```
 
 - `/core` contains the library [`socialagi` NPM package source](https://www.npmjs.com/package/socialagi)
 - `/integrations/` contains examples of the library in action. Right now contains several stand-alone discord and telegram bot repos
+- `/lmYield` is a lightweight language for yielding chain of thought output from the OpenAI Chat API
+
+🚧🚧 Note: `/server` and `/devtools` are under heavy construction 🚧🚧
 
 ## 🚀 Getting started
 
-The easiest way to get started developing with `socialagi` is to use [`create-socialagi-server` from the NPM release](https://www.npmjs.com/package/create-socialagi-server)
+The easiest way to get started developing with `socialagi` is to checkout the `/integration` examples, especially EmoBot!
 
 ### Contributing
 
