@@ -1,4 +1,4 @@
-# 🤖+👱 @socialagi/lmyield
+# 🤖+👱 SocialAGI / LMYield
 
 ⚡ Lightweight language for controlling OpenAI Chat API generations ⚡
 
@@ -138,7 +138,7 @@ type Yield {
 - Stronger enforcement of output schema after N failed runs
 - Generation block allows for discrete choices
 - Surface generated yield variables throughout the program to allow for conditional thought chaining
-
+- Inline abstract comparisons for conditional chaining
 
 ## Class API
 
