@@ -8,6 +8,8 @@
 
 LMYield enables you to guide OpenAI's Chat API generations into arbitrary output patterns, and is specifically designed to enhance chain of thought prompting for agents.
 
+The core concept behind LMYield is that for a given context, an agnetic entity will spawn some number of ordered, related chain of thoughts, and they should be yielded as a subscribable stream.
+
 Features:
 
  - [x] Simple, intuitive syntax, based on Handlebars templating.
