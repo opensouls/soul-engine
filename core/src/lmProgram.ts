@@ -6,6 +6,7 @@ import {
 } from "openai";
 import { devLog } from "./utils";
 import { OpenAIExt } from "openai-ext";
+import EventEmitter from "events";
 
 /*
 
@@ -176,6 +177,9 @@ function parseYieldBlock(yieldContent: string): YieldInstruction[] {
   if (results.length === 0) {
     throw new Error("Missing gen instruction in #yield block");
   }
+  if (new Set(results.map((r) => r.varName)).size !== results.length) {
+    throw new Error("Each yield must have a different name");
+  }
   return results;
 }
 
@@ -193,13 +197,18 @@ function delay(milliseconds: number) {
 
 type OAIStream = any;
 
-class LMYield {
+enum LMYieldEvents {
+  generation = "generation",
+  done = "done",
+}
+
+class LMYield extends EventEmitter {
   public oaiProgram: OAIProgram;
   public yieldInstructions: YieldInstruction[];
   public yields: Yield[] = [];
-  public yieldComplete = false;
 
   constructor(program: string) {
+    super();
     const blocks = parseProgram(program, [
       {
         personality: "Bogus, an evil witch that eats children",
@@ -214,11 +223,16 @@ class LMYield {
   }
 
   public async generate() {
+    const numberYields = this.yieldInstructions.length;
     await this.onPartialGen();
-    while (!this.yieldComplete) {
+    const yields: Yield[] = [];
+    this.on(LMYieldEvents.generation, (data: Yield) => {
+      yields.push(data);
+    });
+    while (yields.length < numberYields) {
       await delay(10);
     }
-    return this.yields;
+    return yields;
   }
 
   private async onPartialGen(
@@ -243,7 +257,6 @@ class LMYield {
     program: OAIProgram,
     nextYieldInstruction: YieldInstruction | null
   ) {
-    console.log("NEW STREAM WITH", nextYieldInstruction, program.slice(-1)[0]);
     this.yieldInstructions.reverse();
     if (this.yieldInstructions.length === 0 && nextYieldInstruction === null) {
       throw new Error("Yield instruction block missing any gen instructions");
@@ -253,12 +266,15 @@ class LMYield {
       (this.yieldInstructions.pop() as YieldInstruction);
     let parsedGeneration = "";
     let generation = "";
-    let restarting = nextYieldInstruction !== null;
+    let prefix = "";
+    if (nextYieldInstruction !== null) {
+      prefix = nextYieldInstruction.priorChunk;
+    }
     let stream: OAIStream;
     const restart = () => {
       if (stream) {
         stream.destroy();
-        console.log("Decoding deviation, restarting");
+        devLog("Decoding deviation, restarting");
         const nextPrompting = currentYieldInstruction.priorChunk;
         const gen = this.yields
           .map(
@@ -273,27 +289,22 @@ class LMYield {
       openai: openaiApi,
       handler: {
         onContent: (content: string) => {
-          generation = content.trimStart();
+          generation = prefix + content.trimStart();
           const partialGen = generation.slice(parsedGeneration.length);
           if (
             partialGen.startsWith(
               currentYieldInstruction.priorChunk.slice(0, partialGen.length)
             ) &&
-            partialGen.length < currentYieldInstruction.priorChunk.length &&
-            !restarting
+            partialGen.length < currentYieldInstruction.priorChunk.length
           ) {
             // currently valid generation
             return;
           } else if (
-            (partialGen.startsWith(currentYieldInstruction.priorChunk) &&
-              partialGen.length >= currentYieldInstruction.priorChunk.length) ||
-            restarting
+            partialGen.startsWith(currentYieldInstruction.priorChunk) &&
+            partialGen.length >= currentYieldInstruction.priorChunk.length
           ) {
             // currently generating a variable
-            if (
-              partialGen.startsWith(currentYieldInstruction.priorChunk) ||
-              restarting
-            ) {
+            if (partialGen.startsWith(currentYieldInstruction.priorChunk)) {
               // check for yield instruction closure
               const remainingGen = partialGen.slice(
                 currentYieldInstruction.priorChunk.length
@@ -307,15 +318,22 @@ class LMYield {
                 const match = regex.exec(remainingGen) as Match;
                 const value = match.groups?.value;
                 if (value !== undefined) {
-                  this.yields.push({
-                    name: currentYieldInstruction.varName,
-                    value,
-                    instruction: currentYieldInstruction,
-                  });
+                  if (
+                    !this.yields
+                      .map((y) => y.name)
+                      .includes(currentYieldInstruction.varName)
+                  ) {
+                    const newYield = {
+                      name: currentYieldInstruction.varName,
+                      value,
+                      instruction: currentYieldInstruction,
+                    };
+                    this.emit(LMYieldEvents.generation, newYield);
+                    this.yields.push(newYield);
+                  }
                   if (this.yieldInstructions.length > 0) {
                     currentYieldInstruction =
                       this.yieldInstructions.pop() as YieldInstruction;
-                    restarting = false;
                     parsedGeneration = generation;
                   } else {
                     stream?.abort();
@@ -327,20 +345,15 @@ class LMYield {
                 // todo - add some streaming here
               }
             } else {
-              console.log("a");
               restart();
             }
           } else {
-            console.log("b");
             restart();
           }
         },
         onDone: () => {
           if (this.yieldInstructions.length > 0) {
-            console.log("c");
             restart();
-          } else {
-            this.yieldComplete = true;
           }
         },
       },
@@ -348,10 +361,10 @@ class LMYield {
 
     // TODO: upstream lib parses stream chunks correctly but sometimes emits a spurious error
     //   open PR to silence non-fatal errors in https://github.com/justinmahar/openai-ext
-    devLog("New stream");
+    devLog(`New stream`);
     const openaiStreamResponse = await OpenAIExt.streamServerChatCompletion(
       {
-        model: "gpt-3.5-turbo-16k",
+        model: "gpt-3.5-turbo-0613",
         messages: program,
       },
       openaiStreamConfig
@@ -375,7 +388,7 @@ Bogus uses the following <INTERNAL_DIALOG/> to think through what it says next.
   <FELT>Bogus felt ...</FELT>
   <THOUGHT>Bogus thought ...</THOUGHT>
   <SAID>Bogus said "..."</SAID>
-  <ANALYZED>Next, I plan to ...</ANALYZED>
+  <ANALYZED>Next, Bogus planned to ...</ANALYZED>
 </INTERNAL_DIALOG>
 <END />
 {{~/context}}
@@ -391,7 +404,7 @@ Bogus uses the following <INTERNAL_DIALOG/> to think through what it says next.
   <FELT>Bogus felt excited and hungry</FELT>
   <THOUGHT>Bogus thought perhaps another victim for me to feast upon</THOUGHT>
   <SAID>Bogus said "Hello there, little one. What brings you to my neck of the woods?"</SAID>
-  <ANALYZED>Next, Bogus planed to lull them into a false sense of security before pouncing.</ANALYZED>
+  <ANALYZED>Next, Bogus planned to lull them into a false sense of security before pouncing.</ANALYZED>
 </MEMORY>
 {{~/generated}}
 
@@ -410,10 +423,11 @@ Then, Bogus had the following <INTERNAL_DIALOG />
   <FELT>Bogus felt {{gen 'feeling' until '</FELT>'}}
   <THOUGHT>Bogus thought {{gen 'thought' until '</THOUGHT>'}}
   <SAID>Bogus said "{{gen 'saying' until '"</SAID>'}}
-  <ANALYZED>Next, Bogus plans to {{gen 'analyzed' until '</ANALYZED>'}}
+  <ANALYZED>Next, Bogus planned to {{gen 'analyzed' until '</ANALYZED>'}}
 </INTERNAL_DIALOG>
 <END />
 {{~/yield}}
 `);
 
+// lmYield.on("yield", (newYield) => console.log("YIELD", newYield));
 lmYield.generate().then((yields) => console.log(yields));
