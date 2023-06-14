@@ -44,10 +44,10 @@ samantha.tell("Hi Samantha!")
 The repository has two main components
 
 ```
+/core
 /integrations
   /discord_bots
   /telegram
-/server
 ```
 
 - `/core` contains the library [`socialagi` NPM package source](https://www.npmjs.com/package/socialagi)

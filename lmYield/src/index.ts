@@ -7,6 +7,8 @@ import {
 import { devLog } from "./utils";
 import { OpenAIExt } from "openai-ext";
 import EventEmitter from "events";
+import { config } from "dotenv";
+config();
 
 const apiKey = process.env.OPENAI_API_KEY;
 const configuration = new Configuration({ apiKey });

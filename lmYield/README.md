@@ -1,8 +1,18 @@
-# 🤖+👱 SocialAGI
+# 🤖+👱 @socialagi/lmyield
 
-⚡ Simple, opinionated framework for creating digital souls ⚡
+⚡ Lightweight  ⚡
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg) ![Twitter](https://img.shields.io/twitter/url/https/twitter.com/socialagi.svg?style=social&label=Follow%20%40socialagi)](https://twitter.com/socialagi) [![](https://dcbadge.vercel.app/api/server/FCPcCUbw3p?compact=true&style=flat)](https://discord.gg/FCPcCUbw3p)
+
+## 🤔 What is this?
+
+LMYield enables you to control OpenAI's Chat API generations into arbitrary output schema.
+
+Features:
+
+ - [x] Simple, intuitive syntax, based on Handlebars templating.
+ - [x] Rich output structure with multiple generations.
+ - [x] Javascript not python
 
 ## Quick Install
 
@@ -25,14 +35,6 @@ samantha.on("thinks", (text : String) => {
 
 samantha.tell("Hi Samantha!)
 ```
-
-## 🤔 What is this?
-
-We aim to simplify the developer experience as much as possible in creating agentic chatbots called digital souls. Unlike traditional chatbots, digital souls have personality, drive, ego, and will. 
-
-As you might imagine, there's a bunch of small complexities with developing digital souls, e.g. memory, internal dialog, conversational intricacies around multiple texting, etc. that shouldn't be the developer's focus. The developer should be free to think about the souls, their character, and what experiences interacting with them provides.
-
-This library provides tools to easily sculpt digital souls.
 
 ## Features
 
