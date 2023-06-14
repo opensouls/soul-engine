@@ -9,7 +9,7 @@ export async function processLMProgram(
   records: ChatCompletionRequestMessage[]
 ): Promise<string> {
   const res = await openai.createChatCompletion({
-    model: "gpt-3.5-turbo",
+    model: "gpt-3.5-turbo-16k",
     messages: records,
   });
   return res?.data?.choices[0]?.message?.content || "";

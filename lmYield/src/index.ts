@@ -8,43 +8,6 @@ import { devLog } from "./utils";
 import { OpenAIExt } from "openai-ext";
 import EventEmitter from "events";
 
-/*
-
-The lmYield parses an lmProgram, all its features are shown below.
-
-const lmYield = lmYield(`
-{{#context~}}
-{{! this block compiles to system in oai}}
-
-{{personality}}
-
-...
-{{~/context}
-
-{{#human~ name='xyz'}}
-{{! this block compiles to user in oai}}
-...
-{{~/human}}
-
-{{#generated~}}
-{{! this block compiles to system in assistant in oai and must be last}}
-...
-{{~/generated}}
-
-{{#instructions~}}
-{{! this optional block currently compiles to system in assistant in oai and must before the generated block}}
-...
-{{~/instructions}}
-
-{{#yield~}}
-{{! this block compiles to system in assistant in oai and must be last}}
-<FEELS>I feel {{gen 'feeling' until '</FEELS>'}}
-...
-{{~/yield}}
-`)
-
- */
-
 const apiKey = process.env.OPENAI_API_KEY;
 const configuration = new Configuration({ apiKey });
 const openaiApi = new OpenAIApi(configuration);
@@ -65,7 +28,7 @@ function parseProgram(
 ): Block[] {
   // This is a basic regex to find the blocks in the input. It uses the named capture group feature to get the block names
   const blockRegex =
-    /{{#(?<blockName>context|human|generated|instructions|yield)~\s{0,1}(name='(?<name>.*)')?}}(?<content>[\s\S]*?){{~\/\1}}/gm;
+    /{{#(?<blockName>context|entity|generated|instructions|yield)~\s{0,1}(name='(?<name>.*)')?}}(?<content>[\s\S]*?){{~\/\1}}/gm;
 
   // This is a basic regex to find and replace comments
   const commentRegex = /{{!.*?}}/g;
@@ -104,7 +67,7 @@ const blockToOAIRole = {
   instructions: ChatCompletionRequestMessageRoleEnum.Assistant,
   generated: ChatCompletionRequestMessageRoleEnum.Assistant,
   yieldBlock: ChatCompletionRequestMessageRoleEnum.Assistant,
-  human: ChatCompletionRequestMessageRoleEnum.User,
+  entity: ChatCompletionRequestMessageRoleEnum.User,
 };
 
 enum blockTypes {
@@ -112,7 +75,7 @@ enum blockTypes {
   generated = "generated",
   instructions = "instructions",
   yieldBlock = "yield",
-  human = "human",
+  entity = "entity",
 }
 
 type OAIProgram = ChatCompletionRequestMessage[];
@@ -202,7 +165,7 @@ enum LMYieldEvents {
   done = "done",
 }
 
-class LMYield extends EventEmitter {
+export default class LMYield extends EventEmitter {
   public oaiProgram: OAIProgram;
   public yieldInstructions: YieldInstruction[];
   public yields: Yield[] = [];
@@ -359,8 +322,7 @@ class LMYield extends EventEmitter {
       },
     };
 
-    // TODO: upstream lib parses stream chunks correctly but sometimes emits a spurious error
-    //   open PR to silence non-fatal errors in https://github.com/justinmahar/openai-ext
+    // TODO: write own openai parser in socialagi https://github.com/justinmahar/openai-ext
     devLog(`New stream`);
     const openaiStreamResponse = await OpenAIExt.streamServerChatCompletion(
       {
@@ -373,61 +335,3 @@ class LMYield extends EventEmitter {
     stream = openaiStreamResponse.data;
   }
 }
-
-// example
-
-const lmYield = new LMYield(`
-{{#context~}}
-The following is a conversation between <Bogus>{{personality}}</Bogus>, and an unknown person.
-
-Several thought patterns are references through the conversation:
-
-Bogus uses the following <INTERNAL_DIALOG/> to think through what it says next.
-
-<INTERNAL_DIALOG>
-  <FELT>Bogus felt ...</FELT>
-  <THOUGHT>Bogus thought ...</THOUGHT>
-  <SAID>Bogus said "..."</SAID>
-  <ANALYZED>Next, Bogus planned to ...</ANALYZED>
-</INTERNAL_DIALOG>
-<END />
-{{~/context}}
-
-{{#human~ name='unknown'}}
-<MEMORY for="unknown">
-  <SAID>"Hi"</SAID>
-</MEMORY>
-{{~/human}}
-
-{{#generated~}}
-<MEMORY for="Bogus">
-  <FELT>Bogus felt excited and hungry</FELT>
-  <THOUGHT>Bogus thought perhaps another victim for me to feast upon</THOUGHT>
-  <SAID>Bogus said "Hello there, little one. What brings you to my neck of the woods?"</SAID>
-  <ANALYZED>Next, Bogus planned to lull them into a false sense of security before pouncing.</ANALYZED>
-</MEMORY>
-{{~/generated}}
-
-{{#human~ name='xyz'}}
-<MEMORY for="xyz">
-  <SAYS>"I think I'm lost"</SAYS>
-</MEMORY>
-{{~/human}}
-
-{{#instructions~}}
-Then, Bogus had the following <INTERNAL_DIALOG />
-{{~/instructions}}
-
-{{#yield~}}
-<INTERNAL_DIALOG>
-  <FELT>Bogus felt {{gen 'feeling' until '</FELT>'}}
-  <THOUGHT>Bogus thought {{gen 'thought' until '</THOUGHT>'}}
-  <SAID>Bogus said "{{gen 'saying' until '"</SAID>'}}
-  <ANALYZED>Next, Bogus planned to {{gen 'analyzed' until '</ANALYZED>'}}
-</INTERNAL_DIALOG>
-<END />
-{{~/yield}}
-`);
-
-// lmYield.on("yield", (newYield) => console.log("YIELD", newYield));
-lmYield.generate().then((yields) => console.log(yields));
