@@ -6,12 +6,12 @@
 
 ## 🤔 What is this?
 
-LMYield enables you to control OpenAI's Chat API generations into arbitrary output schema, and is specifically designed to enhance chain of thought prompting for agents.
+LMYield enables you to guide OpenAI's Chat API generations into arbitrary output patterns, and is specifically designed to enhance chain of thought prompting for agents.
 
 Features:
 
  - [x] Simple, intuitive syntax, based on Handlebars templating.
- - [x] Rich output structure with speculative caching and multiple generations to ensure desired schema.
+ - [x] Rich output structure with speculative caching and multiple generations to ensure desired output structure.
  - [x] Designed specifically for agentic chain of thought.
  - [x] Typescript not python
 
