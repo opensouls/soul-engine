@@ -160,7 +160,7 @@ function delay(milliseconds: number) {
 
 type OAIStream = any;
 
-enum LMYieldEvents {
+export enum LMYieldEvents {
   generation = "generation",
   done = "done",
 }

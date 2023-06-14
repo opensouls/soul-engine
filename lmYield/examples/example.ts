@@ -1,4 +1,4 @@
-import LMYield from "../src";
+import LMYield, { LMYieldEvents } from "../src";
 
 const lmYield = new LMYield(`
 {{#context~}}
@@ -53,7 +53,7 @@ Then, Bogus had the following <INTERNAL_DIALOG />
 {{~/yield}}
 `);
 
-lmYield.on("yield", (newYield) => console.log("YIELD", newYield));
-
-// also valid - wait till all generations complete
-// lmYield.generate().then((yields) => console.log(yields));
+lmYield.on(LMYieldEvents.generation, (newYield) =>
+  console.log("YIELD", newYield)
+);
+lmYield.generate().then(() => console.log("FINISHED"));
