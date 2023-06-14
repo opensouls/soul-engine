@@ -143,17 +143,31 @@ The `LMYield` class has a simple API
 
 ### constructor
 
-The `LMYield` constructor takes in an `LMYield` program and an optional array of variables to be replaced inside the program. 
+The `LMYield` constructor takes in an `LMYield` program and an array of variables to be replaced inside the program. 
 
 ```npm
-const lmYield = new LMYield(program)
-
--- or --
-
 const lmYield = new LMYield(program, replacementVars)
 ```
 
 Replacements are referenced via handlebars syntax `{{varName}}`.
+
+Additionally, an option `LMYieldOptions` object can be passed with contains the OpenAI Model name to be used.
+
+Here is the current enum of supported model names
+```npm
+export enum LMYieldModels {
+  gpt_3_5_turbo = "gpt-3.5-turbo",
+  gpt_3_5_turbo_0613 = "gpt-3.5-turbo-0613",
+  gpt_3_5_turbo_16k = "gpt-3.5-turbo-16k",
+  gpt_3_5_turbo_16k_0613 = "gpt-3.5-turbo-16k-0613",
+  gpt_4 = "gpt-4",
+  gpt_4_0613 = "gpt-4-0613",
+  gpt_4_32k = "gpt-4-32k",
+  gpt_4_32k_0613 = "gpt-4-32k-0613",
+}
+```
+
+By default, `gpt_3_5_turbo_16k` is used.
 
 ### generate
 
@@ -167,6 +181,68 @@ which causes emission of `LMYieldEvents.generation` and `LMYieldEvents.done`. Al
 ```npm
 const generations = await lmYield.generate()
 ```
+
+## Full example
+
+Here's a full example `LMYield` program 
+
+```
+{{#context~}}
+The following is a conversation between <Bogus>{{personality}}</Bogus>, and an unknown person.
+
+Several thought patterns are references through the conversation:
+
+Bogus uses the following <INTERNAL_DIALOG/> to think through what it says next.
+
+<INTERNAL_DIALOG>
+  <FELT>Bogus felt ...</FELT>
+  <THOUGHT>Bogus thought ...</THOUGHT>
+  <SAID>Bogus said "..."</SAID>
+  <ANALYZED>Next, Bogus planned to ...</ANALYZED>
+</INTERNAL_DIALOG>
+<END />
+{{~/context}}
+
+{{#entity~ name='unknown'}}
+<MEMORY for="unknown">
+  <SAID>"Hi"</SAID>
+</MEMORY>
+{{~/entity}}
+
+{{#generated~}}
+<MEMORY for="Bogus">
+  <FELT>Bogus felt excited and hungry</FELT>
+  <THOUGHT>Bogus thought perhaps another victim for me to feast upon</THOUGHT>
+  <SAID>Bogus said "Hello there, little one. What brings you to my neck of the woods?"</SAID>
+  <ANALYZED>Next, Bogus planned to lull them into a false sense of security before pouncing.</ANALYZED>
+</MEMORY>
+{{~/generated}}
+
+{{#entity~ name='unknown'}}
+<MEMORY for="unknown">
+  <SAYS>"I think I'm lost"</SAYS>
+</MEMORY>
+{{~/entity}}
+
+{{#instructions~}}
+Then, Bogus had the following <INTERNAL_DIALOG />
+{{~/instructions}}
+
+{{#yield~}}
+<INTERNAL_DIALOG>
+  <FELT>Bogus felt {{gen 'feeling' until '</FELT>'}}
+  <THOUGHT>Bogus thought {{gen 'thought' until '</THOUGHT>'}}
+  <SAID>Bogus said "{{gen 'saying' until '"</SAID>'}}
+  <ANALYZED>Next, Bogus planned to {{gen 'analyzed' until '</ANALYZED>'}}
+</INTERNAL_DIALOG>
+<END />
+{{~/yield}}
+```
+
+There's a few pieces in here to note for effective usage.
+
+1. The number of API calls required by `LMYield` is minimized if the output structure is guessed correctly by the model, this means that it's often advantageous to provide the expected model output structure in the context. `LMYield` doesn't enforce this standard, however, to ensure a minimal API for the language itself, and ensure the features provided do not limit developer freedom.
+1. The output structure should refer back to a single unique reference (not multiple in the history) - note how <INTERNAL_DIALOG /> only references the context block. The historical generations are given a different `<MEMORY />` designation.
 
 ## FAQ
 

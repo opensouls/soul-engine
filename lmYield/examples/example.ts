@@ -1,6 +1,6 @@
 import LMYield, { LMYieldEvents } from "../src";
 
-const lmYield = new LMYield(`
+const lmProgram = `
 {{#context~}}
 The following is a conversation between <Bogus>{{personality}}</Bogus>, and an unknown person.
 
@@ -51,7 +51,15 @@ Then, Bogus had the following <INTERNAL_DIALOG />
 </INTERNAL_DIALOG>
 <END />
 {{~/yield}}
-`);
+`;
+
+const replacements = [
+  {
+    personality: "Bogus, an evil witch that eats children",
+  },
+];
+
+const lmYield = new LMYield(lmProgram, replacements);
 
 lmYield.on(LMYieldEvents.generation, (newYield) =>
   console.log("YIELD", newYield)

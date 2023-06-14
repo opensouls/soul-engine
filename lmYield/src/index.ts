@@ -167,24 +167,47 @@ export enum LMYieldEvents {
   done = "done",
 }
 
+type LMProgram = string;
+type Replacement = {
+  [name: string]: string;
+};
+
+export enum LMYieldModels {
+  gpt_3_5_turbo = "gpt-3.5-turbo",
+  gpt_3_5_turbo_0613 = "gpt-3.5-turbo-0613",
+  gpt_3_5_turbo_16k = "gpt-3.5-turbo-16k",
+  gpt_3_5_turbo_16k_0613 = "gpt-3.5-turbo-16k-0613",
+  gpt_4 = "gpt-4",
+  gpt_4_0613 = "gpt-4-0613",
+  gpt_4_32k = "gpt-4-32k",
+  gpt_4_32k_0613 = "gpt-4-32k-0613",
+}
+
+type LMYieldOptions = {
+  model: LMYieldModels;
+};
+
 export default class LMYield extends EventEmitter {
   public oaiProgram: OAIProgram;
   public yieldInstructions: YieldInstruction[];
-  public yields: Yield[] = [];
+  public yields: Yield[];
+  private options: LMYieldOptions;
 
-  constructor(program: string) {
+  constructor(
+    program: LMProgram,
+    replacements: Replacement[],
+    options?: LMYieldOptions
+  ) {
     super();
-    const blocks = parseProgram(program, [
-      {
-        personality: "Bogus, an evil witch that eats children",
-      },
-    ]);
+    const blocks = parseProgram(program, replacements);
     if (blocks.length < 2) {
       throw new Error("Missing blocks in lmProgram");
     }
     const yieldBlock = blocks.slice(-1)[0];
     this.yieldInstructions = parseYieldBlock(yieldBlock.content);
     this.oaiProgram = compileToOAI(blocks);
+    this.yields = [];
+    this.options = options || { model: LMYieldModels.gpt_3_5_turbo_16k };
   }
 
   public async generate() {
@@ -328,7 +351,7 @@ export default class LMYield extends EventEmitter {
     devLog(`New stream`);
     const openaiStreamResponse = await OpenAIExt.streamServerChatCompletion(
       {
-        model: "gpt-3.5-turbo-0613",
+        model: this.options.model,
         messages: program,
       },
       openaiStreamConfig
