@@ -77,7 +77,7 @@ Message boundaries in OpenAI are controlled through different context blocks: `{
 
 ### Variable templating
 
-... todo
+Variable templates adhere to handlebars, i.e. `{{varName}}`, and have their replacements passed into the `LMYield` constructor.
 
 ### Yield magic
 
