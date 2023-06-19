@@ -2,6 +2,7 @@ import { MentalModel, PersonModel } from "./mentalModels";
 import { Blueprint } from "./blueprint";
 import { Thought } from "./lmStream";
 import { ConversationProcessor } from "./conversationProcessor";
+import { ChatMessageRoleEnum } from "./languageModels";
 
 interface MentalModels {
   [key: string]: PersonModel;
@@ -35,7 +36,7 @@ export class PeopleMemory implements MentalModel {
 
   public toLinguisticProgram(conversation: ConversationProcessor): string {
     const userNames = conversation.thoughts
-      .filter((t) => t.memory.role === "user")
+      .filter((t) => t.memory.role === ChatMessageRoleEnum.User)
       .map((t) => t.memory.entity);
 
     const lastUserName = userNames.slice(-1)[0];

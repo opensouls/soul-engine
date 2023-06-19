@@ -60,7 +60,6 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
-    "openai": "^3.2.1",
-    "openai-ext": "^1.2.6"
+    "openai": "^4.0.0-beta.0"
   }
 }

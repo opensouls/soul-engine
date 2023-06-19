@@ -1,16 +1,15 @@
 import { getTag, processLMProgram } from "./lmProcessing";
-import {
-  ChatCompletionRequestMessage,
-  ChatCompletionRequestMessageRoleEnum,
-} from "openai";
 import { devLog } from "./utils";
 import { Blueprint } from "./blueprint";
 import { Thought } from "./lmStream";
 import { ConversationProcessor } from "./conversationProcessor";
+import { ChatMessage, ChatMessageRoleEnum } from "./languageModels";
 
 export interface MentalModel {
   update: (thoughts: Thought[], conversation: ConversationProcessor) => void;
-  toLinguisticProgram: (conversation: ConversationProcessor) => string | undefined;
+  toLinguisticProgram: (
+    conversation: ConversationProcessor
+  ) => string | undefined;
 }
 
 export class PersonModel implements MentalModel {
@@ -21,7 +20,7 @@ export class PersonModel implements MentalModel {
   narrative = `- they're messaging me for the first time`;
   goals = "Because they're messaging me they probably want to interact";
   state = "Interested to engage";
-  private buffer: ChatCompletionRequestMessage[];
+  private buffer: ChatMessage[];
 
   constructor(userName: string, observerBlueprint: Blueprint) {
     this.buffer = [];
@@ -53,7 +52,7 @@ Their historical memory, which may include blanks yet to be learned from convers
     const content = thoughts.map((t) => t.memory.content).join("\n");
 
     if ((role === "user" && this.userName === name) || role === "assistant") {
-      this.buffer.push({ role, content, name } as ChatCompletionRequestMessage);
+      this.buffer.push({ role, content, name } as ChatMessage);
     }
     // only update on new user message
     if (role !== "user" || this.userName !== name) {
@@ -110,15 +109,14 @@ and reads
   <NEW INFORMATION LEARNED>`;
     let instructions = [
       {
-        role: ChatCompletionRequestMessageRoleEnum.System,
-        content:
-          this.toLinguisticProgram(conversation) +
+        role: ChatMessageRoleEnum.System,
+        content: this.toLinguisticProgram(conversation) +
           `\n\nThen, the following messages were exchanged.`,
       },
     ];
     instructions = instructions.concat(this.buffer as any);
     instructions = instructions.concat([
-      { role: ChatCompletionRequestMessageRoleEnum.System, content: program },
+      { role: ChatMessageRoleEnum.System, content: program },
     ] as any);
     const res = await processLMProgram(instructions);
     devLog(`Mental model updated from "${content}" to \x1b[31m${res}\x1b[0m`);

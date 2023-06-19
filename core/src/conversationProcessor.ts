@@ -13,11 +13,12 @@ import {
   getIntrospectiveSystemProgram,
   getReflectiveLPSystemProgram,
 } from "./TEMPLATES";
-import { ChatCompletionRequestMessage } from "openai";
+import OpenAI from "openai";
 import { getTag, processLMProgram } from "./lmProcessing";
 import { Soul } from "./soul";
 import { Action } from "./action";
 import { MentalModel } from "./mentalModels";
+import { ChatMessage, ChatMessageRoleEnum } from "./languageModels";
 
 export type Message = {
   userName: string;
@@ -87,7 +88,7 @@ export class ConversationProcessor extends EventEmitter {
         }
         conversation.generatedThoughts.push(
           new Thought({
-            role: "assistant",
+            role: ChatMessageRoleEnum.Assistant,
             entity: this.blueprint.name,
             action: "RAMBLE",
             content: "I want to ramble before they respond",
@@ -210,7 +211,7 @@ export class ConversationProcessor extends EventEmitter {
     const msgThoughts = this.msgQueue.map(
       (text) =>
         new Memory({
-          role: "user",
+          role: ChatMessageRoleEnum.User,
           entity: "user",
           action: "MESSAGES",
           content: text,
@@ -283,7 +284,7 @@ export class ConversationProcessor extends EventEmitter {
     let finalMessages = truncatedMessages;
     const preamble = [
       {
-        role: "system",
+        role: ChatMessageRoleEnum.System,
         content: systemProgram,
         name: "systemBrain",
       },
@@ -294,7 +295,7 @@ export class ConversationProcessor extends EventEmitter {
     finalMessages = preamble.concat(finalMessages);
     if (truncatedMessages.length > 0 && remembranceProgram !== undefined) {
       finalMessages = finalMessages.concat({
-        role: "system",
+        role: ChatMessageRoleEnum.System,
         content: remembranceProgram,
         name: "systemBrain",
       });
@@ -309,7 +310,7 @@ export class ConversationProcessor extends EventEmitter {
       .slice(-k);
     const instructions = [
       {
-        role: "system",
+        role: ChatMessageRoleEnum.System,
         content: `
 <BACKGROUND>
 Below is a conversation with ${this.blueprint.name}, ${this.blueprint.essence}
@@ -325,7 +326,7 @@ ${latestThoughts.map((t) => `${t.memory.entity}: ${t.toString()}`).join("\n")}
 `.trim(),
       },
       {
-        role: "user",
+        role: ChatMessageRoleEnum.User,
         content: `
 <QUESTION>Please think through whether ${this.blueprint.name} speaks next or not using the following notes and output format</QUESTION>
 
@@ -343,9 +344,7 @@ Use the following output format:
 `.trim(),
       },
     ];
-    const res = await processLMProgram(
-      instructions as ChatCompletionRequestMessage[],
-    );
+    const res = await processLMProgram(instructions);
     const answer = getTag({ tag: "ANSWER", input: res }).toLowerCase();
     devLog(res);
     return answer === "yes";
@@ -393,7 +392,7 @@ Use the following output format:
       this.thoughts,
       systemProgram,
       remembranceProgram,
-      this.mentalModelLinguisticProgram()
+      this.mentalModelLinguisticProgram(),
     );
     // devLog("\n💬\n" + messages.map((m) => m.content).join(", ") + "\n💬\n");
     this.thoughtGenerator.generate(messages);
@@ -421,7 +420,7 @@ Use the following output format:
 
   public tell(text: string, asUser?: string): void {
     const memory = new Memory({
-      role: "user",
+      role: ChatMessageRoleEnum.User,
       entity: asUser || "user",
       action: "MESSAGES",
       content: text,
@@ -448,7 +447,7 @@ Use the following output format:
     participationStrategy: ParticipationStrategy,
   ) {
     const memory = new Memory({
-      role: "user",
+      role: ChatMessageRoleEnum.User,
       entity: msg.userName,
       action: "MESSAGES",
       content: msg.text,
@@ -471,5 +470,4 @@ Use the following output format:
       this.think();
     }
   }
-
 }
