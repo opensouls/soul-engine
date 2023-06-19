@@ -1,18 +1,18 @@
-import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from "openai";
+import OpenAI from "openai";
+import { ChatMessage } from "./languageModels";
 
-const configuration = new Configuration({
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-const openai = new OpenAIApi(configuration);
 
 export async function processLMProgram(
-  records: ChatCompletionRequestMessage[]
+  records: ChatMessage[]
 ): Promise<string> {
-  const res = await openai.createChatCompletion({
+  const res = await openai.chat.completions.create({
     model: "gpt-3.5-turbo-16k",
     messages: records,
   });
-  return res?.data?.choices[0]?.message?.content || "";
+  return res?.choices[0]?.message?.content || "";
 }
 
 type TagRecord = {

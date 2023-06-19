@@ -1,5 +1,5 @@
+import { ChatMessageRoleEnum } from "./languageModels";
 import { getTag, processLMProgram } from "./lmProcessing";
-import { ChatCompletionRequestMessageRoleEnum } from "openai";
 
 type AbstractTrue = {
   reasoning: string;
@@ -13,13 +13,13 @@ export async function isAbstractTrue(
 ): Promise<AbstractTrue> {
   const instructions = [
     {
-      role: ChatCompletionRequestMessageRoleEnum.System,
+      role: ChatMessageRoleEnum.System,
       content: `<CONTEXT>You are providing an implementation of a unit testing software that operates over language.</CONTEXT>
 
 <GOAL>The goal is to asses a TARGET input against a given CONDITION, indicating if the condition is met.</GOAL>`,
     },
     {
-      role: ChatCompletionRequestMessageRoleEnum.User,
+      role: ChatMessageRoleEnum.User,
       content: `Here is the input
 
 <INPUT>${target}</INPUT>
@@ -29,7 +29,7 @@ and the condition to evaluate
 <CONDITION>${condition}</CONDITION>`,
     },
     {
-      role: ChatCompletionRequestMessageRoleEnum.System,
+      role: ChatMessageRoleEnum.System,
       content: `Here is your output format
   
 <TEST>

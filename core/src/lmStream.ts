@@ -1,10 +1,10 @@
 import { EventEmitter } from "events";
-import { Configuration, OpenAIApi } from "openai";
-import { OpenAIExt } from "openai-ext";
+import OpenAI from "openai";
+import { ChatMessage, ChatMessageRoleEnum } from "./languageModels";
 import { devLog } from "./utils";
 
 export interface IMemory {
-  role: string;
+  role: ChatMessageRoleEnum;
   entity: string;
   action: string;
   content: string;
@@ -35,11 +35,7 @@ export enum LanguageProcessor {
   GPT_3_5_turbo = "gpt-3.5-turbo",
 }
 
-export interface MRecord {
-  role: string;
-  content: string;
-  name?: string;
-}
+export type MRecord = ChatMessage;
 
 export const NeuralEvents = {
   newThought: "newThought",
@@ -48,7 +44,7 @@ export const NeuralEvents = {
 
 /* Takes in a sequence of memories and generates thoughts until no more thoughts will come */
 export class ThoughtGenerator extends EventEmitter {
-  private stream: any = null;
+  private streamAborter?: AbortController;
   private languageProcessor: LanguageProcessor;
   private entity: string;
 
@@ -66,80 +62,69 @@ export class ThoughtGenerator extends EventEmitter {
   }
 
   public interrupt(): void {
-    try {
-      this.stream?.destroy();
-    } catch (error) {
-      console.error("Failed to destroy the stream:", error);
-    } finally {
-      this.stream = null;
-    }
+    this.streamAborter?.abort();
+    this.streamAborter = undefined;
   }
 
   public isThinking(): boolean {
-    return !(this.stream === null);
+    return !(this.streamAborter === null);
   }
 
   public async generate(records: MRecord[]) {
-    if (this.stream !== null) return;
-    this.stream?.destroy();
-    this.stream = undefined;
+    if (this.streamAborter) return;
+
     const apiKey = process.env.OPENAI_API_KEY;
 
-    const configuration = new Configuration({ apiKey });
-    const openaiApi = new OpenAIApi(configuration);
+    const openaiApi = new OpenAI({ apiKey });
 
     let oldThoughts: Memory[] = [];
     const entity = this.entity;
-    const openaiStreamConfig = {
-      openai: openaiApi,
-      handler: {
-        onContent: (content: string) => {
-          function extractThoughts(content: string): Thought[] {
-            const regex = /<([A-Za-z0-9\s_]+)>(.*?)<\/\1>/g;
-            const matches = content.matchAll(regex);
-            const extractedThoughts = [];
 
-            for (const match of matches) {
-              const [_, action, internalContent] = match;
-              const extractedThought = new Thought({
-                role: "assistant",
-                entity,
-                action,
-                content: internalContent,
-              });
-              extractedThoughts.push(extractedThought);
-            }
+    const stream = await openaiApi.chat.completions.create({
+      model: this.languageProcessor,
+      messages: records,
+      stream: true,
+    });
 
-            return extractedThoughts;
-          }
-          const newThoughts = extractThoughts(
-            content.replace(/(\r\n|\n|\r)/gm, "")
-          );
-          const diffThoughts = this.getUniqueThoughts(newThoughts, oldThoughts);
-          oldThoughts = newThoughts;
-          diffThoughts.forEach((diffThought) => {
-            this.emitThought(diffThought);
-          });
-        },
-        onDone: () => {
-          this.emitThinkingFinished();
-          this.interrupt();
-        },
-      },
-    };
+    this.streamAborter = stream.controller;
 
-    // TODO: upstream lib parses stream chunks correctly but sometimes emits a spurious error
-    //   open PR to silence non-fatal errors in https://github.com/justinmahar/openai-ext
-    devLog("New stream");
-    const openaiStreamResponse = await OpenAIExt.streamServerChatCompletion(
-      {
-        model: this.languageProcessor,
-        messages: records,
-      },
-      openaiStreamConfig
-    );
+    function extractThoughts(content: string): Thought[] {
+      const regex = /<([A-Za-z0-9\s_]+)>(.*?)<\/\1>/g;
+      const matches = content.matchAll(regex);
+      const extractedThoughts = [];
 
-    this.stream = openaiStreamResponse.data;
+      for (const match of matches) {
+        const [_, action, internalContent] = match;
+        const extractedThought = new Thought({
+          role: ChatMessageRoleEnum.Assistant,
+          entity,
+          action,
+          content: internalContent,
+        });
+        extractedThoughts.push(extractedThought);
+      }
+
+      return extractedThoughts;
+    }
+
+    let content = "";
+
+    for await (const data of stream) {
+      devLog("stream: " + data.choices[0].delta?.content || "");
+      content += data.choices[0].delta?.content || "";
+
+      const newThoughts = extractThoughts(
+        content.replace(/(\r\n|\n|\r)/gm, "")
+      );
+      const diffThoughts = this.getUniqueThoughts(newThoughts, oldThoughts);
+      oldThoughts = newThoughts;
+      diffThoughts.forEach((diffThought) => {
+        this.emitThought(diffThought);
+      });
+    }
+
+    this.emitThinkingFinished();
+    this.interrupt();
   }
 
   private getUniqueThoughts(newArray: Memory[], oldArray: Memory[]): Thought[] {
