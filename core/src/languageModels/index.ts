@@ -8,7 +8,7 @@ export function getTag({ tag, input }: TagRecord) {
 }
 
 /**
- * Stream the results of a chat completion
+ * Stream the results of a chat completion, returning a stream of deltas
  */
 export interface ChatCompletionStreamer {
   create: (opts: CreateChatCompletionParams) => Promise<{
@@ -18,7 +18,7 @@ export interface ChatCompletionStreamer {
 }
 
 /**
- * Execute a language model programand get the resultsas a string
+ * Execute a language model program and get the results as a string (non-streaming)
  */
 export interface LanguageModelProgramExecutor {
   execute(records: ChatMessage[]): Promise<string>;
