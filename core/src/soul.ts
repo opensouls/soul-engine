@@ -1,4 +1,3 @@
-import { LanguageProcessor } from "./lmStream";
 import { EventEmitter } from "events";
 import { Blueprint, ThoughtFramework } from "./blueprint";
 import {
@@ -10,9 +9,30 @@ import {
 import { Action } from "./action";
 import { MentalModel } from "./mentalModels";
 import { PeopleMemory } from "./memory";
+import {
+  ChatCompletionStreamer,
+  LanguageModelProgramExecutor,
+} from "./languageModels";
+import {
+  Model,
+  OpenAILanguageProgramProcessor,
+  OpenAIStreamingChat,
+} from "./languageModels/openAI";
 
 type ConversationStore = {
   [convoName: string]: ConversationProcessor;
+};
+
+const blueprintToStreamer = (blueprint: Blueprint): ChatCompletionStreamer => {
+  if (blueprint.languageProcessor === Model.GPT_4) {
+    return new OpenAIStreamingChat(
+      {},
+      {
+        model: Model.GPT_4,
+      },
+    );
+  }
+  return new OpenAIStreamingChat();
 };
 
 interface SoulOptions {
@@ -22,6 +42,8 @@ interface SoulOptions {
   disableSayDelay?: boolean;
   actions?: Action[];
   mentalModels?: MentalModel[];
+  chatStreamer?: ChatCompletionStreamer;
+  languageProgramExecutor?: LanguageModelProgramExecutor;
 }
 
 export class Soul extends EventEmitter {
@@ -32,28 +54,35 @@ export class Soul extends EventEmitter {
   readonly options: SoulOptions;
   readonly mentalModels: MentalModel[];
 
+  public chatStreamer: ChatCompletionStreamer;
+  public languageProgramExecutor: LanguageModelProgramExecutor;
+
   constructor(blueprint: Blueprint, soulOptions: SoulOptions = {}) {
     super();
 
     this.options = soulOptions;
     this.actions = soulOptions.actions || [];
-
-    this.mentalModels = soulOptions.mentalModels || [new PeopleMemory(blueprint)];
-
-
     this.blueprint = blueprint;
+
+    this.mentalModels = soulOptions.mentalModels ||
+      [new PeopleMemory(this)];
+
     // soul blueprint validation
     if (this.blueprint?.thoughtFramework === undefined) {
       this.blueprint.thoughtFramework = ThoughtFramework.Introspective;
     }
     if (
       this.blueprint.thoughtFramework === ThoughtFramework.ReflectiveLP &&
-      this.blueprint.languageProcessor !== LanguageProcessor.GPT_4
+      this.blueprint.languageProcessor !== Model.GPT_4
     ) {
       throw new Error(
         "ReflectiveLP ThoughtFramework requires the GPT4 language processor",
       );
     }
+    this.chatStreamer = soulOptions.chatStreamer ||
+      blueprintToStreamer(blueprint);
+    this.languageProgramExecutor = soulOptions.languageProgramExecutor ||
+      new OpenAILanguageProgramProcessor();
   }
 
   get defaultContext() {
@@ -70,12 +99,12 @@ export class Soul extends EventEmitter {
 
   public getConversation(
     convoName: string,
-    context?: ConversationalContext
+    context?: ConversationalContext,
   ): ConversationProcessor {
     if (!Object.keys(this.conversations).includes(convoName)) {
       this.conversations[convoName] = new ConversationProcessor(
         this,
-        context || this.defaultContext
+        context || this.defaultContext,
       );
       this.conversations[convoName].on("thinks", (thought) => {
         this.emit("thinks", thought, convoName);

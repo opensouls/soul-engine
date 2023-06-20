@@ -1,39 +1,11 @@
 import { EventEmitter } from "events";
-import OpenAI from "openai";
-import { ChatMessage, ChatMessageRoleEnum } from "./languageModels";
+import {
+  ChatCompletionStreamer,
+  ChatMessage,
+  ChatMessageRoleEnum,
+} from "./languageModels";
 import { devLog } from "./utils";
-
-export interface IMemory {
-  role: ChatMessageRoleEnum;
-  entity: string;
-  action: string;
-  content: string;
-}
-
-export class Memory {
-  memory: IMemory;
-
-  constructor(memory: IMemory) {
-    this.memory = memory;
-    this.memory.entity = this.memory.entity.replace(/[^a-zA-Z0-9_-]/g, "");
-    this.memory.action = this.memory.action.toUpperCase();
-  }
-
-  public isMessage() {
-    return this.memory.action === "MESSAGES";
-  }
-
-  public toString() {
-    return `<${this.memory.action}>${this.memory.content}</${this.memory.action}>`;
-  }
-}
-
-export class Thought extends Memory {}
-
-export enum LanguageProcessor {
-  GPT_4 = "gpt-4",
-  GPT_3_5_turbo = "gpt-3.5-turbo",
-}
+import { Memory, Thought } from "./languageModels/memory";
 
 export type MRecord = ChatMessage;
 
@@ -45,12 +17,12 @@ export const NeuralEvents = {
 /* Takes in a sequence of memories and generates thoughts until no more thoughts will come */
 export class ThoughtGenerator extends EventEmitter {
   private streamAborter?: AbortController;
-  private languageProcessor: LanguageProcessor;
+  private languageModel: ChatCompletionStreamer;
   private entity: string;
 
-  constructor(languageProcessor: LanguageProcessor, entity: string) {
+  constructor(languageProcessor: ChatCompletionStreamer, entity: string) {
     super();
-    this.languageProcessor = languageProcessor;
+    this.languageModel = languageProcessor;
     this.entity = entity;
   }
 
@@ -73,20 +45,14 @@ export class ThoughtGenerator extends EventEmitter {
   public async generate(records: MRecord[]) {
     if (this.streamAborter) return;
 
-    const apiKey = process.env.OPENAI_API_KEY;
-
-    const openaiApi = new OpenAI({ apiKey });
-
     let oldThoughts: Memory[] = [];
     const entity = this.entity;
 
-    const stream = await openaiApi.chat.completions.create({
-      model: this.languageProcessor,
+    const { stream, abortController } = await this.languageModel.create({
       messages: records,
-      stream: true,
     });
 
-    this.streamAborter = stream.controller;
+    this.streamAborter = abortController;
 
     function extractThoughts(content: string): Thought[] {
       const regex = /<([A-Za-z0-9\s_]+)>(.*?)<\/\1>/g;

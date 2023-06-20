@@ -1,8 +1,9 @@
 import { MentalModel, PersonModel } from "./mentalModels";
 import { Blueprint } from "./blueprint";
-import { Thought } from "./lmStream";
 import { ConversationProcessor } from "./conversationProcessor";
 import { ChatMessageRoleEnum } from "./languageModels";
+import { Thought } from "./languageModels/memory";
+import { Soul } from "./soul";
 
 interface MentalModels {
   [key: string]: PersonModel;
@@ -11,10 +12,12 @@ interface MentalModels {
 export class PeopleMemory implements MentalModel {
   public memory: MentalModels;
   private readonly observerBlueprint: Blueprint;
+  private readonly soul: Soul;
 
-  constructor(observerBlueprint: Blueprint) {
+  constructor(soul: Soul) {
     this.memory = {};
-    this.observerBlueprint = observerBlueprint;
+    this.soul = soul;
+    this.observerBlueprint = soul.blueprint;
   }
 
   public async update(
@@ -27,7 +30,7 @@ export class PeopleMemory implements MentalModel {
     }
     const hasNameMemory = Object.keys(this.memory).includes(name as string);
     if (!hasNameMemory && name !== this.observerBlueprint.name) {
-      this.memory[name] = new PersonModel(name, this.observerBlueprint);
+      this.memory[name] = new PersonModel(this.soul, name);
     }
     return await Promise.all(
       Object.values(this.memory).map((m) => m.update(thoughts, conversation)),

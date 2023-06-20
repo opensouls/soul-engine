@@ -1,11 +1,13 @@
-import { ChatMessageRoleEnum } from "./languageModels";
-import { getTag, processLMProgram } from "./lmProcessing";
+import { ChatMessageRoleEnum, getTag } from "./languageModels";
+import { OpenAILanguageProgramProcessor } from "./languageModels/openAI";
 
 type AbstractTrue = {
   reasoning: string;
   confidence: number;
   answer: boolean;
 };
+
+const executor = new OpenAILanguageProgramProcessor()
 
 export async function isAbstractTrue(
   target: string,
@@ -44,7 +46,7 @@ The optimal assessment is given
 <TEST>`,
     },
   ];
-  const res = await processLMProgram(instructions);
+  const res = await executor.execute(instructions);
   const confidence = Number(getTag({ tag: "CONFIDENCE", input: res }));
   const reasoning = getTag({ tag: "THINKING", input: res });
   return {

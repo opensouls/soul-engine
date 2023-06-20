@@ -1,9 +1,9 @@
-import { getTag, processLMProgram } from "./lmProcessing";
 import { devLog } from "./utils";
 import { Blueprint } from "./blueprint";
-import { Thought } from "./lmStream";
 import { ConversationProcessor } from "./conversationProcessor";
-import { ChatMessage, ChatMessageRoleEnum } from "./languageModels";
+import { ChatMessage, ChatMessageRoleEnum, getTag } from "./languageModels";
+import { Thought } from "./languageModels/memory";
+import { Soul } from "./soul";
 
 export interface MentalModel {
   update: (thoughts: Thought[], conversation: ConversationProcessor) => void;
@@ -14,7 +14,8 @@ export interface MentalModel {
 
 export class PersonModel implements MentalModel {
   userName: string;
-  observerBlueprint: Blueprint;
+  soul: Soul;
+  observerName: string;
   name = "I'm not yet sure their real name";
   mood = "I'm not sure yet what their mood is";
   narrative = `- they're messaging me for the first time`;
@@ -22,14 +23,15 @@ export class PersonModel implements MentalModel {
   state = "Interested to engage";
   private buffer: ChatMessage[];
 
-  constructor(userName: string, observerBlueprint: Blueprint) {
+  constructor(soul: Soul, userName: string) {
     this.buffer = [];
     this.userName = userName;
-    this.observerBlueprint = observerBlueprint;
+    this.soul = soul;
+    this.observerName = this.soul.blueprint.name;
   }
 
   public toLinguisticProgram(_conversation: ConversationProcessor) {
-    return `<CONTEXT>To date, ${this.observerBlueprint.name} remembers the following about ${this.name}, including records of their NAME, basic FACTS, current HISTORY narrative, personal GOALS, MOOD, and MENTAL STATE.</CONTEXT>
+    return `<CONTEXT>To date, ${this.observerName} remembers the following about ${this.name}, including records of their NAME, basic FACTS, current HISTORY narrative, personal GOALS, MOOD, and MENTAL STATE.</CONTEXT>
 
 Their historical memory, which may include blanks yet to be learned from conversation, reads:
 
@@ -78,11 +80,11 @@ Their historical memory, which may include blanks yet to be learned from convers
 - Once the HISTORY is longer than 5 bullet points, then the least important bullet points are forgotten
 
 ==>GOALS
-- The GOALS contains ${this.observerBlueprint.name}'s belief about ${this.name}'s goals in a few sentences
+- The GOALS contains ${this.observerName}'s belief about ${this.name}'s goals in a few sentences
 - The GOALS section should ALWAYS have a guess, even if imperfect
 
 ==>MENTAL STATE
-- The MENTAL STATE contains ${this.observerBlueprint.name}'s belief about ${this.name}'s mental state in a few sentences
+- The MENTAL STATE contains ${this.observerName}'s belief about ${this.name}'s mental state in a few sentences
 - The MENTAL STATE contains only information about ${this.name}, no particular directives on how to proceed
 - The MENTAL STATE section should ALWAYS have a guess, even if imperfect
 </CONSIDERATIONS>
@@ -91,7 +93,7 @@ Their historical memory, which may include blanks yet to be learned from convers
 No facts are inferred about ${this.name} from outside the messages and the prior memory.
 </IMPORTANT>
 
-After reading the new messages ${this.observerBlueprint.name}'s entity record of ${this.name} now has the form:
+After reading the new messages ${this.observerName}'s entity record of ${this.name} now has the form:
 
 <ENTITY>
   <NEW INFORMATION LEARNED>[[EXPLAIN]]</NEW INFORMATION LEARNED>
@@ -118,7 +120,7 @@ and reads
     instructions = instructions.concat([
       { role: ChatMessageRoleEnum.System, content: program },
     ] as any);
-    const res = await processLMProgram(instructions);
+    const res = await this.soul.languageProgramExecutor.execute(instructions);
     devLog(`Mental model updated from "${content}" to \x1b[31m${res}\x1b[0m`);
 
     this.name = getTag({ tag: "NAME", input: res });

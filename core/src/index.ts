@@ -1,6 +1,3 @@
-import { LanguageProcessor } from "./lmStream";
-export { LanguageProcessor };
-
 import { Soul } from "./soul";
 export { Soul };
 
@@ -10,5 +7,8 @@ export { ParticipationStrategy };
 import { Blueprint, Blueprints, ThoughtFramework } from "./blueprint";
 export { Blueprint, Blueprints, ThoughtFramework };
 
-import { isAbstractTrue, AbstractSample } from "./testing";
-export { isAbstractTrue, AbstractSample };
+import { AbstractSample, isAbstractTrue } from "./testing";
+export { AbstractSample, isAbstractTrue };
+
+export * from "./languageModels";
+export * from "./languageModels/openAI";

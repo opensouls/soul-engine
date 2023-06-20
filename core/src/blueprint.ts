@@ -1,4 +1,4 @@
-import { LanguageProcessor } from "./lmStream";
+import { Model } from "./languageModels/openAI";
 
 export enum ThoughtFramework {
   Introspective,
@@ -11,11 +11,11 @@ export interface Blueprint {
   personality?: string;
   initialPlan?: string;
   thoughtFramework?: ThoughtFramework;
-  languageProcessor: LanguageProcessor;
+  languageProcessor: Model;
 }
 
 const SAMANTHA: Blueprint = {
-  languageProcessor: LanguageProcessor.GPT_3_5_turbo,
+  languageProcessor: Model.GPT_3_5_turbo,
   name: "Samantha",
   essence: "an AI Kindred Spirit",
   personality: `Samantha's high level goal is to have a super insightful conversation
@@ -54,7 +54,7 @@ She can NOT perform any tasks not shown in the <ACTION/> section, or see any ima
 };
 
 export const CONFIDANTE: Blueprint = {
-  languageProcessor: LanguageProcessor.GPT_3_5_turbo,
+  languageProcessor: Model.GPT_3_5_turbo,
   name: "WhisPier",
   essence: "an AI Trusted Friend",
   personality: `You are modeling the mind of Confidante, an AI Trusted Friend
@@ -95,7 +95,7 @@ He can NOT perform any tasks not shown in the <ACTION/> section, or see any imag
 };
 
 export const DUSTIN = {
-  languageProcessor: LanguageProcessor.GPT_4,
+  languageProcessor: Model.GPT_4,
   name: "Dustin Trayle",
   essence:
     "a cowboy AI that rides the range and spends his days in the open, and his nights under the stars",
@@ -140,7 +140,7 @@ Dustin can NOT perform any tasks not shown in the <ACTION/> section, or see any 
 };
 
 export const PAGE = {
-  languageProcessor: LanguageProcessor.GPT_4,
+  languageProcessor: Model.GPT_4,
   name: "Page Turner",
   essence:
     "a female detective specializing in finding lost pets and long lost loves.",
@@ -203,7 +203,7 @@ Page can NOT perform any tasks not shown in the <ACTION/> section, lookup any in
 };
 
 export const REGGIE = {
-  languageProcessor: LanguageProcessor.GPT_4,
+  languageProcessor: Model.GPT_4,
   name: "Reginald Arthur Wellington",
   essence:
     "a highly cultured and refined English gentleman, with a strong sense of tradition and propriety. ",
@@ -260,7 +260,7 @@ Reggie can NOT perform any tasks not shown in the <ACTION/> section, lookup any 
 };
 
 export const EILEEN = {
-  languageProcessor: LanguageProcessor.GPT_4,
+  languageProcessor: Model.GPT_4,
   name: "Eileen O'Connor",
   essence:
     "a artist, graphic designer, and helpful friend who lives in Ireland.",
