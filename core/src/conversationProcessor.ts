@@ -1,10 +1,4 @@
-import {
-  Memory,
-  MRecord,
-  NeuralEvents,
-  Thought,
-  ThoughtGenerator,
-} from "./lmStream";
+import { MRecord, NeuralEvents, ThoughtGenerator } from "./thoughtGenerator";
 import { EventEmitter } from "events";
 import { Blueprint, ThoughtFramework } from "./blueprint";
 import { devLog } from "./utils";
@@ -13,12 +7,11 @@ import {
   getIntrospectiveSystemProgram,
   getReflectiveLPSystemProgram,
 } from "./TEMPLATES";
-import OpenAI from "openai";
-import { getTag, processLMProgram } from "./lmProcessing";
 import { Soul } from "./soul";
 import { Action } from "./action";
 import { MentalModel } from "./mentalModels";
-import { ChatMessage, ChatMessageRoleEnum } from "./languageModels";
+import { ChatMessageRoleEnum, getTag } from "./languageModels";
+import { Memory, Thought } from "./languageModels/memory";
 
 export type Message = {
   userName: string;
@@ -65,7 +58,7 @@ export class ConversationProcessor extends EventEmitter {
     this.mentalModels = soul.mentalModels;
 
     this.thoughtGenerator = new ThoughtGenerator(
-      this.blueprint.languageProcessor,
+      this.soul.chatStreamer,
       this.blueprint.name,
     );
     this.thoughtGenerator.on(NeuralEvents.newThought, (thought: Thought) => {
@@ -215,7 +208,7 @@ export class ConversationProcessor extends EventEmitter {
           entity: "user",
           action: "MESSAGES",
           content: text,
-        }),
+        })
     );
     this.thoughts = this.thoughts.concat(msgThoughts);
     this.msgQueue = [];
@@ -344,7 +337,7 @@ Use the following output format:
 `.trim(),
       },
     ];
-    const res = await processLMProgram(instructions);
+    const res = await this.soul.languageProgramExecutor.execute(instructions);
     const answer = getTag({ tag: "ANSWER", input: res }).toLowerCase();
     devLog(res);
     return answer === "yes";
