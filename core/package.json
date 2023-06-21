@@ -1,7 +1,7 @@
 {
   "name": "socialagi",
-  "version": "0.0.21",
-  "description": "Simple, opinionated framework for creating digital souls",
+  "version": "0.0.22",
+  "description": "Simple, opinionated framework for creating AI souls",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
