@@ -10,22 +10,17 @@ import {
 import { Soul } from "./soul";
 import { Action } from "./action";
 import { MentalModel } from "./mentalModels";
-import { ChatMessageRoleEnum, getTag } from "./languageModels";
+import { ChatMessageRoleEnum } from "./languageModels";
 import { Memory, Thought } from "./languageModels/memory";
+import { ParticipationStrategy, ParticipationStrategyClass } from "./programs";
 
 export type Message = {
   userName: string;
   text: string;
 };
 
-export interface ConversationalContext {
-  toString(): string;
-}
-
-export enum ParticipationStrategy {
-  ALWAYS_REPLY,
-  CONSUME_ONLY,
-  GROUP_CHAT,
+export interface ConversationOptions {
+  participationStrategy?: ParticipationStrategyClass;
 }
 
 export class ConversationProcessor extends EventEmitter {
@@ -39,21 +34,23 @@ export class ConversationProcessor extends EventEmitter {
   private generatedThoughts: Thought[];
   private msgQueue: string[];
   private followupTimeout: NodeJS.Timeout | null = null;
-  private context: ConversationalContext;
+  private participationStrategy?: ParticipationStrategy;
 
   private sayWaitDisabled? = false;
 
   public mentalModels: MentalModel[];
 
-  constructor(soul: Soul, context: ConversationalContext) {
+  constructor(soul: Soul, options: ConversationOptions) {
     super();
     this.msgQueue = [];
     this.thoughts = [];
     this.generatedThoughts = [];
     this.soul = soul;
-    this.context = context;
     this.blueprint = soul.blueprint;
     this.sayWaitDisabled = soul.options.disableSayDelay;
+    if (options.participationStrategy) {
+      this.participationStrategy = new options.participationStrategy(this);
+    }
 
     this.mentalModels = soul.mentalModels;
 
@@ -208,7 +205,7 @@ export class ConversationProcessor extends EventEmitter {
           entity: "user",
           action: "MESSAGES",
           content: text,
-        })
+        }),
     );
     this.thoughts = this.thoughts.concat(msgThoughts);
     this.msgQueue = [];
@@ -296,53 +293,6 @@ export class ConversationProcessor extends EventEmitter {
     return finalMessages;
   }
 
-  private async decideToParticipate(): Promise<boolean> {
-    const k = 7;
-    const latestThoughts = this.thoughts
-      .filter((thought) => thought.memory.action === "MESSAGES")
-      .slice(-k);
-    const instructions = [
-      {
-        role: ChatMessageRoleEnum.System,
-        content: `
-<BACKGROUND>
-Below is a conversation with ${this.blueprint.name}, ${this.blueprint.essence}
-
-${this.blueprint.personality}
-</BACKGROUND>
-
-<CONTEXT>The following contains a group conversation</CONTEXT>
-
-<CONVERSATION>
-${latestThoughts.map((t) => `${t.memory.entity}: ${t.toString()}`).join("\n")}
-</CONVERSATION>
-`.trim(),
-      },
-      {
-        role: ChatMessageRoleEnum.User,
-        content: `
-<QUESTION>Please think through whether ${this.blueprint.name} speaks next or not using the following notes and output format</QUESTION>
-
-<NOTES>
--Doesn't speak if someone else is referenced or mentioned
--If referenced or mentioned, including by a nickname then jumps in!
--If already continuing a conversation, continues speaking
-</NOTES>
-
-Use the following output format:
-
-<LAST_MESSAGE>[[repeat the last message]]</LAST_MESSAGE>
-<REASON>[[explain if ${this.blueprint.name} speaks next or not]]</REASON>
-<ANSWER>[[use the reason to decide if ${this.blueprint.name} speaks next: answer yes or no]]</ANSWER>
-`.trim(),
-      },
-    ];
-    const res = await this.soul.languageProgramExecutor.execute(instructions);
-    const answer = getTag({ tag: "ANSWER", input: res }).toLowerCase();
-    devLog(res);
-    return answer === "yes";
-  }
-
   private async think() {
     if (this.followupTimeout !== null) {
       clearTimeout(this.followupTimeout as NodeJS.Timeout);
@@ -360,7 +310,6 @@ Use the following output format:
           essence: this.blueprint.essence,
           personality: this.blueprint.personality || "",
           languageProcessor: this.blueprint.languageProcessor,
-          context: this.context.toString(),
           actions: this.availableActions(),
         };
         systemProgram = getIntrospectiveSystemProgram(vars);
@@ -372,7 +321,6 @@ Use the following output format:
           initialPlan: this.blueprint.initialPlan,
           essence: this.blueprint.essence,
           personality: this.blueprint.personality || "",
-          context: this.context.toString(),
           actions: this.availableActions(),
         };
         systemProgram = getReflectiveLPSystemProgram(vars);
@@ -435,10 +383,7 @@ Use the following output format:
     }
   }
 
-  public async read(
-    msg: Message,
-    participationStrategy: ParticipationStrategy,
-  ) {
+  public async read(msg: Message) {
     const memory = new Memory({
       role: ChatMessageRoleEnum.User,
       entity: msg.userName,
@@ -447,19 +392,19 @@ Use the following output format:
     });
 
     this.mentalModels.forEach((m) => m.update([memory], this));
-
     this.thoughts.push(memory);
-    if (participationStrategy === ParticipationStrategy.ALWAYS_REPLY) {
-      this.think();
-    } else if (participationStrategy === ParticipationStrategy.GROUP_CHAT) {
-      if (this.followupTimeout !== null) {
-        clearTimeout(this.followupTimeout as NodeJS.Timeout);
-        this.followupTimeout = null;
-      }
-      const participate = await this.decideToParticipate();
-      if (!participate) {
-        return;
-      }
+
+    if (!this.participationStrategy) {
+      return;
+    }
+
+    if (this.followupTimeout !== null) {
+      clearTimeout(this.followupTimeout as NodeJS.Timeout);
+      this.followupTimeout = null;
+    }
+
+    const participate = await this.participationStrategy.decideToParticipate();
+    if (participate) {
       this.think();
     }
   }

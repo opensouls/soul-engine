@@ -6,7 +6,6 @@ export interface IReflectiveLPSystemPrompt {
   initialPlan?: string;
   essence: string;
   personality: string;
-  context: string;
   actions: Action[];
 }
 
@@ -28,7 +27,6 @@ export function getReflectiveLPSystemProgram(vars: IReflectiveLPSystemPrompt) {
     : `I am alive, I am: ${vars.personality}`;
   return `Initialize {
    I am ${vars.name}, ${vars.essence}
-   ${vars.context ? `\n${vars.context}\n` : ""}
    ${initialPlan}
    
    ${personality}
@@ -116,7 +114,6 @@ export interface IIntrospectiveRemembranceProgram {
   essence: string;
   personality: string;
   languageProcessor: Model;
-  context?: string;
   actions: Action[];
 }
 

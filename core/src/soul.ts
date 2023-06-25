@@ -1,10 +1,9 @@
 import { EventEmitter } from "events";
 import { Blueprint, ThoughtFramework } from "./blueprint";
 import {
-  ConversationalContext,
+  ConversationOptions,
   ConversationProcessor,
   Message,
-  ParticipationStrategy,
 } from "./conversationProcessor";
 import { Action } from "./action";
 import { MentalModel } from "./mentalModels";
@@ -36,7 +35,7 @@ const blueprintToStreamer = (blueprint: Blueprint): ChatCompletionStreamer => {
 };
 
 interface SoulOptions {
-  defaultContext?: ConversationalContext;
+  // defaultContext?: ConversationalContext;
   // if you want to always get the entire "say" thought instead of streaming it out sentence by sentence,
   // then turn on "disableSayDelay"
   disableSayDelay?: boolean;
@@ -44,6 +43,7 @@ interface SoulOptions {
   mentalModels?: MentalModel[];
   chatStreamer?: ChatCompletionStreamer;
   languageProgramExecutor?: LanguageModelProgramExecutor;
+  defaultConversationOptions?: ConversationOptions;
 }
 
 export class Soul extends EventEmitter {
@@ -85,10 +85,6 @@ export class Soul extends EventEmitter {
       new OpenAILanguageProgramProcessor();
   }
 
-  get defaultContext() {
-    return this.options.defaultContext || "";
-  }
-
   public reset(): void {
     this.getConversations().map((c) => c.reset());
   }
@@ -99,13 +95,13 @@ export class Soul extends EventEmitter {
 
   public getConversation(
     convoName: string,
-    context?: ConversationalContext,
+    options?: ConversationOptions
   ): ConversationProcessor {
     if (!Object.keys(this.conversations).includes(convoName)) {
-      this.conversations[convoName] = new ConversationProcessor(
-        this,
-        context || this.defaultContext,
-      );
+      this.conversations[convoName] = new ConversationProcessor(this, {
+        ...(this.options.defaultConversationOptions || {}),
+        ...(options || {}),
+      });
       this.conversations[convoName].on("thinks", (thought) => {
         this.emit("thinks", thought, convoName);
       });
@@ -127,11 +123,7 @@ export class Soul extends EventEmitter {
     this.getConversation(convoName).seesTyping();
   }
 
-  public read(
-    msg: Message,
-    participationStrategy: ParticipationStrategy,
-    convoName = "default",
-  ): void {
-    this.getConversation(convoName).read(msg, participationStrategy);
+  public read(msg: Message, convoName = "default"): void {
+    this.getConversation(convoName).read(msg);
   }
 }

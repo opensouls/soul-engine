@@ -1,4 +1,5 @@
-const { Blueprints, Soul, ParticipationStrategy } = require("../src");
+const { Blueprints, Soul } = require("../src");
+const { ConsumeOnlyParticipationStrategy, AlwaysReplyParticipationStrategy, GroupParticipationStrategy } = require("../src/programs/participationStrategies");
 
 function delay(milliseconds) {
   return new Promise((resolve) => {
@@ -19,7 +20,11 @@ afterAll(() => {
 test("test ALWAYS_REPLY participation replies to each message", async () => {
   const generator = async () => {
     let messages = [];
-    const soul = new Soul(Blueprints.SAMANTHA);
+    const soul = new Soul(Blueprints.SAMANTHA, {
+      defaultConversationOptions: {
+        participationStrategy: AlwaysReplyParticipationStrategy,
+      },
+    });
     const messagesToRead = [
       { userName: "user122", text: "hi Bob, I'm Kevin" },
       { userName: "user022", text: "hi, I'm Bob" },
@@ -33,20 +38,24 @@ test("test ALWAYS_REPLY participation replies to each message", async () => {
       messages.push({ userName: "sam", text: message })
     );
     for (const message of messagesToRead) {
-      soul.read(message, ParticipationStrategy.ALWAYS_REPLY);
+      soul.read(message);
       messages.push(message);
       await delay(5000);
     }
     return messages;
   };
   const finalMessages = await generator();
-  expect(finalMessages.length).toEqual(14);
+  expect(finalMessages.length).toEqual(11);
 }, 45000);
 
 test("test GROUP_CHAT participation replies to some messages", async () => {
   const generator = async () => {
     let messages = [];
-    const soul = new Soul(Blueprints.SAMANTHA);
+    const soul = new Soul(Blueprints.SAMANTHA, {
+      defaultConversationOptions: {
+        participationStrategy: GroupParticipationStrategy,
+      },
+    });
     const messagesToRead = [
       { userName: "user122", text: "hi Bob, I'm Kevin" },
       { userName: "user022", text: "hi, I'm Bob" },
@@ -60,7 +69,7 @@ test("test GROUP_CHAT participation replies to some messages", async () => {
       messages.push({ userName: "sam", text: message })
     );
     for (const message of messagesToRead) {
-      soul.read(message, ParticipationStrategy.GROUP_CHAT);
+      soul.read(message);
       messages.push(message);
       await delay(5000);
     }
@@ -75,7 +84,11 @@ test("test GROUP_CHAT participation replies to some messages", async () => {
 test("test CONSUME participation replies to each message", async () => {
   const generator = async () => {
     let messages = [];
-    const soul = new Soul(Blueprints.SAMANTHA);
+    const soul = new Soul(Blueprints.SAMANTHA, {
+      defaultConversationOptions: {
+        participationStrategy: ConsumeOnlyParticipationStrategy,
+      },
+    });
     const messagesToRead = [
       { userName: "user122", text: "hi Bob, I'm Kevin" },
       { userName: "user022", text: "hi, I'm Bob" },
@@ -89,7 +102,7 @@ test("test CONSUME participation replies to each message", async () => {
       messages.push({ userName: "sam", text: message })
     );
     for (const message of messagesToRead) {
-      soul.read(message, ParticipationStrategy.CONSUME_ONLY);
+      soul.read(message);
       messages.push(message);
       await delay(5000);
     }

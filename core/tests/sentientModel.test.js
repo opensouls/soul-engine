@@ -1,7 +1,6 @@
-const { getTag } = require("../src/lmProcessing");
+const { getTag } = require("../src/languageModels");
 const { Blueprints } = require("../src/blueprint");
 const { Soul } = require("../src/soul");
-const { ParticipationStrategy } = require("../src/soul");
 const { isAbstractTrue, AbstractSample } = require("../src/testing");
 const { PeopleMemory } = require("../src/memory");
 
@@ -22,9 +21,9 @@ afterAll(() => {
 });
 
 const mentalModelForUser = (soul, userName) => {
-  const peopleMemory = soul.mentalModels.find((model) =>
-    PeopleMemory.is(model)
-  );
+  const peopleMemory = soul.mentalModels.find((model) => {
+    return model instanceof PeopleMemory;
+  });
   if (!peopleMemory) {
     throw new Error("no people memory");
   }
@@ -33,10 +32,9 @@ const mentalModelForUser = (soul, userName) => {
     throw new Error("no user memory");
   }
   return userMemory.toLinguisticProgram();
-}
+};
 
 test("test sorrowful conversation history accumulates", async () => {
-
   const generator = async () => {
     const soul = new Soul(Blueprints.SAMANTHA);
     const messagesToSend = [
@@ -219,7 +217,7 @@ test("test multiple people conversing yield separate mental models", async () =>
       { userName: "user122", text: "I like dogs" },
     ];
     for (const message of messagesToRead) {
-      soul.read(message, ParticipationStrategy.CONSUME_ONLY);
+      soul.read(message, true);
       await delay(3000);
     }
     return soul;
