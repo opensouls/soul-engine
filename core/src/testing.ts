@@ -7,12 +7,16 @@ type AbstractTrue = {
   answer: boolean;
 };
 
-const executor = new OpenAILanguageProgramProcessor()
+const getExecutor = () => {
+  return new OpenAILanguageProgramProcessor();
+};
 
 export async function isAbstractTrue(
   target: string,
   condition: string
 ): Promise<AbstractTrue> {
+  const executor = getExecutor();
+
   const instructions = [
     {
       role: ChatMessageRoleEnum.System,

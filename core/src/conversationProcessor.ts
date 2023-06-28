@@ -2,17 +2,12 @@ import { MRecord, NeuralEvents, ThoughtGenerator } from "./thoughtGenerator";
 import { EventEmitter } from "events";
 import { Blueprint, ThoughtFramework } from "./blueprint";
 import { devLog } from "./utils";
-import {
-  getIntrospectiveRemembranceProgram,
-  getIntrospectiveSystemProgram,
-  getReflectiveLPSystemProgram,
-} from "./TEMPLATES";
 import { Soul } from "./soul";
-import { Action } from "./action";
-import { MentalModel } from "./mentalModels";
 import { ChatMessageRoleEnum } from "./languageModels";
 import { Memory, Thought } from "./languageModels/memory";
 import { ParticipationStrategy, ParticipationStrategyClass } from "./programs";
+import { ConversationalProgram } from "./programs";
+import { ProgramOutput, mergePrograms } from "./linguisticProgramBuilder";
 
 export type Message = {
   userName: string;
@@ -25,6 +20,7 @@ export interface ConversationOptions {
 
 export class ConversationProcessor extends EventEmitter {
   private thoughtGenerator: ThoughtGenerator;
+  public name: string;
 
   public soul: Soul;
   public blueprint: Blueprint;
@@ -38,13 +34,17 @@ export class ConversationProcessor extends EventEmitter {
 
   private sayWaitDisabled? = false;
 
-  public mentalModels: MentalModel[];
+  public conversationalPrograms: ConversationalProgram[];
 
-  constructor(soul: Soul, options: ConversationOptions) {
+  public currentPrograms: Partial<ProgramOutput>[];
+
+  constructor(soul: Soul, name: string, options: ConversationOptions) {
     super();
+    this.name = name;
     this.msgQueue = [];
     this.thoughts = [];
     this.generatedThoughts = [];
+    this.currentPrograms = [];
     this.soul = soul;
     this.blueprint = soul.blueprint;
     this.sayWaitDisabled = soul.options.disableSayDelay;
@@ -52,11 +52,11 @@ export class ConversationProcessor extends EventEmitter {
       this.participationStrategy = new options.participationStrategy(this);
     }
 
-    this.mentalModels = soul.mentalModels;
+    this.conversationalPrograms = soul.conversationalPrograms;
 
     this.thoughtGenerator = new ThoughtGenerator(
       this.soul.chatStreamer,
-      this.blueprint.name,
+      this.blueprint.name
     );
     this.thoughtGenerator.on(NeuralEvents.newThought, (thought: Thought) => {
       this.onNewThought(thought);
@@ -66,28 +66,9 @@ export class ConversationProcessor extends EventEmitter {
     });
   }
 
-  private availableActions(): Action[] {
-    const rambleAction: Action = {
-      name: "rambleAfterResponding",
-      description:
-        "If you want to continue talking, without waiting for a response. Use YES or NO as input.",
-      execute: (input, _soul, conversation) => {
-        devLog(`executing ramble action with input: ${input}`);
-        if (input.toLowerCase() === "no") {
-          return;
-        }
-        conversation.generatedThoughts.push(
-          new Thought({
-            role: ChatMessageRoleEnum.Assistant,
-            entity: this.blueprint.name,
-            action: "RAMBLE",
-            content: "I want to ramble before they respond",
-          }),
-        );
-        conversation.continueThinking();
-      },
-    };
-    return [rambleAction].concat(this.soul.actions);
+  // TODO: let listeners get updated on this?
+  addGeneratedThought(thought: Thought) {
+    this.generatedThoughts.push(thought);
   }
 
   public reset() {
@@ -141,9 +122,13 @@ export class ConversationProcessor extends EventEmitter {
     }
   }
 
+  private availableActions() {
+    return this.currentPrograms.flatMap((p) => p.actions || []);
+  }
+
   private handleInternalCognitionThought(thought: Thought) {
     const actionThought = this.generatedThoughts.find(
-      (t) => t.memory.action.toLowerCase() === "action",
+      (t) => t.memory.action.toLowerCase() === "action"
     );
     devLog(`\x1b[31m${actionThought} ${thought}\x1b[0m`);
 
@@ -179,7 +164,7 @@ export class ConversationProcessor extends EventEmitter {
     return this.handleInternalCognitionThought(thought);
   }
 
-  private continueThinking() {
+  continueThinking() {
     this.thoughtGenerator.interrupt();
     this.thoughts = this.thoughts.concat(this.generatedThoughts);
     this.think();
@@ -189,7 +174,9 @@ export class ConversationProcessor extends EventEmitter {
     devLog("🧠 SOUL finished thinking");
 
     this.thoughts = this.thoughts.concat(this.generatedThoughts);
-    this.mentalModels.forEach((m) => m.update(this.generatedThoughts, this));
+    this.conversationalPrograms.forEach((m) =>
+      m.update(this.generatedThoughts, this)
+    );
 
     this.generatedThoughts = [];
 
@@ -205,7 +192,7 @@ export class ConversationProcessor extends EventEmitter {
           entity: "user",
           action: "MESSAGES",
           content: text,
-        }),
+        })
     );
     this.thoughts = this.thoughts.concat(msgThoughts);
     this.msgQueue = [];
@@ -221,12 +208,7 @@ export class ConversationProcessor extends EventEmitter {
     };
   }
 
-  static thoughtsToRecords(
-    thoughts: Thought[],
-    systemProgram: string,
-    remembranceProgram?: string,
-    memory?: MRecord,
-  ): MRecord[] {
+  static thoughtsToRecords(thoughts: Thought[]): MRecord[] {
     function groupMemoriesByRole(memories: Memory[]): Memory[][] {
       const grouped = memories.reduce((result, memory, index, array) => {
         if (
@@ -250,47 +232,7 @@ export class ConversationProcessor extends EventEmitter {
       initialMessages.push(ConversationProcessor.concatThoughts(grouping));
     }
 
-    let truncatedMessages = initialMessages;
-    if (initialMessages.length > 10) {
-      if (initialMessages.length === 11) {
-        truncatedMessages = initialMessages
-          .slice(0, 1)
-          .concat(initialMessages.slice(2));
-      } else if (initialMessages.length === 12) {
-        truncatedMessages = initialMessages
-          .slice(0, 2)
-          .concat(initialMessages.slice(3));
-      } else if (initialMessages.length === 13) {
-        truncatedMessages = initialMessages
-          .slice(0, 3)
-          .concat(initialMessages.slice(4));
-      } else {
-        truncatedMessages = initialMessages
-          .slice(0, 3)
-          .concat(initialMessages.slice(-10));
-      }
-    }
-
-    let finalMessages = truncatedMessages;
-    const preamble = [
-      {
-        role: ChatMessageRoleEnum.System,
-        content: systemProgram,
-        name: "systemBrain",
-      },
-    ] as MRecord[];
-    if (memory !== undefined) {
-      preamble.push(memory as MRecord);
-    }
-    finalMessages = preamble.concat(finalMessages);
-    if (truncatedMessages.length > 0 && remembranceProgram !== undefined) {
-      finalMessages = finalMessages.concat({
-        role: ChatMessageRoleEnum.System,
-        content: remembranceProgram,
-        name: "systemBrain",
-      });
-    }
-    return finalMessages;
+    return initialMessages;
   }
 
   private async think() {
@@ -301,61 +243,18 @@ export class ConversationProcessor extends EventEmitter {
     this.emit("thinking");
     devLog("🧠 SOUL is starting thinking...");
 
-    let systemProgram, remembranceProgram, vars;
+    this.currentPrograms = await Promise.all(
+      this.conversationalPrograms.map((m) => m.toOutput(this))
+    );
+
+    // let systemProgram, remembranceProgram, vars;
     switch (this.blueprint.thoughtFramework) {
       case ThoughtFramework.Introspective:
-        vars = {
-          name: this.blueprint.name,
-          initialPlan: this.blueprint.initialPlan,
-          essence: this.blueprint.essence,
-          personality: this.blueprint.personality || "",
-          languageProcessor: this.blueprint.languageProcessor,
-          actions: this.availableActions(),
-        };
-        systemProgram = getIntrospectiveSystemProgram(vars);
-        remembranceProgram = getIntrospectiveRemembranceProgram(vars);
-        break;
-      case ThoughtFramework.ReflectiveLP:
-        vars = {
-          name: this.blueprint.name,
-          initialPlan: this.blueprint.initialPlan,
-          essence: this.blueprint.essence,
-          personality: this.blueprint.personality || "",
-          actions: this.availableActions(),
-        };
-        systemProgram = getReflectiveLPSystemProgram(vars);
-        break;
+        return this.thoughtGenerator.generate(
+          mergePrograms(this.soul, this.currentPrograms)
+        );
       default:
-        throw Error("");
-    }
-
-    const messages = ConversationProcessor.thoughtsToRecords(
-      this.thoughts,
-      systemProgram,
-      remembranceProgram,
-      this.mentalModelLinguisticProgram(),
-    );
-    // devLog("\n💬\n" + messages.map((m) => m.content).join(", ") + "\n💬\n");
-    this.thoughtGenerator.generate(messages);
-  }
-
-  private mentalModelLinguisticProgram(): MRecord | undefined {
-    try {
-      const mentalModelprograms = this.mentalModels
-        .map((m) => m.toLinguisticProgram(this))
-        .filter(Boolean);
-
-      if (!mentalModelprograms) {
-        return;
-      }
-
-      return {
-        role: "assistant",
-        content: mentalModelprograms.join("\n"),
-        name: this.blueprint.name,
-      } as MRecord;
-    } catch (err: any) {
-      devLog(`Error creating memory: ${err.toString()}`);
+        throw Error("unknown thought framework");
     }
   }
 
@@ -367,7 +266,7 @@ export class ConversationProcessor extends EventEmitter {
       content: text,
     });
 
-    this.mentalModels.forEach((m) => m.update([memory], this));
+    this.conversationalPrograms.forEach((m) => m.update([memory], this));
 
     this.thoughts.push(memory);
     this.think();
@@ -391,7 +290,7 @@ export class ConversationProcessor extends EventEmitter {
       content: msg.text,
     });
 
-    this.mentalModels.forEach((m) => m.update([memory], this));
+    this.conversationalPrograms.forEach((m) => m.update([memory], this));
     this.thoughts.push(memory);
 
     if (!this.participationStrategy) {

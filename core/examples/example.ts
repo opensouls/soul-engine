@@ -1,5 +1,8 @@
 import * as readline from "readline";
 import { Blueprints, Soul } from "../src";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const blueprint = Blueprints.SAMANTHA;
 

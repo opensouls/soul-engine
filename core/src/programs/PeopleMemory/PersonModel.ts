@@ -1,17 +1,10 @@
-import { devLog } from "./utils";
-import { ConversationProcessor } from "./conversationProcessor";
-import { ChatMessage, ChatMessageRoleEnum, getTag } from "./languageModels";
-import { Thought } from "./languageModels/memory";
-import { Soul } from "./soul";
+import { devLog } from "../../utils";
+import { ConversationProcessor } from "../../conversationProcessor";
+import { ChatMessage, ChatMessageRoleEnum, getTag } from "../../languageModels";
+import { Thought } from "../../languageModels/memory";
+import { Soul } from "../../soul";
 
-export interface MentalModel {
-  update: (thoughts: Thought[], conversation: ConversationProcessor) => void;
-  toLinguisticProgram: (
-    conversation: ConversationProcessor
-  ) => string | undefined;
-}
-
-export class PersonModel implements MentalModel {
+export class PersonModel {
   userName: string;
   soul: Soul;
   observerName: string;
@@ -29,7 +22,7 @@ export class PersonModel implements MentalModel {
     this.observerName = this.soul.blueprint.name;
   }
 
-  public toLinguisticProgram(_conversation: ConversationProcessor) {
+  toLinguisticProgram(_conversation: ConversationProcessor) {
     return `<CONTEXT>To date, ${this.observerName} remembers the following about ${this.name}, including records of their NAME, basic FACTS, current HISTORY narrative, personal GOALS, MOOD, and MENTAL STATE.</CONTEXT>
 
 Their historical memory, which may include blanks yet to be learned from conversation, reads:
@@ -47,7 +40,7 @@ Their historical memory, which may include blanks yet to be learned from convers
 
   public async update(
     thoughts: Thought[],
-    conversation: ConversationProcessor,
+    conversation: ConversationProcessor
   ) {
     const { role, entity: name } = thoughts[0].memory;
     const content = thoughts.map((t) => t.memory.content).join("\n");
@@ -111,7 +104,8 @@ and reads
     let instructions = [
       {
         role: ChatMessageRoleEnum.System,
-        content: this.toLinguisticProgram(conversation) +
+        content:
+          this.toLinguisticProgram(conversation) +
           `\n\nThen, the following messages were exchanged.`,
       },
     ];

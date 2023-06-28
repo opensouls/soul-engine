@@ -1,18 +1,21 @@
-import { MentalModel, PersonModel } from "./mentalModels";
-import { Blueprint } from "./blueprint";
-import { ConversationProcessor } from "./conversationProcessor";
-import { ChatMessageRoleEnum } from "./languageModels";
-import { Thought } from "./languageModels/memory";
-import { Soul } from "./soul";
+import { PersonModel } from "./PersonModel";
+import { Blueprint } from "../../blueprint";
+import { ConversationProcessor } from "../../conversationProcessor";
+import { ChatMessageRoleEnum } from "../../languageModels";
+import { Thought } from "../../languageModels/memory";
+import { Soul } from "../../soul";
+import { ConversationalProgram } from "../index";
 
 interface MentalModels {
   [key: string]: PersonModel;
 }
 
-export class PeopleMemory implements MentalModel {
+export class PeopleMemory implements ConversationalProgram {
   public memory: MentalModels;
   private readonly observerBlueprint: Blueprint;
   private readonly soul: Soul;
+
+  public id = "internal-people-memory";
 
   constructor(soul: Soul) {
     this.memory = {};
@@ -20,9 +23,25 @@ export class PeopleMemory implements MentalModel {
     this.observerBlueprint = soul.blueprint;
   }
 
+  async toOutput(conversation: ConversationProcessor) {
+    const content = this.toMessageContent(conversation);
+    if (content) {
+      return {
+        beginningMessages: [
+          {
+            role: ChatMessageRoleEnum.Assistant,
+            content: this.toMessageContent(conversation),
+            name: conversation.blueprint.name,
+          },
+        ],
+      };
+    }
+    return {};
+  }
+
   public async update(
     thoughts: Thought[],
-    conversation: ConversationProcessor,
+    conversation: ConversationProcessor
   ) {
     const { entity: name } = thoughts[0].memory;
     if (name === undefined) {
@@ -33,11 +52,11 @@ export class PeopleMemory implements MentalModel {
       this.memory[name] = new PersonModel(this.soul, name);
     }
     return await Promise.all(
-      Object.values(this.memory).map((m) => m.update(thoughts, conversation)),
+      Object.values(this.memory).map((m) => m.update(thoughts, conversation))
     );
   }
 
-  public toLinguisticProgram(conversation: ConversationProcessor): string {
+  private toMessageContent(conversation: ConversationProcessor): string {
     const userNames = conversation.thoughts
       .filter((t) => t.memory.role === ChatMessageRoleEnum.User)
       .map((t) => t.memory.entity);

@@ -5,9 +5,7 @@ import {
   ConversationProcessor,
   Message,
 } from "./conversationProcessor";
-import { Action } from "./action";
-import { MentalModel } from "./mentalModels";
-import { PeopleMemory } from "./memory";
+import { PeopleMemory } from "./programs/PeopleMemory/PeopleMemory";
 import {
   ChatCompletionStreamer,
   LanguageModelProgramExecutor,
@@ -17,6 +15,10 @@ import {
   OpenAILanguageProgramProcessor,
   OpenAIStreamingChat,
 } from "./languageModels/openAI";
+import { ConversationalProgram } from "./programs";
+import { Personality } from "./programs/Personality";
+import { ConversationCompressor } from "./programs/ConversationCompressor";
+import { RambleProgram } from "./programs/Ramble";
 
 type ConversationStore = {
   [convoName: string]: ConversationProcessor;
@@ -28,7 +30,7 @@ const blueprintToStreamer = (blueprint: Blueprint): ChatCompletionStreamer => {
       {},
       {
         model: Model.GPT_4,
-      },
+      }
     );
   }
   return new OpenAIStreamingChat();
@@ -39,8 +41,7 @@ interface SoulOptions {
   // if you want to always get the entire "say" thought instead of streaming it out sentence by sentence,
   // then turn on "disableSayDelay"
   disableSayDelay?: boolean;
-  actions?: Action[];
-  mentalModels?: MentalModel[];
+  conversationalPrograms?: ConversationalProgram[];
   chatStreamer?: ChatCompletionStreamer;
   languageProgramExecutor?: LanguageModelProgramExecutor;
   defaultConversationOptions?: ConversationOptions;
@@ -50,9 +51,8 @@ export class Soul extends EventEmitter {
   conversations: ConversationStore = {};
   public blueprint: Blueprint;
 
-  public actions: Action[];
   readonly options: SoulOptions;
-  readonly mentalModels: MentalModel[];
+  public conversationalPrograms: ConversationalProgram[];
 
   public chatStreamer: ChatCompletionStreamer;
   public languageProgramExecutor: LanguageModelProgramExecutor;
@@ -61,11 +61,14 @@ export class Soul extends EventEmitter {
     super();
 
     this.options = soulOptions;
-    this.actions = soulOptions.actions || [];
     this.blueprint = blueprint;
 
-    this.mentalModels = soulOptions.mentalModels ||
-      [new PeopleMemory(this)];
+    this.conversationalPrograms = soulOptions.conversationalPrograms || [
+      new ConversationCompressor(),
+      new Personality(this.blueprint),
+      new PeopleMemory(this),
+      new RambleProgram(),
+    ];
 
     // soul blueprint validation
     if (this.blueprint?.thoughtFramework === undefined) {
@@ -76,17 +79,22 @@ export class Soul extends EventEmitter {
       this.blueprint.languageProcessor !== Model.GPT_4
     ) {
       throw new Error(
-        "ReflectiveLP ThoughtFramework requires the GPT4 language processor",
+        "ReflectiveLP ThoughtFramework requires the GPT4 language processor"
       );
     }
-    this.chatStreamer = soulOptions.chatStreamer ||
-      blueprintToStreamer(blueprint);
-    this.languageProgramExecutor = soulOptions.languageProgramExecutor ||
+    this.chatStreamer =
+      soulOptions.chatStreamer || blueprintToStreamer(blueprint);
+    this.languageProgramExecutor =
+      soulOptions.languageProgramExecutor ||
       new OpenAILanguageProgramProcessor();
   }
 
   public reset(): void {
     this.getConversations().map((c) => c.reset());
+  }
+
+  public setMentalModels(models: ConversationalProgram[]) {
+    this.conversationalPrograms = models;
   }
 
   private getConversations(): ConversationProcessor[] {
@@ -98,10 +106,14 @@ export class Soul extends EventEmitter {
     options?: ConversationOptions
   ): ConversationProcessor {
     if (!Object.keys(this.conversations).includes(convoName)) {
-      this.conversations[convoName] = new ConversationProcessor(this, {
-        ...(this.options.defaultConversationOptions || {}),
-        ...(options || {}),
-      });
+      this.conversations[convoName] = new ConversationProcessor(
+        this,
+        convoName,
+        {
+          ...(this.options.defaultConversationOptions || {}),
+          ...(options || {}),
+        }
+      );
       this.conversations[convoName].on("thinks", (thought) => {
         this.emit("thinks", thought, convoName);
       });

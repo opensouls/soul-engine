@@ -5,6 +5,7 @@ import {
   CreateChatCompletionParams,
   LanguageModelProgramExecutor,
 } from ".";
+import { devLog } from "../utils";
 
 export enum Model {
   GPT_4 = "gpt-4",
@@ -61,7 +62,8 @@ type DefaultCompletionParams = ChatCompletionParams & {
 };
 
 export class OpenAILanguageProgramProcessor
-  implements LanguageModelProgramExecutor {
+  implements LanguageModelProgramExecutor
+{
   client: OpenAI;
   defaultParams: DefaultCompletionParams;
 
