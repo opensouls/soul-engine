@@ -1,5 +1,5 @@
 {
-  "name": "@socialagi/lmyield",
+  "name": "socialagi-lmyield",
   "version": "0.0.1",
   "description": "A lightweight language for yielding OpenAI Chat generations into an arbitrary schema",
   "main": "dist/index.js",
