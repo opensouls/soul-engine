@@ -1,5 +1,4 @@
 import { devLog } from "./utils";
-import { Blueprint } from "./blueprint";
 import { ConversationProcessor } from "./conversationProcessor";
 import { ChatMessage, ChatMessageRoleEnum, getTag } from "./languageModels";
 import { Thought } from "./languageModels/memory";
