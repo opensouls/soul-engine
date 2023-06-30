@@ -93,7 +93,7 @@ export class Soul extends EventEmitter {
     this.getConversations().map((c) => c.reset());
   }
 
-  public setMentalModels(models: ConversationalProgram[]) {
+  public setConversationalPrograms(models: ConversationalProgram[]) {
     this.conversationalPrograms = models;
   }
 

@@ -30,8 +30,8 @@ export class PeopleMemory implements ConversationalProgram {
         beginningMessages: [
           {
             role: ChatMessageRoleEnum.Assistant,
-            content: this.toMessageContent(conversation),
             name: conversation.blueprint.name,
+            content,
           },
         ],
       };

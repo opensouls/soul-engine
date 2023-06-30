@@ -1,11 +1,11 @@
 import OpenAI from "openai";
+import { CompletionCreateParams } from "openai/dist/cjs/resources/chat";
 import {
   ChatCompletionStreamer,
   ChatMessage,
   CreateChatCompletionParams,
   LanguageModelProgramExecutor,
 } from ".";
-import { devLog } from "../utils";
 
 export enum Model {
   GPT_4 = "gpt-4",
@@ -16,9 +16,8 @@ export enum Model {
 
 type Config = ConstructorParameters<typeof OpenAI>[0];
 
-type StreamCompletionParams = Partial<
-  Parameters<OpenAI["chat"]["completions"]["create"]>[0]
->;
+type StreamCompletionParams =
+  Partial<CompletionCreateParams.CreateChatCompletionRequestStreaming>;
 
 type DefaultStreamParams = StreamCompletionParams & {
   model: Model | string;
@@ -31,7 +30,7 @@ export class OpenAIStreamingChat implements ChatCompletionStreamer {
 
   constructor(
     openAIConfig: Config = {},
-    defaultParams: StreamCompletionParams = {},
+    defaultParams: StreamCompletionParams = {}
   ) {
     this.client = new OpenAI(openAIConfig);
     this.defaultParams = {
@@ -53,9 +52,8 @@ export class OpenAIStreamingChat implements ChatCompletionStreamer {
   }
 }
 
-type ChatCompletionParams = Parameters<
-  OpenAI["chat"]["completions"]["create"]
->[1];
+type ChatCompletionParams =
+  Partial<CompletionCreateParams.CreateChatCompletionRequestNonStreaming>;
 
 type DefaultCompletionParams = ChatCompletionParams & {
   model: Model | string;
@@ -69,19 +67,19 @@ export class OpenAILanguageProgramProcessor
 
   constructor(
     openAIConfig: Config = {},
-    defaultParams: ChatCompletionParams = {},
+    defaultParams: ChatCompletionParams = {}
   ) {
     this.client = new OpenAI(openAIConfig);
     this.defaultParams = {
       model: Model.GPT_3_5_turbo_16k,
-      stream: false,
       ...defaultParams,
+      stream: false,
     };
   }
 
   async execute(messages: ChatMessage[]): Promise<string> {
     const res = await this.client.chat.completions.create({
-      model: "gpt-3.5-turbo-16k",
+      ...this.defaultParams,
       messages: messages,
     });
     return res?.choices[0]?.message?.content || "";

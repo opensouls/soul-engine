@@ -3,6 +3,10 @@ import { Thought } from "../languageModels/memory";
 import { ProgramOutput } from "../linguisticProgramBuilder";
 
 export * from "./participationStrategies";
+export * from "./PeopleMemory/PeopleMemory";
+export * from "./ConversationCompressor";
+export * from "./Personality";
+export * from "./Ramble";
 
 /**
  * Mental models are processors on a stream from a group of conversation messages (or none) that
