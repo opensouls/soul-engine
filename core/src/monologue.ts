@@ -6,6 +6,11 @@ type PastMonologue = {
   lastValue?: null | string;
   contexts: MonologueContext[];
 };
+type ActionSpec = {
+  action: string;
+  prefix?: string;
+  description: string;
+};
 
 export class Monologue {
   private readonly entityName: string;
@@ -52,11 +57,8 @@ export class Monologue {
     return this._lastValue;
   }
 
-  public async next(
-    action: string,
-    prefix: string | null,
-    description: string
-  ) {
+  public async next(spec: ActionSpec) {
+    const { action, prefix, description } = spec;
     const beginning = `<${action}>${prefix || ""}`;
     const nextInstructions = [
       {
@@ -75,9 +77,8 @@ Reply in the output format: ${beginning}[[fill in]]</${action}>
         stop: `</${action}`,
       }
     );
-    const nextValue = (await processor.execute(instructions)).replace(
-      beginning,
-      ""
+    const nextValue = (await processor.execute(instructions)).slice(
+      beginning.length
     );
     const contextCompletion = [
       {
