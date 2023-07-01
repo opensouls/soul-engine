@@ -24,16 +24,29 @@ type ActionCompletionSpec = {
   prefix?: string;
   description: string;
 };
+type CustomSpec = {
+  [key: string]: any;
+};
 export enum Action {
   INTERNAL_MONOLOGUE,
   EXTERNAL_DIALOG,
   DECISION,
 }
+type NextSpec =
+  | DecisionSpec
+  | ExternalDialogSpec
+  | InternalMonologueSpec
+  | CustomSpec;
+type CortexNext = (spec: NextSpec) => CortexStep;
+type NextActions = {
+  [key: string]: CortexNext;
+};
 
 export class CortexStep {
   private readonly entityName: string;
   private readonly _lastValue: null | string;
   private memories: WorkingMemory;
+  private extraNextActions: NextActions;
 
   constructor(entityName: string, pastCortexStep?: PastCortexStep) {
     this.entityName = entityName;
@@ -47,6 +60,7 @@ export class CortexStep {
     } else {
       this._lastValue = null;
     }
+    this.extraNextActions = {};
   }
 
   public pushMemory(memory: CortexStepMemory) {
@@ -75,6 +89,7 @@ export class CortexStep {
     return this._lastValue;
   }
 
+  // TODO - abstract equals
   //   public async valueIsEqualTo(abstractCondition: string) {
   //     const nextInstructions = [
   //       {
@@ -98,23 +113,33 @@ export class CortexStep {
   //     );
   //   }
 
+  // TODO - brainstorm actions
+
+  public registerAction(type: string, nextCallback: CortexNext) {
+    // TODO - test this!
+    if (this.extraNextActions[type] !== undefined) {
+      throw new Error(`Attempting to add duplicate action type ${type}`);
+    }
+    this.extraNextActions[type] = nextCallback;
+  }
+
   public async next(
-    action: Action,
-    spec: DecisionSpec | ExternalDialogSpec | InternalMonologueSpec
-  ) {
-    if (action === Action.INTERNAL_MONOLOGUE) {
+    type: Action | string,
+    spec: NextSpec
+  ): Promise<CortexStep> {
+    if (type === Action.INTERNAL_MONOLOGUE) {
       const monologueSpec = spec as InternalMonologueSpec;
       return this.generateAction({
         action: monologueSpec.action,
         description: monologueSpec.description,
       } as ActionCompletionSpec);
-    } else if (action === Action.EXTERNAL_DIALOG) {
+    } else if (type === Action.EXTERNAL_DIALOG) {
       const dialogSpec = spec as ExternalDialogSpec;
       return this.generateAction({
         action: dialogSpec.action,
         description: dialogSpec.description,
       } as ActionCompletionSpec);
-    } else if (action === Action.DECISION) {
+    } else if (type === Action.DECISION) {
       const decisionSpec = spec as DecisionSpec;
       const choicesList = decisionSpec.choices.map((c) => "choice=" + c);
       const choicesString = `[${choicesList.join(",")}]`;
@@ -124,10 +149,16 @@ export class CortexStep {
         prefix: `choice=`,
         description: `${description}. Choose one of: ${choicesString}`,
       } as ActionCompletionSpec);
+    } else if (Object.keys(this.extraNextActions).includes(type)) {
+      return this.extraNextActions[type](spec);
+    } else {
+      throw new Error(`Unknown action type ${type}`);
     }
   }
 
-  private async generateAction(spec: ActionCompletionSpec) {
+  private async generateAction(
+    spec: ActionCompletionSpec
+  ): Promise<CortexStep> {
     const { action, prefix, description } = spec;
     const beginning = `<${this.entityName}><${action}>${prefix || ""}`;
     const nextInstructions = [
