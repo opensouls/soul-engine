@@ -1,10 +1,10 @@
 import { ChatMessage } from "./languageModels";
 import { OpenAILanguageProgramProcessor } from "./languageModels/openAI";
 
-type CortexStepContext = ChatMessage[];
+type CortexStepMemory = ChatMessage[];
 type PastCortexStep = {
   lastValue?: null | string;
-  contexts: CortexStepContext[];
+  memories: CortexStepMemory[];
 };
 type InternalMonologueSpec = {
   action: string;
@@ -32,14 +32,14 @@ export enum Action {
 export class CortexStep {
   private readonly entityName: string;
   private readonly _lastValue: null | string;
-  private contexts: CortexStepContext[];
+  private memories: CortexStepMemory[];
 
   constructor(entityName: string, pastCortexStep?: PastCortexStep) {
     this.entityName = entityName;
-    if (pastCortexStep?.contexts) {
-      this.contexts = pastCortexStep.contexts;
+    if (pastCortexStep?.memories) {
+      this.memories = pastCortexStep.memories;
     } else {
-      this.contexts = [];
+      this.memories = [];
     }
     if (pastCortexStep?.lastValue) {
       this._lastValue = pastCortexStep.lastValue;
@@ -48,12 +48,12 @@ export class CortexStep {
     }
   }
 
-  public pushContext(context: CortexStepContext) {
-    this.contexts.push(context);
+  public pushMemory(memory: CortexStepMemory) {
+    this.memories.push(memory);
   }
 
   private get messages(): ChatMessage[] {
-    return this.contexts.flat();
+    return this.memories.flat();
   }
 
   public toString(): string {
@@ -73,6 +73,29 @@ export class CortexStep {
   get value() {
     return this._lastValue;
   }
+
+  //   public async valueIsEqualTo(abstractCondition: string) {
+  //     const nextInstructions = [
+  //       {
+  //         role: "system",
+  //         content: `
+  // You are to evaluate the truthfulness of a value against a condition.
+  //
+  // ...
+  // `.trim(),
+  //       },
+  //     ] as ChatMessage[];
+  //     const instructions = this.messages.concat(nextInstructions);
+  //     const processor = new OpenAILanguageProgramProcessor(
+  //       {},
+  //       {
+  //         stop: `</${action}`,
+  //       }
+  //     );
+  //     const nextValue = (await processor.execute(instructions)).slice(
+  //       beginning.length
+  //     );
+  //   }
 
   public async next(
     action: Action,
@@ -133,11 +156,11 @@ Reply in the output format: ${beginning}[[fill in]]</${action}>
 ${beginning}${nextValue}</${action}></${this.entityName}>
 `.trim(),
       },
-    ] as CortexStepContext;
-    const nextContexts = this.contexts.concat(contextCompletion);
+    ] as CortexStepMemory;
+    const nextContexts = this.memories.concat(contextCompletion);
     return new CortexStep(this.entityName, {
       lastValue: nextValue,
-      contexts: nextContexts,
+      memory: nextContexts,
     } as PastCortexStep);
   }
 }

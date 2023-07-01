@@ -2,7 +2,7 @@
 const { Action, CortexStep } = require("../src");
 
 test("CortexStep long monologue", async () => {
-  const context = [
+  const memory = [
     {
       role: "system",
       content:
@@ -14,7 +14,7 @@ test("CortexStep long monologue", async () => {
     },
   ];
   const monologue = new CortexStep("Bogus");
-  monologue.pushContext(context);
+  monologue.pushMemory(memory);
   const feels = await monologue.next(Action.INTERNAL_MONOLOGUE, {
     action: "feels",
     description: "Bogus notes how it feels to themself in one sentence",
