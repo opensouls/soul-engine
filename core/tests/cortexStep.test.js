@@ -179,8 +179,13 @@ test("CortexStep keep going!", async () => {
   monologue.pushMemory(context);
   let counter = 3;
   while (counter > 0) {
-    const ideas = await monologue.next(Action.BRAINSTORM_ACTIONS, {
-      description: "what Bogus should think about",
+    const methodology = await monologue.next(Action.INTERNAL_MONOLOGUE, {
+      action: "considers",
+      description:
+        "One sentence of Bogus internal monologue about what thinking methodology to use to determine its next thoughts",
+    });
+    const ideas = await methodology.next(Action.BRAINSTORM_ACTIONS, {
+      description: methodology.value,
     });
     const decision = await ideas.next(Action.DECISION, {
       choices: ideas.value,
