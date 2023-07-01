@@ -1,37 +1,54 @@
 import { ChatMessage } from "./languageModels";
 import { OpenAILanguageProgramProcessor } from "./languageModels/openAI";
 
-type MonologueContext = ChatMessage[];
-type PastMonologue = {
+type CortexStepContext = ChatMessage[];
+type PastCortexStep = {
   lastValue?: null | string;
-  contexts: MonologueContext[];
+  contexts: CortexStepContext[];
 };
-type ActionSpec = {
+type InternalMonologueSpec = {
+  action: string;
+  description: string;
+};
+type ExternalDialogSpec = {
+  action: string;
+  description: string;
+};
+type DecisionSpec = {
+  description: string;
+  choices: string[];
+};
+type ActionCompletionSpec = {
   action: string;
   prefix?: string;
   description: string;
 };
+export enum Action {
+  INTERNAL_MONOLOGUE,
+  EXTERNAL_DIALOG,
+  DECISION,
+}
 
-export class Monologue {
+export class CortexStep {
   private readonly entityName: string;
   private readonly _lastValue: null | string;
-  private contexts: MonologueContext[];
+  private contexts: CortexStepContext[];
 
-  constructor(entityName: string, pastMonologue?: PastMonologue) {
+  constructor(entityName: string, pastCortexStep?: PastCortexStep) {
     this.entityName = entityName;
-    if (pastMonologue?.contexts) {
-      this.contexts = pastMonologue.contexts;
+    if (pastCortexStep?.contexts) {
+      this.contexts = pastCortexStep.contexts;
     } else {
       this.contexts = [];
     }
-    if (pastMonologue?.lastValue) {
-      this._lastValue = pastMonologue.lastValue;
+    if (pastCortexStep?.lastValue) {
+      this._lastValue = pastCortexStep.lastValue;
     } else {
       this._lastValue = null;
     }
   }
 
-  public pushContext(context: MonologueContext) {
+  public pushContext(context: CortexStepContext) {
     this.contexts.push(context);
   }
 
@@ -53,13 +70,42 @@ export class Monologue {
       .join("\n");
   }
 
-  get lastValue() {
+  get value() {
     return this._lastValue;
   }
 
-  public async next(spec: ActionSpec) {
+  public async next(
+    action: Action,
+    spec: DecisionSpec | ExternalDialogSpec | InternalMonologueSpec
+  ) {
+    if (action === Action.INTERNAL_MONOLOGUE) {
+      const monologueSpec = spec as InternalMonologueSpec;
+      return this.generateAction({
+        action: monologueSpec.action,
+        description: monologueSpec.description,
+      } as ActionCompletionSpec);
+    } else if (action === Action.EXTERNAL_DIALOG) {
+      const dialogSpec = spec as ExternalDialogSpec;
+      return this.generateAction({
+        action: dialogSpec.action,
+        description: dialogSpec.description,
+      } as ActionCompletionSpec);
+    } else if (action === Action.DECISION) {
+      const decisionSpec = spec as DecisionSpec;
+      const choicesList = decisionSpec.choices.map((c) => "choice=" + c);
+      const choicesString = `[${choicesList.join(",")}]`;
+      const description = decisionSpec.description;
+      return this.generateAction({
+        action: "decides",
+        prefix: `choice=`,
+        description: `${description}. Choose one of: ${choicesString}`,
+      } as ActionCompletionSpec);
+    }
+  }
+
+  private async generateAction(spec: ActionCompletionSpec) {
     const { action, prefix, description } = spec;
-    const beginning = `<${action}>${prefix || ""}`;
+    const beginning = `<${this.entityName}><${action}>${prefix || ""}`;
     const nextInstructions = [
       {
         role: "system",
@@ -84,14 +130,14 @@ Reply in the output format: ${beginning}[[fill in]]</${action}>
       {
         role: "assistant",
         content: `
-${beginning}${nextValue}</${action}>
+${beginning}${nextValue}</${action}></${this.entityName}>
 `.trim(),
       },
-    ] as MonologueContext;
+    ] as CortexStepContext;
     const nextContexts = this.contexts.concat(contextCompletion);
-    return new Monologue(this.entityName, {
+    return new CortexStep(this.entityName, {
       lastValue: nextValue,
       contexts: nextContexts,
-    } as PastMonologue);
+    } as PastCortexStep);
   }
 }
