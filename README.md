@@ -45,7 +45,6 @@ The repository has three main components
 
 ```
 /core
-/lmYield
 /integrations
   /discord_bots
   /telegram
@@ -53,7 +52,6 @@ The repository has three main components
 
 - `/core` contains the library [`socialagi` NPM package source](https://www.npmjs.com/package/socialagi)
 - `/integrations/` contains examples of the library in action. Right now contains several stand-alone discord and telegram bot repos
-- `/lmYield` is a lightweight language for yielding chain of thought output from the OpenAI Chat API
 
 🚧🚧 Note: `/server` and `/devtools` are under heavy construction 🚧🚧
 
