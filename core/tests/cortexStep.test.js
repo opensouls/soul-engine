@@ -13,8 +13,8 @@ test("CortexStep long monologue", async () => {
       content: "hi",
     },
   ];
-  const monologue = new CortexStep("Bogus");
-  monologue.pushMemory(memory);
+  let monologue = new CortexStep("Bogus");
+  monologue = monologue.withMemory(memory);
   const feels = await monologue.next(Action.INTERNAL_MONOLOGUE, {
     action: "feels",
     description: "Bogus notes how it feels to themself in one sentence",
@@ -80,8 +80,8 @@ test("CortexStep decision", async () => {
       content: "hi",
     },
   ];
-  const initialCortex = new CortexStep("Bogus");
-  initialCortex.pushMemory(context);
+  let initialCortex = new CortexStep("Bogus");
+  initialCortex = initialCortex.withMemory(context);
   const feels = await initialCortex.next(Action.INTERNAL_MONOLOGUE, {
     action: "feels",
     description: "Bogus notes how it feels to themself in one sentence",
@@ -108,7 +108,7 @@ test("CortexStep brainstorm", async () => {
     },
   ];
   const initialCortex = new CortexStep("Bogus");
-  initialCortex.pushMemory(context);
+  initialCortex.withMemory(context);
   const feels = await initialCortex.next(Action.INTERNAL_MONOLOGUE, {
     action: "feels",
     description: "Bogus notes how it feels to themself in one sentence",
@@ -135,7 +135,7 @@ test("CortexStep decision no description", async () => {
     },
   ];
   const initialCortex = new CortexStep("Bogus");
-  initialCortex.pushMemory(context);
+  initialCortex.withMemory(context);
   const feels = await initialCortex.next(Action.INTERNAL_MONOLOGUE, {
     action: "feels",
     description: "Bogus notes how it feels to themself in one sentence",
@@ -160,8 +160,8 @@ test("CortexStep value abstract equals", async () => {
       content: "hi",
     },
   ];
-  const initialCortex = new CortexStep("Bogus");
-  initialCortex.pushMemory(context);
+  let initialCortex = new CortexStep("Bogus");
+  initialCortex = initialCortex.withMemory(context);
   const feels = await initialCortex.next(Action.INTERNAL_MONOLOGUE, {
     action: "feels",
     description: "Bogus notes how it feels to themself in one sentence",
@@ -186,7 +186,7 @@ test("CortexStep keep going!", async () => {
     },
   ];
   let monologue = new CortexStep("Bogus");
-  monologue.pushMemory(context);
+  monologue = monologue.withMemory(context);
   let counter = 3;
   while (counter > 0) {
     const methodology = await monologue.next(Action.INTERNAL_MONOLOGUE, {

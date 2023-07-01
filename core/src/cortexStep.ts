@@ -69,8 +69,8 @@ function toCamelCase(str: string) {
 export class CortexStep {
   private readonly entityName: string;
   private readonly _lastValue: CortexValue;
-  private memories: WorkingMemory;
-  private extraNextActions: NextActions;
+  private readonly memories: WorkingMemory;
+  private readonly extraNextActions: NextActions;
 
   constructor(entityName: string, pastCortexStep?: PastCortexStep) {
     this.entityName = entityName;
@@ -87,8 +87,12 @@ export class CortexStep {
     this.extraNextActions = {};
   }
 
-  public pushMemory(memory: CortexStepMemory) {
-    this.memories.push(memory);
+  public withMemory(memory: CortexStepMemory): CortexStep {
+    const nextMemories = this.memories.concat(memory);
+    return new CortexStep(this.entityName, {
+      lastValue: this.value,
+      memories: nextMemories,
+    } as PastCortexStep);
   }
 
   private get messages(): ChatMessage[] {
@@ -225,7 +229,7 @@ ${beginning}${nextValue}</${action}></${this.entityName}>
     } as PastCortexStep);
   }
 
-  public async queryMemory(query: string): string {
+  public async queryMemory(query: string): Promise<string> {
     const nextInstructions = [
       {
         role: "system",
