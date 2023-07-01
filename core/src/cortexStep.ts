@@ -9,20 +9,24 @@ type PastCortexStep = {
 };
 type InternalMonologueSpec = {
   action: string;
-  description: string;
+  description?: string;
 };
 type ExternalDialogSpec = {
   action: string;
-  description: string;
+  description?: string;
 };
 type DecisionSpec = {
-  description: string;
+  description?: string;
   choices: string[];
+};
+type BrainstormSpec = {
+  actionsForIdea: string;
 };
 type ActionCompletionSpec = {
   action: string;
+  description?: string;
   prefix?: string;
-  description: string;
+  outputAsList?: boolean;
 };
 type CustomSpec = {
   [key: string]: any;
@@ -31,8 +35,10 @@ export enum Action {
   INTERNAL_MONOLOGUE,
   EXTERNAL_DIALOG,
   DECISION,
+  BRAINSTORM_ACTIONS,
 }
 type NextSpec =
+  | BrainstormSpec
   | DecisionSpec
   | ExternalDialogSpec
   | InternalMonologueSpec
@@ -42,9 +48,23 @@ type NextActions = {
   [key: string]: CortexNext;
 };
 
+function toCamelCase(str: string) {
+  return str
+    .toLowerCase()
+    .split(" ")
+    .map(function (word, index) {
+      if (index != 0) {
+        return word.charAt(0).toUpperCase() + word.slice(1);
+      } else {
+        return word;
+      }
+    })
+    .join("");
+}
+
 export class CortexStep {
   private readonly entityName: string;
-  private readonly _lastValue: null | string;
+  private readonly _lastValue: null | string | string[];
   private memories: WorkingMemory;
   private extraNextActions: NextActions;
 
@@ -113,8 +133,6 @@ export class CortexStep {
   //     );
   //   }
 
-  // TODO - brainstorm actions
-
   public registerAction(type: string, nextCallback: CortexNext) {
     // TODO - test this!
     if (this.extraNextActions[type] !== undefined) {
@@ -143,11 +161,22 @@ export class CortexStep {
       const decisionSpec = spec as DecisionSpec;
       const choicesList = decisionSpec.choices.map((c) => "choice=" + c);
       const choicesString = `[${choicesList.join(",")}]`;
-      const description = decisionSpec.description;
+      const description =
+        decisionSpec.description !== undefined
+          ? `${decisionSpec.description}. `
+          : "";
       return this.generateAction({
         action: "decides",
         prefix: `choice=`,
-        description: `${description}. Choose one of: ${choicesString}`,
+        description: `${description}Choose one of: ${choicesString}`,
+      } as ActionCompletionSpec);
+    } else if (type === Action.BRAINSTORM_ACTIONS) {
+      const brainstormSpec = spec as BrainstormSpec;
+      return this.generateAction({
+        action: "brainstorms",
+        prefix: "actions=[",
+        description: `${this.entityName} brainstorms ideas for ${brainstormSpec}. Output as comma separated list, e.g. actions=[action1,action2]`,
+        outputAsList: true,
       } as ActionCompletionSpec);
     } else if (Object.keys(this.extraNextActions).includes(type)) {
       return this.extraNextActions[type](spec);
@@ -159,13 +188,14 @@ export class CortexStep {
   private async generateAction(
     spec: ActionCompletionSpec
   ): Promise<CortexStep> {
-    const { action, prefix, description } = spec;
+    const { action, prefix, description, outputAsList } = spec;
     const beginning = `<${this.entityName}><${action}>${prefix || ""}`;
+    const model = `${description || `${action}`}`;
     const nextInstructions = [
       {
         role: "system",
         content: `
-Now, for ${this.entityName}, model ${description}.
+Now, for ${this.entityName}, model ${model}.
 
 Reply in the output format: ${beginning}[[fill in]]</${action}>
 `.trim(),
@@ -190,8 +220,15 @@ ${beginning}${nextValue}</${action}></${this.entityName}>
       },
     ] as CortexStepMemory;
     const nextMemories = this.memories.concat(contextCompletion);
+    let parsedNextValue;
+    if (outputAsList) {
+      parsedNextValue = nextValue
+        .replace("]", "")
+        .split(",")
+        .map((s) => toCamelCase(s)) as string[];
+    }
     return new CortexStep(this.entityName, {
-      lastValue: nextValue,
+      lastValue: outputAsList ? parsedNextValue : nextValue,
       memories: nextMemories,
     } as PastCortexStep);
   }

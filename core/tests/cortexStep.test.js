@@ -71,7 +71,7 @@ test("CortexStep decision", async () => {
     },
   ];
   const initialCortex = new CortexStep("Bogus");
-  initialCortex.pushContext(context);
+  initialCortex.pushMemory(context);
   const feels = await initialCortex.next(Action.INTERNAL_MONOLOGUE, {
     action: "feels",
     description: "Bogus notes how it feels to themself in one sentence",
@@ -79,6 +79,59 @@ test("CortexStep decision", async () => {
   const decision = await feels.next(Action.DECISION, {
     description: "the action Bogus decides to take next",
     choices: ["none", "rambles"],
+  });
+  console.log(decision.toString());
+
+  expect(true).toBeTruthy();
+}, 35000);
+
+test("CortexStep brainstorm", async () => {
+  const context = [
+    {
+      role: "system",
+      content:
+        "<Context>You are modeling the mind of Bogus, an evil entity that eats children</Context>",
+    },
+    {
+      role: "user",
+      content: "hi",
+    },
+  ];
+  const initialCortex = new CortexStep("Bogus");
+  initialCortex.pushMemory(context);
+  const feels = await initialCortex.next(Action.INTERNAL_MONOLOGUE, {
+    action: "feels",
+    description: "Bogus notes how it feels to themself in one sentence",
+  });
+  const decision = await feels.next(Action.BRAINSTORM_ACTIONS, {
+    description: "ways to take over the world",
+  });
+  console.log(decision.value);
+  console.log(decision.toString());
+
+  expect(true).toBeTruthy();
+}, 35000);
+
+test("CortexStep decision no description", async () => {
+  const context = [
+    {
+      role: "system",
+      content:
+        "<Context>You are modeling the mind of Bogus, an evil entity that eats children</Context>",
+    },
+    {
+      role: "user",
+      content: "hi",
+    },
+  ];
+  const initialCortex = new CortexStep("Bogus");
+  initialCortex.pushMemory(context);
+  const feels = await initialCortex.next(Action.INTERNAL_MONOLOGUE, {
+    action: "feels",
+    description: "Bogus notes how it feels to themself in one sentence",
+  });
+  const decision = await feels.next(Action.DECISION, {
+    choices: ["offersCandy", "eatsChild"],
   });
   console.log(decision.toString());
 
