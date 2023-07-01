@@ -158,10 +158,10 @@ ${beginning}${nextValue}</${action}></${this.entityName}>
 `.trim(),
       },
     ] as CortexStepMemory;
-    const nextContexts = this.memories.concat(contextCompletion);
+    const nextMemories = this.memories.concat(contextCompletion);
     return new CortexStep(this.entityName, {
       lastValue: nextValue,
-      memory: nextContexts,
+      memories: nextMemories,
     } as PastCortexStep);
   }
 }

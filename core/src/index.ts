@@ -10,4 +10,4 @@ export { AbstractSample, isAbstractTrue };
 export * from "./languageModels";
 export * from "./languageModels/openAI";
 export * from "./programs";
-export * from "./monologue";
+export * from "./cortexStep";
