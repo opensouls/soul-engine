@@ -51,8 +51,18 @@ test("CortexStep long monologue", async () => {
       description: "Bogus continues",
     });
     console.log(continues.toString());
+    console.log(
+      await continues.queryMemory(
+        "please provide a summary of everything Bogus said"
+      )
+    );
   } else {
     console.log(action.toString());
+    console.log(
+      await action.queryMemory(
+        "please provide a summary of everything Bogus said"
+      )
+    );
   }
 
   expect(true).toBeTruthy();
