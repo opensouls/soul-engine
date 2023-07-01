@@ -2,9 +2,10 @@ import { ChatMessage } from "./languageModels";
 import { OpenAILanguageProgramProcessor } from "./languageModels/openAI";
 
 type CortexStepMemory = ChatMessage[];
+type WorkingMemory = CortexStepMemory[];
 type PastCortexStep = {
   lastValue?: null | string;
-  memories: CortexStepMemory[];
+  memories: WorkingMemory;
 };
 type InternalMonologueSpec = {
   action: string;
@@ -32,7 +33,7 @@ export enum Action {
 export class CortexStep {
   private readonly entityName: string;
   private readonly _lastValue: null | string;
-  private memories: CortexStepMemory[];
+  private memories: WorkingMemory;
 
   constructor(entityName: string, pastCortexStep?: PastCortexStep) {
     this.entityName = entityName;
