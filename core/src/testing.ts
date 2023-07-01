@@ -1,7 +1,7 @@
 import { ChatMessageRoleEnum, getTag } from "./languageModels";
 import { OpenAILanguageProgramProcessor } from "./languageModels/openAI";
 
-type AbstractTrue = {
+export type AbstractTrue = {
   reasoning: string;
   confidence: number;
   answer: boolean;
