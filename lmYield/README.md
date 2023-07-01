@@ -1,4 +1,4 @@
-# 🤖+👱 SocialAGI / LMYield
+# 🔄 LMYield
 
 ⚡ Lightweight language for controlling OpenAI Chat API generations ⚡
 
@@ -19,7 +19,7 @@ Features:
 
 ## Quick Install
 
-```$ npm install @socialagi/lmyield```
+```$ npm install lmyield```
 
 then
 
@@ -30,7 +30,7 @@ export OPENAI_API_KEY=...
 example usage
 
 ```
-import LMYield, { LMYieldEvents } from "@socialagi/lmyield";
+import LMYield, { LMYieldEvents } from "lmyield";
 
 const lmProgram = `npm
 {{#context~}}
