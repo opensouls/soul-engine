@@ -49,6 +49,7 @@ type CortexNext = (spec: NextSpec) => CortexStep;
 type NextActions = {
   [key: string]: CortexNext;
 };
+type CortexValue = null | string | string[];
 
 function toCamelCase(str: string) {
   return str
@@ -67,7 +68,7 @@ function toCamelCase(str: string) {
 // TODO - try something with fxn call api
 export class CortexStep {
   private readonly entityName: string;
-  private readonly _lastValue: null | string | string[];
+  private readonly _lastValue: CortexValue;
   private memories: WorkingMemory;
   private extraNextActions: NextActions;
 
@@ -108,7 +109,7 @@ export class CortexStep {
       .join("\n");
   }
 
-  get value() {
+  get value(): CortexValue {
     return this._lastValue;
   }
 
@@ -224,7 +225,7 @@ ${beginning}${nextValue}</${action}></${this.entityName}>
     } as PastCortexStep);
   }
 
-  public async queryMemory(query: string) {
+  public async queryMemory(query: string): string {
     const nextInstructions = [
       {
         role: "system",
@@ -244,7 +245,9 @@ Use the output format <UNFILTERED_ANSWER>[[fill in]]</UNFILTERED_ANSWER>
       {},
       { stop: "</UNFILTERED_ANSWER" }
     );
-    return (await processor.execute(instructions))
-      .replace("<UNFILTERED_ANSWER>", "");
+    return (await processor.execute(instructions)).replace(
+      "<UNFILTERED_ANSWER>",
+      ""
+    );
   }
 }
