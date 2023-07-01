@@ -162,3 +162,37 @@ test("CortexStep value abstract equals", async () => {
 
   expect(true).toBeTruthy();
 }, 35000);
+
+test("CortexStep keep going!", async () => {
+  const context = [
+    {
+      role: "system",
+      content:
+        "<Context>You are modeling the mind of Bogus, an evil entity that eats children</Context>",
+    },
+    {
+      role: "user",
+      content: "hi",
+    },
+  ];
+  let monologue = new CortexStep("Bogus");
+  monologue.pushMemory(context);
+  let counter = 3;
+  while (counter > 0) {
+    const ideas = await monologue.next(Action.BRAINSTORM_ACTIONS, {
+      description: "what Bogus should think about",
+    });
+    const decision = await ideas.next(Action.DECISION, {
+      choices: ideas.value,
+    });
+    monologue = await decision.next(Action.INTERNAL_MONOLOGUE, {
+      action: decision.value,
+      description:
+        "One sentence of Bogus internal monologue about how to accomplish the action",
+    });
+    counter -= 1;
+  }
+  console.log(monologue.toString());
+
+  expect(true).toBeTruthy();
+}, 35000);

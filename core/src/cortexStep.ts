@@ -64,6 +64,7 @@ function toCamelCase(str: string) {
     .join("");
 }
 
+// TODO - try something with fxn call api
 export class CortexStep {
   private readonly entityName: string;
   private readonly _lastValue: null | string | string[];
