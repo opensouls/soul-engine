@@ -137,3 +137,28 @@ test("CortexStep decision no description", async () => {
 
   expect(true).toBeTruthy();
 }, 35000);
+
+test("CortexStep value abstract equals", async () => {
+  const context = [
+    {
+      role: "system",
+      content:
+        "<Context>You are modeling the mind of Bogus, an evil entity that eats children</Context>",
+    },
+    {
+      role: "user",
+      content: "hi",
+    },
+  ];
+  const initialCortex = new CortexStep("Bogus");
+  initialCortex.pushMemory(context);
+  const feels = await initialCortex.next(Action.INTERNAL_MONOLOGUE, {
+    action: "feels",
+    description: "Bogus notes how it feels to themself in one sentence",
+  });
+  const isHappy = await feels.is("description of a happy emotion");
+  const isEvil = await feels.is("description of an evil emotion");
+  console.log(feels.value, isHappy, isEvil);
+
+  expect(true).toBeTruthy();
+}, 35000);

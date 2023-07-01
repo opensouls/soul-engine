@@ -1,5 +1,7 @@
 import { ChatMessage } from "./languageModels";
 import { OpenAILanguageProgramProcessor } from "./languageModels/openAI";
+import { isAbstractTrue } from "./testing";
+import { type } from "os";
 
 type CortexStepMemory = ChatMessage[];
 type WorkingMemory = CortexStepMemory[];
@@ -109,29 +111,17 @@ export class CortexStep {
     return this._lastValue;
   }
 
-  // TODO - abstract equals
-  //   public async valueIsEqualTo(abstractCondition: string) {
-  //     const nextInstructions = [
-  //       {
-  //         role: "system",
-  //         content: `
-  // You are to evaluate the truthfulness of a value against a condition.
-  //
-  // ...
-  // `.trim(),
-  //       },
-  //     ] as ChatMessage[];
-  //     const instructions = this.messages.concat(nextInstructions);
-  //     const processor = new OpenAILanguageProgramProcessor(
-  //       {},
-  //       {
-  //         stop: `</${action}`,
-  //       }
-  //     );
-  //     const nextValue = (await processor.execute(instructions)).slice(
-  //       beginning.length
-  //     );
-  //   }
+  public async is(condition: string): Promise<boolean | null> {
+    if (this.value !== null) {
+      const target =
+        typeof this.value === "string" || this.value instanceof String
+          ? (this.value as string)
+          : JSON.stringify(this.value);
+      const abstractTrue = await isAbstractTrue(target, condition);
+      return abstractTrue.answer;
+    }
+    return null;
+  }
 
   public registerAction(type: string, nextCallback: CortexNext) {
     // TODO - test this!
