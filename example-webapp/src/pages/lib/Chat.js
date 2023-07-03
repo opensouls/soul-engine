@@ -1,64 +1,31 @@
 // Chat.js
 import React, { useCallback, useState, useEffect, useRef } from "react";
-import { isMobile } from "react-device-detect";
-import { Analytics } from "@vercel/analytics/react";
-import { useSocialAGI } from "./socialagiConnection";
+import { useSoul } from "./socialagiConnection";
 
-const Chat = () => {
+function Chat() {
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState([]);
-  const aiMessagesEndRef = useRef(null);
-  const [aiThoughts, setAiThoughts] = useState([]);
+  const { tellSoul, messages, soulThoughts } = useSoul();
 
-  const messageHandler = useCallback((newMessage) => {
-    setMessages((prevMessages) => [
-      ...prevMessages,
-      { text: newMessage, sender: "ai" },
-    ]);
-    setAiThoughts((prevThoughts) => [
-      ...prevThoughts,
-      `I sent the message: ${newMessage}`,
-    ]);
-  }, []);
+  const soulMessagesEndRef = useRef(null);
 
-  const thoughtHandler = useCallback((newThought) => {
-    setAiThoughts((prevThoughts) => [...prevThoughts, newThought]);
-  }, []);
-  const tellSocialAGI = useSocialAGI({ messageHandler, thoughtHandler });
-
-  const sendMessageToSocialAGI = () => {
-    tellSocialAGI(message);
-    // clear message on send
+  const handleSendMessage = (event) => {
+    event.preventDefault();
+    tellSoul(message);
     if (message.trim() !== "") {
-      setMessages([...messages, { text: message, sender: "user" }]);
       setMessage("");
     }
   };
 
   const scrollToBottomThoughts = () => {
-    aiMessagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    soulMessagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-
-  const firstRun = useRef(true);
-  useEffect(() => {
-    if (firstRun.current) {
-      firstRun.current = false;
-
-      setTimeout(() => sendMessageToSocialAGI("Hi!"), 200);
-    }
-  }, []);
 
   useEffect(() => {
     scrollToBottomThoughts();
-  }, [aiThoughts]);
+  }, [soulThoughts]);
 
   const handleMessageChange = (event) => {
     setMessage(event.target.value);
-  };
-
-  const handleSendMessage = (event) => {
-    event.preventDefault();
-    sendMessageToSocialAGI(message);
   };
 
   return (
@@ -77,16 +44,14 @@ const Chat = () => {
             handleSendMessage={handleSendMessage}
           />
         </div>
-        {!isMobile && (
-          <AIThoughts
-            aiThoughts={aiThoughts}
-            aiMessagesEndRef={aiMessagesEndRef}
-          />
-        )}
+        <SoulThoughts
+          soulThoughts={soulThoughts}
+          soulMessagesEndRef={soulMessagesEndRef}
+        />
       </div>
     </div>
   );
-};
+}
 
 function Messages({
   handleMessageChange,
@@ -102,19 +67,36 @@ function Messages({
 
   useEffect(() => {
     setTimeout(() => scrollToBottom(), 100);
+    setTimeout(() => scrollToBottom(), 250);
   }, [messages]);
   return (
     <div className="bg-white rounded-lg shadow-md p-6 max-w-md w-96">
-      <h1 className="text-xl font-semibold mb-4 text-center">Share</h1>
+      <h1 className="text-xl font-semibold mb-4 text-center">
+        Share with Samantha
+      </h1>
       <div className="flex flex-col space-y-4 h-96 overflow-y-auto mb-4 min-h-40 hide-scrollbar">
         {messages.map((message, index) => (
           <div
             key={index}
-            className={`flex ${message.sender === "ai" ? "" : "justify-end"}`}
+            className={`flex ${message.sender === "soul" ? "" : "justify-end"}`}
           >
+            {message.sender === "soul" && (
+              <img
+                src={"/samantha.png"}
+                style={{
+                  height: "35px",
+                  width: "35px",
+                  objectFit: "cover",
+                  borderRadius: "50%",
+                  marginRight: 7,
+                  marginTop: 2,
+                }}
+                alt="description"
+              />
+            )}
             <div
               className={`${
-                message.sender === "ai"
+                message.sender === "soul"
                   ? "bg-purple-200 text-black"
                   : "bg-purple-600 text-white"
               } px-4 py-2 rounded-lg shadow-md`}
@@ -123,6 +105,7 @@ function Messages({
             </div>
           </div>
         ))}
+        <div />
         <div ref={messagesEndRef} />
       </div>
       <form
@@ -143,29 +126,30 @@ function Messages({
           Send
         </button>
       </form>
-      <Analytics />
     </div>
   );
 }
 
-function AIThoughts({ aiThoughts, aiMessagesEndRef }) {
+function SoulThoughts({ soulThoughts, soulMessagesEndRef }) {
   return (
     <div className="bg-white bg-opacity-0 rounded-lg w-96">
       <div className="h-full overflow-y-auto fixed ml-10 w-96 mx-auto hide-scrollbar">
         <div className="flex-col space-y-4 overflow-y-auto mb-4 hide-scrollbar pb-60 mr-4">
-          {aiThoughts.map((message, index) => (
+          {soulThoughts.map((message, index) => (
             <div
               key={index}
-              className={`flex ${message.sender === "ai" ? "" : "justify-end"}`}
+              className={`flex ${
+                message.sender === "soul" ? "" : "justify-end"
+              }`}
             >
               <div
                 className={`text-white bg-purple-100 bg-opacity-30 px-4 py-2 rounded-[35px] shadow-sm opacity-0 transition-all duration-500 ease-in-out animate-fade-in`}
               >
-                {message}
+                {message.thought}
               </div>
             </div>
           ))}
-          <div ref={aiMessagesEndRef} />
+          <div ref={soulMessagesEndRef} />
         </div>
       </div>
     </div>

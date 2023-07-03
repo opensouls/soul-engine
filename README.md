@@ -1,6 +1,6 @@
 # 🤖+👱 SocialAGI
 
-⚡ Simple, opinionated framework for creating AI souls ⚡
+⚡ The library for designing AI souls ⚡
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg) ![Twitter](https://img.shields.io/twitter/url/https/twitter.com/socialagi.svg?style=social&label=Follow%20%40socialagi)](https://twitter.com/socialagi) [![](https://dcbadge.vercel.app/api/server/FCPcCUbw3p?compact=true&style=flat)](https://discord.gg/FCPcCUbw3p)
 
@@ -44,29 +44,28 @@ samantha.tell("Hi Samantha!")
 The repository has three main components
 
 ```
+/example-webapp
 /core
 /integrations
   /discord_bots
   /telegram
 ```
 
+- `/example-webapp` contains an example integration of the socialagi library in a chat website 
 - `/core` contains the library [`socialagi` NPM package source](https://www.npmjs.com/package/socialagi)
 - `/integrations/` contains examples of the library in action. Right now contains several stand-alone discord and telegram bot repos
 
-🚧🚧 Note: `/server` and `/devtools` are under heavy construction 🚧🚧
-
 ## 🚀 Getting started
 
-The easiest way to get started developing with `socialagi` is to checkout the `/integration` examples, especially EmoBot!
+The easiest way to get started developing with `socialagi` is to check out the `/example-webapp`
 
 ### Contributing
 
-If this repo and its evolution is exciting, open an issue, a pull request, or simply hangout in the [Social AGI Discord](https://discord.gg/BRhXTSmuMB)!
+If this project evolution is exciting to you, check out the issues, open a pull request, or simply hangout in the [Social AGI Discord](https://discord.gg/BRhXTSmuMB)!
 
-We're not sure exactly how the repo will evolve yet, but it's intended to become a testing bed for Social AGI, its development, and its testing.
+On the roadmap at a high level are:
 
-We'll need many new developments from:
-
+- Minimal API surfaces for designing AI cognition
 - New techniques to specify personality
 - Ways to design the conversations that constitute an identity
 - Coherent theory of mind behind Social AGIs

@@ -1,6 +1,6 @@
 {
   "name": "socialagi",
-  "version": "0.0.22",
+  "version": "0.0.23",
   "description": "Simple, opinionated framework for creating AI souls",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -62,6 +62,8 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
-    "openai": "^4.0.0-beta.0"
+    "@types/react": "^18.2.14",
+    "openai": "^4.0.0-beta.0",
+    "react": "^18.2.0"
   }
 }
