@@ -36,7 +36,7 @@ const blueprintToStreamer = (blueprint: Blueprint): ChatCompletionStreamer => {
   return new OpenAIStreamingChat();
 };
 
-interface SoulOptions {
+export interface SoulOptions {
   // defaultContext?: ConversationalContext;
   // if you want to always get the entire "say" thought instead of streaming it out sentence by sentence,
   // then turn on "disableSayDelay"

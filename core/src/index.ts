@@ -11,3 +11,4 @@ export * from "./languageModels";
 export * from "./languageModels/openAI";
 export * from "./programs";
 export * from "./cortexStep";
+export * from "./integrations";

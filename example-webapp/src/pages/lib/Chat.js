@@ -1,11 +1,13 @@
 // Chat.js
-import React, { useCallback, useState, useEffect, useRef } from "react";
-import { useSoul } from "./socialagiConnection";
+import React, { useState, useEffect, useRef } from "react";
+import { useSoul, Blueprints } from "socialagi";
 
 function Chat() {
-  const [message, setMessage] = useState("");
-  const { tellSoul, messages, soulThoughts } = useSoul();
+  const { tellSoul, messages, soulThoughts } = useSoul({
+    blueprint: Blueprints.SAMANTHA,
+  });
 
+  const [message, setMessage] = useState("");
   const soulMessagesEndRef = useRef(null);
 
   const handleSendMessage = (event) => {
@@ -145,7 +147,7 @@ function SoulThoughts({ soulThoughts, soulMessagesEndRef }) {
               <div
                 className={`text-white bg-purple-100 bg-opacity-30 px-4 py-2 rounded-[35px] shadow-sm opacity-0 transition-all duration-500 ease-in-out animate-fade-in`}
               >
-                {message.thought}
+                {message.text}
               </div>
             </div>
           ))}
