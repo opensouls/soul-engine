@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Soul, Blueprints } from "socialagi";
 
 const createChatCompletionStreamer = (baseUrl) => ({
@@ -84,15 +84,48 @@ const createChatCompletionExecutor = (baseUrl) => ({
   },
 });
 
-export function useSocialAGI({ messageHandler, thoughtHandler }) {
+export function useSoul({
+  optionalOnNewMessage = () => {},
+  optionalOnNewThought = () => {},
+  soulOptions = { disableSayDelay: true },
+  soulStartsConversation = true,
+} = {}) {
   const setupDone = React.useRef(false);
   const soul = React.useRef(
     new Soul(Blueprints.SAMANTHA, {
-      chatStreamer: createChatCompletionStreamer("/api/lmStreamer"),
-      languageProgramExecutor: createChatCompletionExecutor("/api/lmExecutor"),
+      ...{
+        chatStreamer: createChatCompletionStreamer("/api/lmStreamer"),
+        languageProgramExecutor:
+          createChatCompletionExecutor("/api/lmExecutor"),
+      },
+      ...soulOptions,
     })
   );
   const conversation = React.useRef(soul.current.getConversation("web"));
+
+  const [messages, setMessages] = useState([]);
+  const [soulThoughts, setSoulThoughts] = useState([]);
+
+  const messageHandler = useCallback((newMessage) => {
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      { text: newMessage, sender: "soul", timestamp: Date.now() },
+    ]);
+    setSoulThoughts((prevThoughts) => [
+      ...prevThoughts,
+      { thought: `I sent the message: ${newMessage}`, timestamp: Date.now() },
+    ]);
+    optionalOnNewMessage(newMessage);
+  }, []);
+
+  const thoughtHandler = useCallback((newThought) => {
+    setSoulThoughts((prevThoughts) => [
+      ...prevThoughts,
+      { thought: newThought, timestamp: Date.now() },
+    ]);
+    optionalOnNewThought(newThought);
+  }, []);
+
   React.useEffect(() => {
     if (!setupDone.current) {
       conversation.current.on("says", messageHandler);
@@ -100,9 +133,33 @@ export function useSocialAGI({ messageHandler, thoughtHandler }) {
       setupDone.current = true;
     }
   }, []);
-  const tell = React.useCallback(
-    conversation.current.tell.bind(conversation.current),
-    []
-  );
-  return tell;
+
+  const tellSoul = (message) => {
+    conversation.current.tell(message);
+    setMessages([
+      ...messages,
+      { text: message, sender: "user", timestamp: Date.now() },
+    ]);
+  };
+
+  const soulReads = (message) => {
+    conversation.current.read(message);
+    setMessages([
+      ...messages,
+      { text: message, sender: "user", timestamp: Date.now() },
+    ]);
+  };
+
+  const firstRun = useRef(true);
+  useEffect(() => {
+    if (firstRun.current) {
+      firstRun.current = false;
+
+      if (soulStartsConversation) {
+        setTimeout(() => conversation.current.tell(""), 200);
+      }
+    }
+  }, []);
+
+  return { tellSoul, soulReads, messages, soulThoughts };
 }
