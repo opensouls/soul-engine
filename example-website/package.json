@@ -1,42 +1,13 @@
 {
-  "name": "socialagi-devtools",
-  "version": "0.0.10",
-  "description": "Browser devtools for socialagi-server",
+  "name": "socialagi-example",
+  "version": "0.0.1",
+  "description": "Example socialagi integration into a website, showcasing Samantha",
   "scripts": {
     "dev": "next dev",
     "lint": "next lint"
   },
   "author": "SocialAGI",
   "license": "ISC",
-  "bin": {
-    "socialagi-devtools": "./bin/socialagi-devtools.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Methexis-Inc/SocialAGI.git"
-  },
-  "keywords": [
-    "soul",
-    "entity",
-    "personality",
-    "dialog",
-    "chatbot",
-    "agent",
-    "chat",
-    "llm",
-    "ai",
-    "gpt3",
-    "gpt4",
-    "linguistic programming",
-    "chain",
-    "prompt",
-    "prompt engineering",
-    "chatgpt",
-    "personality",
-    "ml",
-    "machine learning",
-    "openai"
-  ],
   "dependencies": {
     "@babel/preset-react": "^7.16.5",
     "@vercel/analytics": "^0.1.11",
@@ -47,9 +18,11 @@
     "next": "13.3.0",
     "openai-streams": "^5.0.0",
     "postcss": "8.4.21",
+    "querystring": "^0.2.1",
     "react": "18.2.0",
     "react-device-detect": "^2.2.3",
     "react-dom": "18.2.0",
+    "socialagi": "^0.0.23",
     "tailwindcss": "3.3.1"
   },
   "eslintConfig": {

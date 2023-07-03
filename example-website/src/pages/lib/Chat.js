@@ -1,10 +1,8 @@
 // Chat.js
 import React, { useCallback, useState, useEffect, useRef } from "react";
-import { isMobile } from "react-device-detect";
-import { Analytics } from "@vercel/analytics/react";
 import { useSocialAGI } from "./socialagiConnection";
 
-const Chat = () => {
+function Chat() {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const aiMessagesEndRef = useRef(null);
@@ -27,6 +25,7 @@ const Chat = () => {
   const tellSocialAGI = useSocialAGI({ messageHandler, thoughtHandler });
 
   const sendMessageToSocialAGI = () => {
+    console.log("SEND");
     tellSocialAGI(message);
     // clear message on send
     if (message.trim() !== "") {
@@ -77,16 +76,14 @@ const Chat = () => {
             handleSendMessage={handleSendMessage}
           />
         </div>
-        {!isMobile && (
-          <AIThoughts
-            aiThoughts={aiThoughts}
-            aiMessagesEndRef={aiMessagesEndRef}
-          />
-        )}
+        <AIThoughts
+          aiThoughts={aiThoughts}
+          aiMessagesEndRef={aiMessagesEndRef}
+        />
       </div>
     </div>
   );
-};
+}
 
 function Messages({
   handleMessageChange,
@@ -143,7 +140,6 @@ function Messages({
           Send
         </button>
       </form>
-      <Analytics />
     </div>
   );
 }
