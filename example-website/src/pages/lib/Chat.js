@@ -1,24 +1,18 @@
 // Chat.js
 import React, { useCallback, useState, useEffect, useRef } from "react";
 import { useSoul } from "./socialagiConnection";
-import { GroupParticipationStrategy } from "socialagi";
 
 function Chat() {
   const [message, setMessage] = useState("");
-  const { soulReads, messages, soulThoughts } = useSoul(
-    {
-      participationStrategy: GroupParticipationStrategy,
-    },
-    {
-      soulStartsConversation: true,
-    }
-  );
+  const { tellSoul, messages, soulThoughts } = useSoul({
+    soulStartsConversation: true,
+  });
 
   const soulMessagesEndRef = useRef(null);
 
   const handleSendMessage = (event) => {
     event.preventDefault();
-    soulReads(message);
+    tellSoul(message);
     if (message.trim() !== "") {
       setMessage("");
     }
@@ -75,16 +69,31 @@ function Messages({
 
   useEffect(() => {
     setTimeout(() => scrollToBottom(), 100);
+    setTimeout(() => scrollToBottom(), 250);
   }, [messages]);
   return (
     <div className="bg-white rounded-lg shadow-md p-6 max-w-md w-96">
-      <h1 className="text-xl font-semibold mb-4 text-center">Share</h1>
+      <h1 className="text-xl font-semibold mb-4 text-center">Share with Samantha</h1>
       <div className="flex flex-col space-y-4 h-96 overflow-y-auto mb-4 min-h-40 hide-scrollbar">
         {messages.map((message, index) => (
           <div
             key={index}
             className={`flex ${message.sender === "soul" ? "" : "justify-end"}`}
           >
+            {message.sender === "soul" && (
+              <img
+                src={"/samantha.png"}
+                style={{
+                  height: "35px",
+                  width: "35px",
+                  objectFit: "cover",
+                  borderRadius: "50%",
+                  marginRight: 7,
+                  marginTop: 2,
+                }}
+                alt="description"
+              />
+            )}
             <div
               className={`${
                 message.sender === "soul"
@@ -96,6 +105,7 @@ function Messages({
             </div>
           </div>
         ))}
+        <div />
         <div ref={messagesEndRef} />
       </div>
       <form

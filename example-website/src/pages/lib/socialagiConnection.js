@@ -4,7 +4,7 @@ import {
   Blueprints,
   OpenAIStreamingChat,
   OpenAILanguageProgramProcessor,
-  Model,
+  AlwaysReplyParticipationStrategy,
 } from "socialagi";
 
 async function openAIStreamHandler(req, res, model) {
@@ -146,7 +146,10 @@ const createChatCompletionExecutor = (baseUrl) => ({
 export function useSoul({
   optionalOnNewMessage = () => {},
   optionalOnNewThought = () => {},
-  soulOptions = { disableSayDelay: true },
+  soulOptions = {
+    participationStrategy: AlwaysReplyParticipationStrategy,
+    disableSayDelay: true,
+  },
   soulStartsConversation = true,
 } = {}) {
   const setupDone = React.useRef(false);
@@ -202,7 +205,7 @@ export function useSoul({
   };
 
   const soulReads = (message) => {
-    conversation.current.read(message);
+    conversation.current.read({ userName: "unknown", text: message });
     setMessages([
       ...messages,
       { text: message, sender: "user", timestamp: Date.now() },
