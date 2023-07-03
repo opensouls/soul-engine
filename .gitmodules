@@ -10,3 +10,6 @@
 [submodule "integrations/discord_bots/emobot-discordbot"]
 	path = integrations/discord_bots/emobot-discordbot
 	url = git@github.com:opensouls/emobot-discordbot.git
+[submodule "example-webapp"]
+	path = example-webapp
+	url = git@github.com:opensouls/socialagi-ex-webapp.git
