@@ -51,9 +51,9 @@ The repository has three main components
   /telegram
 ```
 
-- `/example-webapp` contains an example integration of the socialagi library in a chat website 
-- `/core` contains the library [`socialagi` NPM package source](https://www.npmjs.com/package/socialagi)
-- `/integrations/` contains examples of the library in action. Right now contains several stand-alone discord and telegram bot repos
+- [`/example-webapp`](./example-webapp) contains an example integration of the socialagi library in a chat website 
+- [`/core`](./core) contains the library [`socialagi` NPM package source](https://www.npmjs.com/package/socialagi)
+- [`/integrations`](./integrations) contains examples of the library in action. Right now contains several stand-alone discord and telegram bot repos
 
 ## 🚀 Getting started
 
