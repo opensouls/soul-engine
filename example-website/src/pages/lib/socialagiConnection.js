@@ -1,5 +1,64 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Soul, Blueprints } from "socialagi";
+import {
+  Soul,
+  Blueprints,
+  OpenAIStreamingChat,
+  OpenAILanguageProgramProcessor,
+  Model,
+} from "socialagi";
+
+async function openAIStreamHandler(req, res, model) {
+  console.log("streamer call");
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+
+  const { messages } = req.body;
+
+  const streamer = new OpenAIStreamingChat(
+    {},
+    {
+      model,
+    }
+  );
+  const { stream, abortController } = await streamer.create({
+    messages,
+  });
+
+  for await (const data of stream) {
+    res.write(`data: ${JSON.stringify(data)}\n\n`);
+  }
+  res.on("close", () => {
+    abortController.abort();
+  });
+  res.end();
+}
+
+export function createOpenAIStreamHandler(model) {
+  return (req, res) => openAIStreamHandler(req, res, model);
+}
+
+async function openAIExecutorHandler(req, res, model) {
+  console.log("executor call");
+  const { messages } = req.body;
+
+  try {
+    const executor = new OpenAILanguageProgramProcessor(
+      {},
+      {
+        model,
+      }
+    );
+    const result = await executor.execute(messages);
+
+    res.status(200).json({ data: result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+export function createOpenAIExecutorHandler(model) {
+  return (req, res) => openAIExecutorHandler(req, res, model);
+}
 
 const createChatCompletionStreamer = (baseUrl) => ({
   create: async ({ messages }) => {
