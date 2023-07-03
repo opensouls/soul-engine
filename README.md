@@ -44,20 +44,20 @@ samantha.tell("Hi Samantha!")
 The repository has three main components
 
 ```
-/example-website
+/example-webapp
 /core
 /integrations
   /discord_bots
   /telegram
 ```
 
-- `/example-website` contains an example integration of the socialagi library in a chat website 
+- `/example-webapp` contains an example integration of the socialagi library in a chat website 
 - `/core` contains the library [`socialagi` NPM package source](https://www.npmjs.com/package/socialagi)
 - `/integrations/` contains examples of the library in action. Right now contains several stand-alone discord and telegram bot repos
 
 ## 🚀 Getting started
 
-The easiest way to get started developing with `socialagi` TODO - the example website
+The easiest way to get started developing with `socialagi` is to check out the `/example-webapp`
 
 ### Contributing
 

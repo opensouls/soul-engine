@@ -4,9 +4,7 @@ import { useSoul } from "./socialagiConnection";
 
 function Chat() {
   const [message, setMessage] = useState("");
-  const { tellSoul, messages, soulThoughts } = useSoul({
-    soulStartsConversation: true,
-  });
+  const { tellSoul, messages, soulThoughts } = useSoul();
 
   const soulMessagesEndRef = useRef(null);
 
@@ -73,7 +71,9 @@ function Messages({
   }, [messages]);
   return (
     <div className="bg-white rounded-lg shadow-md p-6 max-w-md w-96">
-      <h1 className="text-xl font-semibold mb-4 text-center">Share with Samantha</h1>
+      <h1 className="text-xl font-semibold mb-4 text-center">
+        Share with Samantha
+      </h1>
       <div className="flex flex-col space-y-4 h-96 overflow-y-auto mb-4 min-h-40 hide-scrollbar">
         {messages.map((message, index) => (
           <div
