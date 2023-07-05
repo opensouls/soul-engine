@@ -179,7 +179,7 @@ export class PrefrontalCortex {
         return this.generateAction({
           action: "brainstorms",
           prefix: "actions=[",
-          description: `${this.entityName} brainstorms ideas for ${brainstormSpec}. Output as comma separated list, e.g. actions=[action1,action2]`,
+          description: `${this.entityName} brainstorms ideas for ${brainstormSpec.actionsForIdea}. Output as comma separated list, e.g. actions=[action1,action2]`,
           outputAsList: true,
         } as ActionCompletionSpec);
     }

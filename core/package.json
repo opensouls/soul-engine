@@ -10,7 +10,8 @@
     "prepublishOnly": "npm run build",
     "test-example": "ts-node examples/example.ts",
     "test-example2": "ts-node examples/example2.ts",
-    "test-example3": "ts-node examples/example3.ts"
+    "test-example3": "ts-node examples/example3.ts",
+    "test-example4": "ts-node examples/example4.ts"
   },
   "files": [
     "dist"
