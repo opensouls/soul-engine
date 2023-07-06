@@ -1,9 +1,9 @@
 // import { isAbstractTrue } from "../src/testing";
-const { Action, PrefrontalCortex } = require("../src");
+const { Action, CortexStep } = require("../src");
 const dotenv = require('dotenv');
 dotenv.config();
 
-test("PrefrontalCortex long monologue", async () => {
+test("CortexStep long monologue", async () => {
   const memory = [
     {
       role: "system",
@@ -15,7 +15,7 @@ test("PrefrontalCortex long monologue", async () => {
       content: "hi",
     },
   ];
-  let monologue = new PrefrontalCortex("Bogus");
+  let monologue = new CortexStep("Bogus");
   monologue = monologue.withMemory(memory);
   const feels = await monologue.next(Action.INTERNAL_MONOLOGUE, {
     action: "feels",
@@ -70,7 +70,7 @@ test("PrefrontalCortex long monologue", async () => {
   expect(true).toBeTruthy();
 }, 35000);
 
-test("PrefrontalCortex decision", async () => {
+test("CortexStep decision", async () => {
   const context = [
     {
       role: "system",
@@ -82,7 +82,7 @@ test("PrefrontalCortex decision", async () => {
       content: "hi",
     },
   ];
-  let initialCortex = new PrefrontalCortex("Bogus");
+  let initialCortex = new CortexStep("Bogus");
   initialCortex = initialCortex.withMemory(context);
   const feels = await initialCortex.next(Action.INTERNAL_MONOLOGUE, {
     action: "feels",
@@ -97,7 +97,7 @@ test("PrefrontalCortex decision", async () => {
   expect(true).toBeTruthy();
 }, 35000);
 
-test("PrefrontalCortex brainstorm", async () => {
+test("CortexStep brainstorm", async () => {
   const context = [
     {
       role: "system",
@@ -109,7 +109,7 @@ test("PrefrontalCortex brainstorm", async () => {
       content: "hi",
     },
   ];
-  const initialCortex = new PrefrontalCortex("Bogus");
+  const initialCortex = new CortexStep("Bogus");
   initialCortex.withMemory(context);
   const feels = await initialCortex.next(Action.INTERNAL_MONOLOGUE, {
     action: "feels",
@@ -124,7 +124,7 @@ test("PrefrontalCortex brainstorm", async () => {
   expect(true).toBeTruthy();
 }, 35000);
 
-test("PrefrontalCortex decision no description", async () => {
+test("CortexStep decision no description", async () => {
   const context = [
     {
       role: "system",
@@ -136,7 +136,7 @@ test("PrefrontalCortex decision no description", async () => {
       content: "hi",
     },
   ];
-  const initialCortex = new PrefrontalCortex("Bogus");
+  const initialCortex = new CortexStep("Bogus");
   initialCortex.withMemory(context);
   const feels = await initialCortex.next(Action.INTERNAL_MONOLOGUE, {
     action: "feels",
@@ -150,7 +150,7 @@ test("PrefrontalCortex decision no description", async () => {
   expect(true).toBeTruthy();
 }, 35000);
 
-test("PrefrontalCortex value abstract equals", async () => {
+test("CortexStep value abstract equals", async () => {
   const context = [
     {
       role: "system",
@@ -162,7 +162,7 @@ test("PrefrontalCortex value abstract equals", async () => {
       content: "hi",
     },
   ];
-  let initialCortex = new PrefrontalCortex("Bogus");
+  let initialCortex = new CortexStep("Bogus");
   initialCortex = initialCortex.withMemory(context);
   const feels = await initialCortex.next(Action.INTERNAL_MONOLOGUE, {
     action: "feels",
@@ -175,7 +175,7 @@ test("PrefrontalCortex value abstract equals", async () => {
   expect(true).toBeTruthy();
 }, 35000);
 
-test("PrefrontalCortex keep going!", async () => {
+test("CortexStep keep going!", async () => {
   const context = [
     {
       role: "system",
@@ -187,7 +187,7 @@ test("PrefrontalCortex keep going!", async () => {
       content: "hi",
     },
   ];
-  let monologue = new PrefrontalCortex("Bogus");
+  let monologue = new CortexStep("Bogus");
   monologue = monologue.withMemory(context);
   let counter = 3;
   while (counter > 0) {

@@ -3,8 +3,8 @@ import { ChatMessage, LanguageModelProgramExecutor } from "./languageModels";
 import { OpenAILanguageProgramProcessor } from "./languageModels/openAI";
 import { isAbstractTrue } from "./testing";
 
-type PrefrontalCortexMemory = ChatMessage[];
-type WorkingMemory = PrefrontalCortexMemory[];
+type CortexStepMemory = ChatMessage[];
+type WorkingMemory = CortexStepMemory[];
 type InternalMonologueSpec = {
   action: string;
   description?: string;
@@ -41,7 +41,7 @@ type NextSpec =
   | ExternalDialogSpec
   | InternalMonologueSpec
   | CustomSpec;
-type CortexNext = (spec: NextSpec) => PrefrontalCortex;
+type CortexNext = (spec: NextSpec) => CortexStep;
 type NextActions = {
   [key: string]: CortexNext;
 };
@@ -61,32 +61,32 @@ function toCamelCase(str: string) {
     .join("");
 }
 
-interface PrefrontalCortexOptions {
-  pastPrefrontalCortex?: PrefrontalCortex;
+interface CortexStepOptions {
+  pastCortexStep?: CortexStep;
   processor?: LanguageModelProgramExecutor;
   memories?: WorkingMemory;
   lastValue?: CortexValue;
 }
 
 // TODO - try something with fxn call api
-export class PrefrontalCortex {
+export class CortexStep {
   private readonly entityName: string;
   private readonly _lastValue: CortexValue;
   protected readonly memories: WorkingMemory;
   private readonly extraNextActions: NextActions;
   private readonly processor: LanguageModelProgramExecutor;
 
-  constructor(entityName: string, options?: PrefrontalCortexOptions) {
+  constructor(entityName: string, options?: CortexStepOptions) {
     this.entityName = entityName;
-    const pastPrefrontalCortex = options?.pastPrefrontalCortex;
-    this.memories = options?.memories || pastPrefrontalCortex?.memories || [];
+    const pastCortexStep = options?.pastCortexStep;
+    this.memories = options?.memories || pastCortexStep?.memories || [];
     this._lastValue =
-      options?.lastValue || pastPrefrontalCortex?.lastValue || null;
+      options?.lastValue || pastCortexStep?.lastValue || null;
 
     this.extraNextActions = {};
     this.processor =
       options?.processor ||
-      options?.pastPrefrontalCortex?.processor ||
+      options?.pastCortexStep?.processor ||
       new OpenAILanguageProgramProcessor();
   }
 
@@ -94,10 +94,10 @@ export class PrefrontalCortex {
     return this._lastValue;
   }
 
-  public withMemory(memory: PrefrontalCortexMemory): PrefrontalCortex {
+  public withMemory(memory: CortexStepMemory): CortexStep {
     const nextMemories = this.memories.concat(memory);
-    return new PrefrontalCortex(this.entityName, {
-      pastPrefrontalCortex: this,
+    return new CortexStep(this.entityName, {
+      pastCortexStep: this,
       memories: nextMemories,
     });
   }
@@ -147,7 +147,7 @@ export class PrefrontalCortex {
   public async next(
     type: Action | string,
     spec: NextSpec
-  ): Promise<PrefrontalCortex> {
+  ): Promise<CortexStep> {
     switch (type) {
       case Action.INTERNAL_MONOLOGUE:
         const monologueSpec = spec as InternalMonologueSpec;
@@ -192,7 +192,7 @@ export class PrefrontalCortex {
 
   private async generateAction(
     spec: ActionCompletionSpec
-  ): Promise<PrefrontalCortex> {
+  ): Promise<CortexStep> {
     const { action, prefix, description, outputAsList } = spec;
     const beginning = `<${this.entityName}><${action}>${prefix || ""}`;
     const model = `${description || `${action}`}`;
@@ -217,7 +217,7 @@ Reply in the output format: ${beginning}[[fill in]]</${action}>
 ${beginning}${nextValue}</${action}></${this.entityName}>
 `.trim(),
       },
-    ] as PrefrontalCortexMemory;
+    ] as CortexStepMemory;
     const nextMemories = this.memories.concat(contextCompletion);
     let parsedNextValue;
     if (outputAsList) {
@@ -226,8 +226,8 @@ ${beginning}${nextValue}</${action}></${this.entityName}>
         .split(",")
         .map((s) => toCamelCase(s)) as string[];
     }
-    return new PrefrontalCortex(this.entityName, {
-      pastPrefrontalCortex: this,
+    return new CortexStep(this.entityName, {
+      pastCortexStep: this,
       lastValue: outputAsList ? parsedNextValue : nextValue,
       memories: nextMemories,
     });
@@ -257,15 +257,15 @@ Use the output format <UNFILTERED_ANSWER>[[fill in]]</UNFILTERED_ANSWER>
   }
 
   public updateMemory(
-    matchFunction: (memory: PrefrontalCortexMemory) => boolean,
-    updateFunction: (memory: PrefrontalCortexMemory) => PrefrontalCortexMemory
-  ): PrefrontalCortex {
+    matchFunction: (memory: CortexStepMemory) => boolean,
+    updateFunction: (memory: CortexStepMemory) => CortexStepMemory
+  ): CortexStep {
     const nextMemories = this.memories.map((memory) =>
       matchFunction(memory) ? updateFunction(memory) : memory
     );
 
-    return new PrefrontalCortex(this.entityName, {
-      pastPrefrontalCortex: this,
+    return new CortexStep(this.entityName, {
+      pastCortexStep: this,
       memories: nextMemories,
     });
   }

@@ -10,5 +10,5 @@ export { AbstractSample, isAbstractTrue };
 export * from "./languageModels";
 export * from "./languageModels/openAI";
 export * from "./programs";
-export * from "./prefrontalCortex";
+export * from "./cortexStep";
 export * from "./integrations";

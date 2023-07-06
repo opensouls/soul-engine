@@ -1,7 +1,7 @@
 import * as readline from "readline";
 import { Blueprints } from "../src";
 import dotenv from "dotenv";
-import { Action, PrefrontalCortex } from "../dist/prefrontalCortex";
+import { Action, CortexStep } from "../dist/cortexStep";
 import { ChatMessageRoleEnum } from "../dist";
 
 dotenv.config();
@@ -29,7 +29,7 @@ const rl = readline.createInterface({
   output: process.stdout,
 });
 
-let dialog = new PrefrontalCortex(blueprint.name);
+let dialog = new CortexStep(blueprint.name);
 dialog = dialog.withMemory(initialMemory);
 let intermediateThoughtProcess = ["feelsToThemself", "wondersAboutIntention"];
 
