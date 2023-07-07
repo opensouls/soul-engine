@@ -41,7 +41,7 @@ type NextSpec =
   | ExternalDialogSpec
   | InternalMonologueSpec
   | CustomSpec;
-type CortexNext = (spec: NextSpec) => CortexStep;
+type CortexNext = (spec: NextSpec) => Promise<CortexStep>;
 type NextActions = {
   [key: string]: CortexNext;
 };
@@ -66,6 +66,7 @@ interface CortexStepOptions {
   processor?: LanguageModelProgramExecutor;
   memories?: WorkingMemory;
   lastValue?: CortexValue;
+  extraNextActions?: NextActions;
 }
 
 // TODO - try something with fxn call api
@@ -80,10 +81,11 @@ export class CortexStep {
     this.entityName = entityName;
     const pastCortexStep = options?.pastCortexStep;
     this.memories = options?.memories || pastCortexStep?.memories || [];
-    this._lastValue =
-      options?.lastValue || pastCortexStep?.lastValue || null;
+    this._lastValue = options?.lastValue || pastCortexStep?.lastValue || null;
 
-    this.extraNextActions = {};
+    this.extraNextActions = options?.extraNextActions || {
+      ...(pastCortexStep?.extraNextActions || {}),
+    };
     this.processor =
       options?.processor ||
       options?.pastCortexStep?.processor ||
