@@ -72,11 +72,11 @@ interface CortexStepOptions {
 
 // TODO - try something with fxn call api
 export class CortexStep {
-  private readonly entityName: string;
   private readonly _lastValue: CortexValue;
   private readonly extraNextActions: NextActions;
   private readonly processor: LanguageModelProgramExecutor;
 
+  public readonly entityName: string;
   public readonly memories: WorkingMemory;
 
   constructor(entityName: string, options?: CortexStepOptions) {
