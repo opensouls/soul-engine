@@ -113,7 +113,12 @@ and reads
     instructions = instructions.concat([
       { role: ChatMessageRoleEnum.System, content: program },
     ] as any);
-    const res = await this.soul.languageProgramExecutor.execute(instructions);
+    const { content: res } = await this.soul.languageProgramExecutor.execute(
+      instructions
+    );
+    if (!res) {
+      throw new Error("missing response");
+    }
     devLog(`Mental model updated from "${content}" to \x1b[31m${res}\x1b[0m`);
 
     this.name = getTag({ tag: "NAME", input: res });

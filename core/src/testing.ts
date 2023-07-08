@@ -50,7 +50,10 @@ The optimal assessment is given
 <TEST>`,
     },
   ];
-  const res = await executor.execute(instructions);
+  const { content: res } = await executor.execute(instructions);
+  if (!res) {
+    throw new Error("missing response");
+  }
   const confidence = Number(getTag({ tag: "CONFIDENCE", input: res }));
   const reasoning = getTag({ tag: "THINKING", input: res });
   return {

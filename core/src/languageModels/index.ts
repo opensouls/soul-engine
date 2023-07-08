@@ -21,6 +21,11 @@ interface LanguageModelProgramExecutorExecuteOptions {
   stop?: string;
 }
 
+export interface ExecutorResponse {
+  content?: string | null;
+  functionCall?: FunctionCall;
+}
+
 /**
  * Execute a language model program and get the results as a string (non-streaming)
  */
@@ -28,7 +33,7 @@ export interface LanguageModelProgramExecutor {
   execute(
     records: ChatMessage[],
     requestParams?: LanguageModelProgramExecutorExecuteOptions
-  ): Promise<string>;
+  ): Promise<ExecutorResponse>;
 }
 
 /**

@@ -212,10 +212,13 @@ Reply in the output format: \`${beginning}[[fill in]]</${action}>\`. Double chec
     ] as ChatMessage[];
     const instructions = this.messages.concat(nextInstructions);
     devLog("instructions: " + instructions);
-    const resp = await this.processor.execute(instructions, {
+    const { content: resp } = await this.processor.execute(instructions, {
       stop: `</${action}`,
     });
     devLog("resp:", resp);
+    if (!resp) {
+      throw new Error("missing response");
+    }
     const nextValue = resp.replace(/^[^>]*>{0,1}[^>]*>/g, "");
     devLog("next value: ", nextValue);
     const contextCompletion = [
@@ -257,11 +260,13 @@ Use the output format <UNFILTERED_ANSWER>[[fill in]]</UNFILTERED_ANSWER>
       },
     ] as ChatMessage[];
     const instructions = this.messages.concat(nextInstructions);
-    return (
-      await this.processor.execute(instructions, {
-        stop: "</UNFILTERED_ANSWER",
-      })
-    ).replace("<UNFILTERED_ANSWER>", "");
+    const { content } = await this.processor.execute(instructions, {
+      stop: "</UNFILTERED_ANSWER",
+    });
+    if (!content) {
+      throw new Error("expecting content");
+    }
+    return content.replace("<UNFILTERED_ANSWER>", "");
   }
 
   public updateMemory(
