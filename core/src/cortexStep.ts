@@ -216,7 +216,7 @@ Reply in the output format: \`${beginning}[[fill in]]</${action}>\`. Double chec
       stop: `</${action}`,
     });
     devLog("resp:", resp);
-    const nextValue = resp.slice(beginning.length);
+    const nextValue = resp.replace(/^[^>]*>{0,1}[^>]*>/g, "");
     devLog("next value: ", nextValue);
     const contextCompletion = [
       {
