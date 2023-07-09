@@ -57,7 +57,12 @@ Use the following output format:
 `.trim(),
       },
     ];
-    const res = await soul.languageProgramExecutor.execute(instructions);
+    const { content: res } = await soul.languageProgramExecutor.execute(
+      instructions
+    );
+    if (!res) {
+      throw new Error("missing response");
+    }
     const answer = getTag({ tag: "ANSWER", input: res }).toLowerCase();
     devLog(res);
     return answer === "yes";

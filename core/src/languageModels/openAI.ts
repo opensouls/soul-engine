@@ -4,6 +4,7 @@ import {
   ChatCompletionStreamer,
   ChatMessage,
   CreateChatCompletionParams,
+  ExecutorResponse,
   LanguageModelProgramExecutor,
 } from ".";
 
@@ -80,12 +81,15 @@ export class OpenAILanguageProgramProcessor
   async execute(
     messages: ChatMessage[],
     requestParams: ChatCompletionParams = {}
-  ): Promise<string> {
+  ): Promise<ExecutorResponse> {
     const res = await this.client.chat.completions.create({
       ...this.defaultParams,
       ...requestParams,
       messages: messages,
     });
-    return res?.choices[0]?.message?.content || "";
+    return {
+      content: res?.choices[0]?.message?.content,
+      functionCall: res?.choices[0]?.message?.function_call,
+    };
   }
 }
