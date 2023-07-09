@@ -2,6 +2,7 @@
 import { ChatMessage, LanguageModelProgramExecutor } from "./languageModels";
 import { OpenAILanguageProgramProcessor } from "./languageModels/openAI";
 import { isAbstractTrue } from "./testing";
+import { devLog } from "./utils";
 
 type CortexStepMemory = ChatMessage[];
 type WorkingMemory = CortexStepMemory[];
@@ -41,7 +42,7 @@ type NextSpec =
   | ExternalDialogSpec
   | InternalMonologueSpec
   | CustomSpec;
-type CortexNext = (spec: NextSpec) => CortexStep;
+type CortexNext = (step: CortexStep, spec: NextSpec) => Promise<CortexStep>;
 type NextActions = {
   [key: string]: CortexNext;
 };
@@ -66,24 +67,27 @@ interface CortexStepOptions {
   processor?: LanguageModelProgramExecutor;
   memories?: WorkingMemory;
   lastValue?: CortexValue;
+  extraNextActions?: NextActions;
 }
 
 // TODO - try something with fxn call api
 export class CortexStep {
-  private readonly entityName: string;
   private readonly _lastValue: CortexValue;
-  protected readonly memories: WorkingMemory;
   private readonly extraNextActions: NextActions;
   private readonly processor: LanguageModelProgramExecutor;
+
+  public readonly entityName: string;
+  public readonly memories: WorkingMemory;
 
   constructor(entityName: string, options?: CortexStepOptions) {
     this.entityName = entityName;
     const pastCortexStep = options?.pastCortexStep;
     this.memories = options?.memories || pastCortexStep?.memories || [];
-    this._lastValue =
-      options?.lastValue || pastCortexStep?.lastValue || null;
+    this._lastValue = options?.lastValue || pastCortexStep?.lastValue || null;
 
-    this.extraNextActions = {};
+    this.extraNextActions = options?.extraNextActions || {
+      ...(pastCortexStep?.extraNextActions || {}),
+    };
     this.processor =
       options?.processor ||
       options?.pastCortexStep?.processor ||
@@ -184,7 +188,7 @@ export class CortexStep {
         } as ActionCompletionSpec);
     }
     if (Object.keys(this.extraNextActions).includes(type)) {
-      return this.extraNextActions[type](spec);
+      return this.extraNextActions[type](this, spec);
     } else {
       throw new Error(`Unknown action type ${type}`);
     }
@@ -195,21 +199,25 @@ export class CortexStep {
   ): Promise<CortexStep> {
     const { action, prefix, description, outputAsList } = spec;
     const beginning = `<${this.entityName}><${action}>${prefix || ""}`;
-    const model = `${description || `${action}`}`;
+    const model = description || action;
     const nextInstructions = [
       {
         role: "system",
         content: `
 Now, for ${this.entityName}, model ${model}.
 
-Reply in the output format: ${beginning}[[fill in]]</${action}>
+Reply in the output format: \`${beginning}[[fill in]]</${action}>\`. Double check you are returning valid XML.
 `.trim(),
       },
     ] as ChatMessage[];
     const instructions = this.messages.concat(nextInstructions);
-    const nextValue = (
-      await this.processor.execute(instructions, { stop: `</${action}` })
-    ).slice(beginning.length);
+    devLog("instructions: " + instructions);
+    const resp = await this.processor.execute(instructions, {
+      stop: `</${action}`,
+    });
+    devLog("resp:", resp);
+    const nextValue = resp.replace(/^[^>]*>{0,1}[^>]*>/g, "");
+    devLog("next value: ", nextValue);
     const contextCompletion = [
       {
         role: "assistant",
