@@ -77,9 +77,13 @@ export class OpenAILanguageProgramProcessor
     };
   }
 
-  async execute(messages: ChatMessage[]): Promise<string> {
+  async execute(
+    messages: ChatMessage[],
+    requestParams: ChatCompletionParams = {}
+  ): Promise<string> {
     const res = await this.client.chat.completions.create({
       ...this.defaultParams,
+      ...requestParams,
       messages: messages,
     });
     return res?.choices[0]?.message?.content || "";

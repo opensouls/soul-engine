@@ -1,14 +1,10 @@
-import { ChatMessage } from "./languageModels";
+/* eslint-disable no-case-declarations */
+import { ChatMessage, LanguageModelProgramExecutor } from "./languageModels";
 import { OpenAILanguageProgramProcessor } from "./languageModels/openAI";
 import { isAbstractTrue } from "./testing";
-import { type } from "os";
 
 type CortexStepMemory = ChatMessage[];
 type WorkingMemory = CortexStepMemory[];
-type PastCortexStep = {
-  lastValue?: null | string;
-  memories: WorkingMemory;
-};
 type InternalMonologueSpec = {
   action: string;
   description?: string;
@@ -65,34 +61,45 @@ function toCamelCase(str: string) {
     .join("");
 }
 
+interface CortexStepOptions {
+  pastCortexStep?: CortexStep;
+  processor?: LanguageModelProgramExecutor;
+  memories?: WorkingMemory;
+  lastValue?: CortexValue;
+}
+
 // TODO - try something with fxn call api
 export class CortexStep {
   private readonly entityName: string;
   private readonly _lastValue: CortexValue;
-  private readonly memories: WorkingMemory;
+  protected readonly memories: WorkingMemory;
   private readonly extraNextActions: NextActions;
+  private readonly processor: LanguageModelProgramExecutor;
 
-  constructor(entityName: string, pastCortexStep?: PastCortexStep) {
+  constructor(entityName: string, options?: CortexStepOptions) {
     this.entityName = entityName;
-    if (pastCortexStep?.memories) {
-      this.memories = pastCortexStep.memories;
-    } else {
-      this.memories = [];
-    }
-    if (pastCortexStep?.lastValue) {
-      this._lastValue = pastCortexStep.lastValue;
-    } else {
-      this._lastValue = null;
-    }
+    const pastCortexStep = options?.pastCortexStep;
+    this.memories = options?.memories || pastCortexStep?.memories || [];
+    this._lastValue =
+      options?.lastValue || pastCortexStep?.lastValue || null;
+
     this.extraNextActions = {};
+    this.processor =
+      options?.processor ||
+      options?.pastCortexStep?.processor ||
+      new OpenAILanguageProgramProcessor();
+  }
+
+  protected get lastValue() {
+    return this._lastValue;
   }
 
   public withMemory(memory: CortexStepMemory): CortexStep {
     const nextMemories = this.memories.concat(memory);
     return new CortexStep(this.entityName, {
-      lastValue: this.value,
+      pastCortexStep: this,
       memories: nextMemories,
-    } as PastCortexStep);
+    });
   }
 
   private get messages(): ChatMessage[] {
@@ -141,40 +148,42 @@ export class CortexStep {
     type: Action | string,
     spec: NextSpec
   ): Promise<CortexStep> {
-    if (type === Action.INTERNAL_MONOLOGUE) {
-      const monologueSpec = spec as InternalMonologueSpec;
-      return this.generateAction({
-        action: monologueSpec.action,
-        description: monologueSpec.description,
-      } as ActionCompletionSpec);
-    } else if (type === Action.EXTERNAL_DIALOG) {
-      const dialogSpec = spec as ExternalDialogSpec;
-      return this.generateAction({
-        action: dialogSpec.action,
-        description: dialogSpec.description,
-      } as ActionCompletionSpec);
-    } else if (type === Action.DECISION) {
-      const decisionSpec = spec as DecisionSpec;
-      const choicesList = decisionSpec.choices.map((c) => "choice=" + c);
-      const choicesString = `[${choicesList.join(",")}]`;
-      const description =
-        decisionSpec.description !== undefined
-          ? `${decisionSpec.description}. `
-          : "";
-      return this.generateAction({
-        action: "decides",
-        prefix: `choice=`,
-        description: `${description}Choose one of: ${choicesString}`,
-      } as ActionCompletionSpec);
-    } else if (type === Action.BRAINSTORM_ACTIONS) {
-      const brainstormSpec = spec as BrainstormSpec;
-      return this.generateAction({
-        action: "brainstorms",
-        prefix: "actions=[",
-        description: `${this.entityName} brainstorms ideas for ${brainstormSpec}. Output as comma separated list, e.g. actions=[action1,action2]`,
-        outputAsList: true,
-      } as ActionCompletionSpec);
-    } else if (Object.keys(this.extraNextActions).includes(type)) {
+    switch (type) {
+      case Action.INTERNAL_MONOLOGUE:
+        const monologueSpec = spec as InternalMonologueSpec;
+        return this.generateAction({
+          action: monologueSpec.action,
+          description: monologueSpec.description,
+        } as ActionCompletionSpec);
+      case Action.EXTERNAL_DIALOG:
+        const dialogSpec = spec as ExternalDialogSpec;
+        return this.generateAction({
+          action: dialogSpec.action,
+          description: dialogSpec.description,
+        } as ActionCompletionSpec);
+      case Action.DECISION:
+        const decisionSpec = spec as DecisionSpec;
+        const choicesList = decisionSpec.choices.map((c) => "choice=" + c);
+        const choicesString = `[${choicesList.join(",")}]`;
+        const description =
+          decisionSpec.description !== undefined
+            ? `${decisionSpec.description}. `
+            : "";
+        return this.generateAction({
+          action: "decides",
+          prefix: `choice=`,
+          description: `${description}Choose one of: ${choicesString}`,
+        } as ActionCompletionSpec);
+      case Action.BRAINSTORM_ACTIONS:
+        const brainstormSpec = spec as BrainstormSpec;
+        return this.generateAction({
+          action: "brainstorms",
+          prefix: "actions=[",
+          description: `${this.entityName} brainstorms ideas for ${brainstormSpec.actionsForIdea}. Output as comma separated list, e.g. actions=[action1,action2]`,
+          outputAsList: true,
+        } as ActionCompletionSpec);
+    }
+    if (Object.keys(this.extraNextActions).includes(type)) {
       return this.extraNextActions[type](spec);
     } else {
       throw new Error(`Unknown action type ${type}`);
@@ -198,15 +207,9 @@ Reply in the output format: ${beginning}[[fill in]]</${action}>
       },
     ] as ChatMessage[];
     const instructions = this.messages.concat(nextInstructions);
-    const processor = new OpenAILanguageProgramProcessor(
-      {},
-      {
-        stop: `</${action}`,
-      }
-    );
-    const nextValue = (await processor.execute(instructions)).slice(
-      beginning.length
-    );
+    const nextValue = (
+      await this.processor.execute(instructions, { stop: `</${action}` })
+    ).slice(beginning.length);
     const contextCompletion = [
       {
         role: "assistant",
@@ -224,9 +227,10 @@ ${beginning}${nextValue}</${action}></${this.entityName}>
         .map((s) => toCamelCase(s)) as string[];
     }
     return new CortexStep(this.entityName, {
+      pastCortexStep: this,
       lastValue: outputAsList ? parsedNextValue : nextValue,
       memories: nextMemories,
-    } as PastCortexStep);
+    });
   }
 
   public async queryMemory(query: string): Promise<string> {
@@ -245,13 +249,24 @@ Use the output format <UNFILTERED_ANSWER>[[fill in]]</UNFILTERED_ANSWER>
       },
     ] as ChatMessage[];
     const instructions = this.messages.concat(nextInstructions);
-    const processor = new OpenAILanguageProgramProcessor(
-      {},
-      { stop: "</UNFILTERED_ANSWER" }
+    return (
+      await this.processor.execute(instructions, {
+        stop: "</UNFILTERED_ANSWER",
+      })
+    ).replace("<UNFILTERED_ANSWER>", "");
+  }
+
+  public updateMemory(
+    matchFunction: (memory: CortexStepMemory) => boolean,
+    updateFunction: (memory: CortexStepMemory) => CortexStepMemory
+  ): CortexStep {
+    const nextMemories = this.memories.map((memory) =>
+      matchFunction(memory) ? updateFunction(memory) : memory
     );
-    return (await processor.execute(instructions)).replace(
-      "<UNFILTERED_ANSWER>",
-      ""
-    );
+
+    return new CortexStep(this.entityName, {
+      pastCortexStep: this,
+      memories: nextMemories,
+    });
   }
 }

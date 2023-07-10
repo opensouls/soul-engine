@@ -1,6 +1,6 @@
 # 🤖+👱 SocialAGI
 
-⚡ The library for designing AI souls ⚡
+⚡ Clean abstractions for AI souls ⚡
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg) ![Twitter](https://img.shields.io/twitter/url/https/twitter.com/socialagi.svg?style=social&label=Follow%20%40socialagi)](https://twitter.com/socialagi) [![](https://dcbadge.vercel.app/api/server/FCPcCUbw3p?compact=true&style=flat)](https://discord.gg/FCPcCUbw3p)
 
@@ -51,13 +51,13 @@ The repository has three main components
   /telegram
 ```
 
-- [`/example-webapp`](./example-webapp) contains an example integration of the socialagi library in a chat website 
+- [`/example-webapp`](https://github.com/opensouls/socialagi-ex-webapp) contains an example integration of the socialagi library in a chat website 
 - [`/core`](./core) contains the library [`socialagi` NPM package source](https://www.npmjs.com/package/socialagi)
 - [`/integrations`](./integrations) contains examples of the library in action. Right now contains several stand-alone discord and telegram bot repos
 
 ## 🚀 Getting started
 
-The easiest way to get started developing with `socialagi` is to check out the `/example-webapp`
+The easiest way to get started developing with `socialagi` is to check out the [`/example-webapp`](https://github.com/opensouls/socialagi-ex-webapp)
 
 ### Contributing
 

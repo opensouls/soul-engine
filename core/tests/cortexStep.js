@@ -1,5 +1,7 @@
 // import { isAbstractTrue } from "../src/testing";
 const { Action, CortexStep } = require("../src");
+const dotenv = require('dotenv');
+dotenv.config();
 
 test("CortexStep long monologue", async () => {
   const memory = [

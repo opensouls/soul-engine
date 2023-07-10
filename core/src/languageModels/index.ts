@@ -17,11 +17,18 @@ export interface ChatCompletionStreamer {
   }>;
 }
 
+interface LanguageModelProgramExecutorExecuteOptions {
+  stop?: string;
+}
+
 /**
  * Execute a language model program and get the results as a string (non-streaming)
  */
 export interface LanguageModelProgramExecutor {
-  execute(records: ChatMessage[]): Promise<string>;
+  execute(
+    records: ChatMessage[],
+    requestParams?: LanguageModelProgramExecutorExecuteOptions
+  ): Promise<string>;
 }
 
 /**
