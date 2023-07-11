@@ -3,7 +3,7 @@ id: intro
 sidebar_position: 1
 ---
 
-# Introduction to the CortexStep Class
+# Introduction
 
 **CortexStep** is a dedicated class designed for orchestrating advanced interactions with large language models (LLMs). Inspired by human cognitive processes, the core philosophy of CortexStep is based on the concept of append-only context building.
 
