@@ -1,5 +1,6 @@
 ---
 id: intro
+sidebar_position: 1
 ---
 
 # Introduction to the CortexStep Class

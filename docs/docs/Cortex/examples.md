@@ -1,5 +1,6 @@
 ---
 id: examples
+sidebar_position: 3
 ---
 
 # Learn by Example
