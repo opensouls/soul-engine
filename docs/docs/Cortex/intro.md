@@ -16,18 +16,20 @@ let cortex = new CortexStep("Wizard");
 
 // ...
 
-let count = 0;
-while (count < 5) {
-cortex = await cortex.next(Action.INTERNAL_MONOLOGUE, {
-  action: "wonders",
-  description: "Asks themselves a deeper question",
-});
-count++;
+async function withDeepAnswer(cortex: CortexStep) {
+  let count = 0;
+  while (count < 5) {
+    cortex = await cortex.next(Action.INTERNAL_MONOLOGUE, {
+      action: "wonders",
+      description: "Asks themselves a deeper question",
+    });
+    count++;
+  }
+  cortex = await cortex.next(Action.INTERNAL_MONOLOGUE, {
+    action: "answers",
+    description: "Answering the last question I asked myself",
+  });
 }
-cortex = await cortex.next(Action.INTERNAL_MONOLOGUE, {
-  action: "answers",
-  description: "Answering the last question I asked myself",
-});
 
 // ...
 ```
