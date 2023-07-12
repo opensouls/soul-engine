@@ -1,14 +1,11 @@
-import { Soul } from "./soul";
-export { Soul };
-
-import { Blueprint, Blueprints, ThoughtFramework } from "./blueprint";
-export { Blueprint, Blueprints, ThoughtFramework };
+import { Blueprint, Blueprints } from "./blueprint";
+export { Blueprint, Blueprints };
 
 import { AbstractSample, isAbstractTrue } from "./testing";
 export { AbstractSample, isAbstractTrue };
 
 export * from "./languageModels";
 export * from "./languageModels/openAI";
-export * from "./programs";
 export * from "./cortexStep";
+export * from "./cortex";
 export * from "./integrations";

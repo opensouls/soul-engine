@@ -1,39 +1,30 @@
-import * as readline from "readline";
-import { Blueprints, Soul } from "../src";
-import dotenv from "dotenv";
+import {
+  Cortex,
+  DirectiveConfig,
+  MutateFunction,
+  QueuingStrategy,
+  MemoryStore,
+} from "../src/index";
+import { AbortSignal } from "abort-controller";
 
-dotenv.config();
+const SamanthaReplies = async (
+  signal: AbortSignal,
+  event: string,
+  memory: MemoryStore,
+  mutate: MutateFunction
+) => {
+  console.log("Samantha: I received your message - ", event);
+};
+const simpleQueuingStrategy: QueuingStrategy = (currentJob, queue, newJob) => {
+  currentJob?.abortController?.abort();
+  return [newJob];
+};
+const samanthaRepliesConfig: DirectiveConfig = {
+  name: "SamanthaReplies",
+  directive: SamanthaReplies,
+};
 
-const blueprint = Blueprints.SAMANTHA;
+const cortex = new Cortex(simpleQueuingStrategy);
+cortex.registerDirective(samanthaRepliesConfig);
 
-const soul = new Soul(Blueprints.SAMANTHA);
-
-const conversation = soul.getConversation("example");
-
-conversation.on("says", (text: string) => {
-  console.log(`👱 ${blueprint.name} says: \x1b[34m${text}\x1b[0m`);
-});
-
-conversation.on("thinks", (text: string) => {
-  console.log("👱", blueprint.name, " thinks: ", text);
-});
-
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-});
-
-console.log(
-  '- Type a message to send to Soul\n- Type "reset" to reset\n- Type "exit" to quit\n'
-);
-
-rl.on("line", async (line) => {
-  if (line.toLowerCase() === "exit") {
-    rl.close();
-  } else if (line.toLowerCase() === "reset") {
-    conversation.reset();
-  } else {
-    const text: string = line;
-    conversation.tell(text);
-  }
-});
+cortex.queueDirective("SamanthaReplies", "Hello, Samantha!");

@@ -1,16 +1,10 @@
 import { Model } from "./languageModels/openAI";
 
-export enum ThoughtFramework {
-  Introspective,
-  ReflectiveLP,
-}
-
 export interface Blueprint {
   name: string;
   essence: string;
   personality?: string;
   initialPlan?: string;
-  thoughtFramework?: ThoughtFramework;
   languageProcessor: Model;
 }
 
@@ -50,7 +44,6 @@ Do NOT offer external resources to help - she does not have internet access
 She can NOT perform any tasks not shown in the <ACTION/> section, or see any images, she can just text.`,
   initialPlan:
     "My plan is to ask the user what's on their mind today and use a cool emoji",
-  thoughtFramework: ThoughtFramework.Introspective,
 };
 
 export const CONFIDANTE: Blueprint = {
@@ -91,7 +84,6 @@ Avoid providing solutions without understanding the context
 He can NOT perform any tasks not shown in the <ACTION/> section, or see any images, he is focused on text-based interactions.`,
   initialPlan:
     "My plan is to warmly greet the user and ask them how their day has been, showing genuine interest",
-  thoughtFramework: ThoughtFramework.Introspective,
 };
 
 export const Blueprints = {
