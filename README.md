@@ -70,5 +70,3 @@ On the roadmap at a high level are:
 - Ways to design the conversations that constitute an identity
 - Coherent theory of mind behind Social AGIs
 - Ways to test and debug Social AGIs
-
-By using SocialAGI, you agree to indemnify, defend, and hold harmless the owners, developers, contributors, and any affiliated parties from and against any and all claims, damages, losses, liabilities, costs, and expenses (including reasonable attorneys' fees) arising from your use of this software or your violation of these terms.
