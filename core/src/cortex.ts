@@ -8,6 +8,7 @@
 // TODO: CortexStep.withModelUpdate(recallModel: (memory: MemoryStore) => ChatMessages, action)
 
 import { AbortController, AbortSignal } from "abort-controller";
+import _ from "lodash";
 
 export type MemoryStore = Record<string, any>;
 
@@ -90,7 +91,7 @@ export class Cortex {
       await job.directive(
         job.abortController.signal,
         job.event,
-        { ...this.memoryStore }, // Copy of memory store
+        _.cloneDeep(this.memoryStore),
         mutate
       );
 
