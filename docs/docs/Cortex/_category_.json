@@ -1,6 +1,7 @@
 {
   "label": "CortexStep",
   "position": 4,
+  "collapsed": false,
   "link": {
     "type": "doc",
     "id": "intro"
