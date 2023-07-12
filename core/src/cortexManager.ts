@@ -47,7 +47,7 @@ export const defaultQueuingStrategy: QueuingStrategy = (
   newJob: Job
 ) => [...queue, newJob];
 
-export class CortexHandler {
+export class CortexManager {
   private processQueue: Job[] = [];
   private currentJob: Job | null = null;
   private processes = new Map<string, MentalProcess>();

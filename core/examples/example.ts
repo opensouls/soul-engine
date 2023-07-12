@@ -1,5 +1,5 @@
 import {
-  CortexHandler,
+  CortexManager,
   MutateFunction,
   QueuingStrategy,
   MemoryStore,
@@ -24,7 +24,7 @@ const samanthaRepliesConfig: ProcessConfig = {
   process: SamanthaReplies,
 };
 
-const cortex = new CortexHandler(simpleQueuingStrategy);
+const cortex = new CortexManager(simpleQueuingStrategy);
 cortex.registerProcess(samanthaRepliesConfig);
 
 cortex.queueProcess("SamanthaReplies", "Hello, Samantha!");
