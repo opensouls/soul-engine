@@ -1,9 +1,9 @@
 import {
-  Cortex,
-  DirectiveConfig,
+  CortexHandler,
   MutateFunction,
   QueuingStrategy,
   MemoryStore,
+  ProcessConfig,
 } from "../src/index";
 import { AbortSignal } from "abort-controller";
 
@@ -19,12 +19,12 @@ const simpleQueuingStrategy: QueuingStrategy = (currentJob, queue, newJob) => {
   currentJob?.abortController?.abort();
   return [newJob];
 };
-const samanthaRepliesConfig: DirectiveConfig = {
+const samanthaRepliesConfig: ProcessConfig = {
   name: "SamanthaReplies",
-  directive: SamanthaReplies,
+  process: SamanthaReplies,
 };
 
-const cortex = new Cortex(simpleQueuingStrategy);
-cortex.registerDirective(samanthaRepliesConfig);
+const cortex = new CortexHandler(simpleQueuingStrategy);
+cortex.registerProcess(samanthaRepliesConfig);
 
-cortex.queueDirective("SamanthaReplies", "Hello, Samantha!");
+cortex.queueProcess("SamanthaReplies", "Hello, Samantha!");

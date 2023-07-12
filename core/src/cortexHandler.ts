@@ -1,7 +1,7 @@
-// one directive at a time
+// one process at a time
 // get local copy of memory to work with
-// memory updates occur inbetween directives
-// mutate function passed into directive that updates the memory
+// memory updates occur inbetween processes
+// mutate function passed into process that updates the memory
 
 // TODO: CortexStep.withRecall(recallWorkingMemory: (memory: MemoryStore) => ChatMessages[])
 // TODO: CortexStep.withModel(recallModel: (memory: MemoryStore) => ChatMessages)
@@ -16,7 +16,7 @@ export type MutateFunction = (
   mutator: (memory: MemoryStore) => Partial<MemoryStore>
 ) => void;
 
-export type Directive = (
+export type MentalProcess = (
   signal: AbortSignal,
   event: any,
   memory: MemoryStore,
@@ -24,15 +24,15 @@ export type Directive = (
 ) => Promise<void>;
 
 interface Job {
-  directive: Directive;
+  process: MentalProcess;
   event: any;
   abortController: AbortController;
   mutations: Partial<MemoryStore>[];
 }
 
-export interface DirectiveConfig {
+export interface ProcessConfig {
   name: string;
-  directive: Directive;
+  process: MentalProcess;
 }
 
 export type QueuingStrategy = (
@@ -47,10 +47,10 @@ export const defaultQueuingStrategy: QueuingStrategy = (
   newJob: Job
 ) => [...queue, newJob];
 
-export class Cortex {
-  private directiveQueue: Job[] = [];
+export class CortexHandler {
+  private processQueue: Job[] = [];
   private currentJob: Job | null = null;
-  private directives = new Map<string, Directive>();
+  private processes = new Map<string, MentalProcess>();
 
   private memoryStore: MemoryStore = {};
 
@@ -58,37 +58,37 @@ export class Cortex {
     private queuingStrategy: QueuingStrategy = defaultQueuingStrategy
   ) {}
 
-  registerDirective({ name, directive }: DirectiveConfig) {
-    this.directives.set(name, directive);
+  registerProcess({ name, process }: ProcessConfig) {
+    this.processes.set(name, process);
   }
 
-  queueDirective(name: string, event: any) {
-    const directive = this.directives.get(name);
-    if (!directive) throw new Error(`Directive ${name} does not exist`);
+  queueProcess(name: string, event: any) {
+    const process = this.processes.get(name);
+    if (!process) throw new Error(`Process ${name} does not exist`);
 
     const job: Job = {
-      directive,
+      process,
       event,
       abortController: new AbortController(),
       mutations: [],
     };
 
-    this.directiveQueue = this.queuingStrategy(
+    this.processQueue = this.queuingStrategy(
       this.currentJob,
-      this.directiveQueue,
+      this.processQueue,
       job
     );
     this.dispatch().catch(() => {});
   }
 
   private async dispatch() {
-    while (this.directiveQueue.length > 0) {
-      const job = this.directiveQueue.shift() as Job;
+    while (this.processQueue.length > 0) {
+      const job = this.processQueue.shift() as Job;
 
       this.currentJob = job;
       const mutate: MutateFunction = (mutator) =>
         job.mutations.push(mutator(this.memoryStore));
-      await job.directive(
+      await job.process(
         job.abortController.signal,
         job.event,
         _.cloneDeep(this.memoryStore),
