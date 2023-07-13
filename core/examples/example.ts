@@ -15,11 +15,15 @@ const SamanthaReplies = async (
 ) => {
   let step = lastStep;
   step = step.withMemory([newMemory]);
-  step = await step.next(Action.EXTERNAL_DIALOG, {
+  const shouts = await step.next(Action.EXTERNAL_DIALOG, {
     action: "shouts in all caps",
   });
-  console.log("Samantha says: ", step.value);
-  return step;
+  if (signal.aborted) {
+    return step;
+  } else {
+    console.log("Samantha says: ", shouts.value);
+    return shouts;
+  }
 };
 const simpleQueuingStrategy: QueuingStrategy = (currentJob, queue, newJob) => {
   currentJob?.abortController?.abort();
