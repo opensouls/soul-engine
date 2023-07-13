@@ -1,19 +1,25 @@
 import {
+  Action,
+  ChatMessage,
   CortexManager,
-  MutateFunction,
-  QueuingStrategy,
-  MemoryStore,
+  CortexStep,
   ProcessConfig,
+  QueuingStrategy,
 } from "../src/index";
 import { AbortSignal } from "abort-controller";
 
 const SamanthaReplies = async (
   signal: AbortSignal,
-  event: string,
-  memory: MemoryStore,
-  mutate: MutateFunction
+  newMemory: ChatMessage,
+  lastStep: CortexStep
 ) => {
-  console.log("Samantha: I received your message - ", event);
+  let step = lastStep;
+  step = step.withMemory([newMemory]);
+  step = await step.next(Action.EXTERNAL_DIALOG, {
+    action: "shouts in all caps",
+  });
+  console.log("Samantha says: ", step.value);
+  return step;
 };
 const simpleQueuingStrategy: QueuingStrategy = (currentJob, queue, newJob) => {
   currentJob?.abortController?.abort();
@@ -24,7 +30,24 @@ const samanthaRepliesConfig: ProcessConfig = {
   process: SamanthaReplies,
 };
 
-const cortex = new CortexManager(simpleQueuingStrategy);
+const initialMemories = [
+  {
+    role: "system",
+    content: "<Context>You are modeling the mind of Samantha</Context>",
+  },
+] as ChatMessage[];
+const cortex = new CortexManager("Samantha", initialMemories, {
+  queuingStrategy: simpleQueuingStrategy,
+});
 cortex.registerProcess(samanthaRepliesConfig);
 
-cortex.queueProcess("SamanthaReplies", "Hello, Samantha!");
+// run
+cortex.queueProcess("SamanthaReplies", {
+  role: "user",
+  content: "Hello, Samantha!",
+} as ChatMessage);
+
+cortex.queueProcess("SamanthaReplies", {
+  role: "user",
+  content: "F U!",
+} as ChatMessage);

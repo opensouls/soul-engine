@@ -8,26 +8,19 @@
 // TODO: CortexStep.withModelUpdate(recallModel: (memory: MemoryStore) => ChatMessages, action)
 
 import { AbortController, AbortSignal } from "abort-controller";
-import _ from "lodash";
-
-export type MemoryStore = Record<string, any>;
-
-export type MutateFunction = (
-  mutator: (memory: MemoryStore) => Partial<MemoryStore>
-) => void;
+import { CortexStep } from "./cortexStep";
+import { ChatMessage } from "./languageModels";
 
 export type MentalProcess = (
   signal: AbortSignal,
-  event: any,
-  memory: MemoryStore,
-  mutate: MutateFunction
-) => Promise<void>;
+  newMemory: ChatMessage,
+  lastStep: CortexStep
+) => Promise<CortexStep>;
 
 interface Job {
   process: MentalProcess;
-  event: any;
+  newMemory: ChatMessage;
   abortController: AbortController;
-  mutations: Partial<MemoryStore>[];
 }
 
 export interface ProcessConfig {
@@ -47,30 +40,41 @@ export const defaultQueuingStrategy: QueuingStrategy = (
   newJob: Job
 ) => [...queue, newJob];
 
+type ManagerOptions = {
+  queuingStrategy: QueuingStrategy;
+};
+
 export class CortexManager {
   private processQueue: Job[] = [];
   private currentJob: Job | null = null;
   private processes = new Map<string, MentalProcess>();
-
-  private memoryStore: MemoryStore = {};
+  private lastStep: CortexStep;
+  private queuingStrategy = defaultQueuingStrategy;
 
   constructor(
-    private queuingStrategy: QueuingStrategy = defaultQueuingStrategy
-  ) {}
+    entityName: string,
+    initialMemories: ChatMessage[],
+    options?: ManagerOptions
+  ) {
+    if (options?.queuingStrategy) {
+      this.queuingStrategy = options.queuingStrategy;
+    }
+    this.lastStep = new CortexStep(entityName);
+    this.lastStep = this.lastStep.withMemory(initialMemories);
+  }
 
   registerProcess({ name, process }: ProcessConfig) {
     this.processes.set(name, process);
   }
 
-  queueProcess(name: string, event: any) {
+  queueProcess(name: string, newMemory: ChatMessage) {
     const process = this.processes.get(name);
     if (!process) throw new Error(`Process ${name} does not exist`);
 
     const job: Job = {
       process,
-      event,
+      newMemory,
       abortController: new AbortController(),
-      mutations: [],
     };
 
     this.processQueue = this.queuingStrategy(
@@ -86,23 +90,11 @@ export class CortexManager {
       const job = this.processQueue.shift() as Job;
 
       this.currentJob = job;
-      const mutate: MutateFunction = (mutator) =>
-        job.mutations.push(mutator(this.memoryStore));
-      await job.process(
+      this.lastStep = await job.process(
         job.abortController.signal,
-        job.event,
-        _.cloneDeep(this.memoryStore),
-        mutate
+        job.newMemory,
+        this.lastStep
       );
-
-      // Apply queued mutations
-      for (const mutation of job.mutations) {
-        this.memoryStore = {
-          ...this.memoryStore,
-          ...mutation,
-        };
-      }
-
       this.currentJob = null;
     }
   }
