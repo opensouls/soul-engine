@@ -49,7 +49,8 @@ export class CortexManager {
   private currentJob: Job | null = null;
   private processes = new Map<string, MentalProcess>();
   private lastStep: CortexStep;
-  private queuingStrategy = defaultQueuingStrategy;
+  private readonly queuingStrategy = defaultQueuingStrategy;
+  private isDispatching = false;
 
   constructor(firstStep: CortexStep, options?: ManagerOptions) {
     if (options?.queuingStrategy) {
@@ -77,20 +78,32 @@ export class CortexManager {
       this.processQueue,
       job
     );
-    this.dispatch().catch(() => {});
+    if (!this.isDispatching) {
+      this.dispatch().catch((error) => {
+        console.error("Error in dispatch:", error);
+      });
+    }
   }
 
   private async dispatch() {
+    this.isDispatching = true;
+
     while (this.processQueue.length > 0) {
       const job = this.processQueue.shift() as Job;
 
       this.currentJob = job;
-      this.lastStep = await job.process(
-        job.abortController.signal,
-        job.newMemory,
-        this.lastStep
-      );
+      try {
+        this.lastStep = await job.process(
+          job.abortController.signal,
+          job.newMemory,
+          this.lastStep
+        );
+      } catch (error) {
+        console.error("Error in job process:", error);
+      }
       this.currentJob = null;
     }
+
+    this.isDispatching = false;
   }
 }
