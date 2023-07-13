@@ -66,7 +66,7 @@
   "dependencies": {
     "@types/react": "^18.2.14",
     "@types/react-dom": "^18.2.6",
-    "lodash": "^4.17.21",
+    "async-mutex": "^0.4.0",
     "next": "^13.4.8",
     "openai": "^4.0.0-beta.0",
     "react": "^18.2.0"

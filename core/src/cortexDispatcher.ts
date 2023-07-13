@@ -10,6 +10,7 @@
 import { AbortController, AbortSignal } from "abort-controller";
 import { CortexStep } from "./cortexStep";
 import { ChatMessage } from "./languageModels";
+import { Mutex } from "async-mutex";
 
 export type MentalProcess = (
   signal: AbortSignal,
@@ -44,13 +45,14 @@ type ManagerOptions = {
   queuingStrategy: QueuingStrategy;
 };
 
-export class CortexManager {
+export class CortexDispatcher {
   private processQueue: Job[] = [];
   private currentJob: Job | null = null;
   private processes = new Map<string, MentalProcess>();
   private lastStep: CortexStep;
   private readonly queuingStrategy = defaultQueuingStrategy;
-  private isDispatching = false;
+  private isRunning = false;
+  private mutex = new Mutex();
 
   constructor(firstStep: CortexStep, options?: ManagerOptions) {
     if (options?.queuingStrategy) {
@@ -59,51 +61,64 @@ export class CortexManager {
     this.lastStep = firstStep;
   }
 
-  registerProcess({ name, process }: ProcessConfig) {
+  register({ name, process }: ProcessConfig) {
     this.processes.set(name, process);
   }
 
-  queueProcess(name: string, newMemory: ChatMessage) {
-    const process = this.processes.get(name);
-    if (!process) throw new Error(`Process ${name} does not exist`);
+  async dispatch(name: string, newMemory: ChatMessage) {
+    const release = await this.mutex.acquire();
+    try {
+      const process = this.processes.get(name);
+      if (!process) throw new Error(`Process ${name} does not exist`);
 
-    const job: Job = {
-      process,
-      newMemory,
-      abortController: new AbortController(),
-    };
+      const job: Job = {
+        process,
+        newMemory,
+        abortController: new AbortController(),
+      };
 
-    this.processQueue = this.queuingStrategy(
-      this.currentJob,
-      this.processQueue,
-      job
-    );
-    if (!this.isDispatching) {
-      this.dispatch().catch((error) => {
-        console.error("Error in dispatch:", error);
-      });
+      this.processQueue = this.queuingStrategy(
+        this.currentJob,
+        this.processQueue,
+        job
+      );
+
+      if (!this.isRunning) {
+        this.isRunning = true;
+        this.run().catch((error) => {
+          console.error("Error in dispatch:", error);
+        });
+      }
+    } finally {
+      release();
     }
   }
 
-  private async dispatch() {
-    this.isDispatching = true;
+  private async run() {
+    let nextJob: Job | null = null;
 
-    while (this.processQueue.length > 0) {
-      const job = this.processQueue.shift() as Job;
+    do {
+      await this.mutex.runExclusive(() => {
+        nextJob = this.processQueue.shift() || null;
+        this.currentJob = nextJob;
+        this.isRunning = this.processQueue.length > 0;
+      });
 
-      this.currentJob = job;
-      try {
-        this.lastStep = await job.process(
-          job.abortController.signal,
-          job.newMemory,
-          this.lastStep
-        );
-      } catch (error) {
-        console.error("Error in job process:", error);
+      if (nextJob) {
+        try {
+          this.lastStep = await (nextJob as Job).process(
+            (nextJob as Job).abortController.signal,
+            (nextJob as Job).newMemory,
+            this.lastStep
+          );
+        } catch (error) {
+          console.error("Error in job process:", error);
+        } finally {
+          await this.mutex.runExclusive(() => {
+            this.currentJob = null;
+          });
+        }
       }
-      this.currentJob = null;
-    }
-
-    this.isDispatching = false;
+    } while (nextJob);
   }
 }

@@ -7,5 +7,5 @@ export { AbstractSample, isAbstractTrue };
 export * from "./languageModels";
 export * from "./languageModels/openAI";
 export * from "./cortexStep";
-export * from "./cortexManager";
+export * from "./cortexDispatcher";
 export * from "./integrations";
