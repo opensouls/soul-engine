@@ -1,11 +1,6 @@
 // one process at a time
 // get local copy of memory to work with
 // memory updates occur inbetween processes
-// mutate function passed into process that updates the memory
-
-// TODO: CortexStep.withRecall(recallWorkingMemory: (memory: MemoryStore) => ChatMessages[])
-// TODO: CortexStep.withModel(recallModel: (memory: MemoryStore) => ChatMessages)
-// TODO: CortexStep.withModelUpdate(recallModel: (memory: MemoryStore) => ChatMessages, action)
 
 import { AbortController, AbortSignal } from "abort-controller";
 import { CortexStep } from "./cortexStep";
