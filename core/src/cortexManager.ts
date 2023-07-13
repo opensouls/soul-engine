@@ -51,16 +51,11 @@ export class CortexManager {
   private lastStep: CortexStep;
   private queuingStrategy = defaultQueuingStrategy;
 
-  constructor(
-    entityName: string,
-    initialMemories: ChatMessage[],
-    options?: ManagerOptions
-  ) {
+  constructor(firstStep: CortexStep, options?: ManagerOptions) {
     if (options?.queuingStrategy) {
       this.queuingStrategy = options.queuingStrategy;
     }
-    this.lastStep = new CortexStep(entityName);
-    this.lastStep = this.lastStep.withMemory(initialMemories);
+    this.lastStep = firstStep;
   }
 
   registerProcess({ name, process }: ProcessConfig) {

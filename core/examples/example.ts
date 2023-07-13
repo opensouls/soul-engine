@@ -36,7 +36,9 @@ const initialMemories = [
     content: "<Context>You are modeling the mind of Samantha</Context>",
   },
 ] as ChatMessage[];
-const cortex = new CortexManager("Samantha", initialMemories, {
+let firstStep = new CortexStep("Samantha");
+firstStep = firstStep.withMemory(initialMemories);
+const cortex = new CortexManager(firstStep, {
   queuingStrategy: simpleQueuingStrategy,
 });
 cortex.registerProcess(samanthaRepliesConfig);
