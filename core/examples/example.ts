@@ -25,7 +25,7 @@ const SamanthaReplies = async (
     return shouts;
   }
 };
-const simpleQueuingStrategy: QueuingStrategy = (currentJob, queue, newJob) => {
+const abortQueuingStrategy: QueuingStrategy = (currentJob, queue, newJob) => {
   currentJob?.abortController?.abort();
   return [newJob];
 };
@@ -43,7 +43,7 @@ const initialMemories = [
 let firstStep = new CortexStep("Samantha");
 firstStep = firstStep.withMemory(initialMemories);
 const cortex = new CortexManager(firstStep, {
-  queuingStrategy: simpleQueuingStrategy,
+  queuingStrategy: abortQueuingStrategy,
 });
 cortex.registerProcess(samanthaRepliesConfig);
 
