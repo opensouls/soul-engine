@@ -40,7 +40,7 @@ type ManagerOptions = {
   queuingStrategy: QueuingStrategy;
 };
 
-export class CortexDispatcher {
+export class CortexScheduler {
   private processQueue: Job[] = [];
   private currentJob: Job | null = null;
   private processes = new Map<string, MentalProcess>();

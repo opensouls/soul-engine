@@ -1,7 +1,7 @@
 import {
   Action,
   ChatMessage,
-  CortexDispatcher,
+  CortexScheduler,
   CortexStep,
   ProcessConfig,
   QueuingStrategy,
@@ -42,7 +42,7 @@ const initialMemories = [
 ] as ChatMessage[];
 let firstStep = new CortexStep("Samantha");
 firstStep = firstStep.withMemory(initialMemories);
-const cortex = new CortexDispatcher(firstStep, {
+const cortex = new CortexScheduler(firstStep, {
   queuingStrategy: abortQueuingStrategy,
 });
 cortex.register(samanthaRepliesConfig);
