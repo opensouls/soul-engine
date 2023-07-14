@@ -2,7 +2,7 @@ const { getTag } = require("../src/languageModels");
 const { Blueprints } = require("../src/blueprint");
 const { Soul } = require("../src/soul");
 const { isAbstractTrue, AbstractSample } = require("../src/testing");
-const { PeopleMemory } = require("../src/memory");
+const { PeopleMemory } = require("../src/programs/PeopleMemory");
 
 function delay(milliseconds) {
   return new Promise((resolve) => {
