@@ -3,7 +3,7 @@ id: api
 sidebar_position: 2
 ---
 
-# CortexScheduler Core API
+# Core API
 
 `CortexScheduler` is a key class within the SocialAGI library. It operates as a task or **MentalProcess** manager for an AI, overseeing a collection of mental processes or "jobs", and determining their order of execution.
 
