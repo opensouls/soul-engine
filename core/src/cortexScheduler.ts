@@ -7,12 +7,6 @@ import { CortexStep } from "./cortexStep";
 import { ChatMessage } from "./languageModels";
 import { Mutex } from "async-mutex";
 
-export type MentalProcess = (
-  signal: AbortSignal,
-  newMemory: ChatMessage,
-  lastStep: CortexStep
-) => Promise<CortexStep>;
-
 interface Job {
   process: MentalProcess;
   newMemory: ChatMessage;
@@ -20,11 +14,44 @@ interface Job {
   jobCompletion: { resolve: () => void; promise: Promise<void> };
 }
 
+type ManagerOptions = {
+  queuingStrategy: QueuingStrategy;
+};
+
+/**
+ * `MentalProcess` is a type that represents a function performing cognitive
+ * operations. These operations could be anything from data retrieval,
+ * processing, or AI computations. It requires an AbortSignal for handling
+ * abort scenarios, a newMemory object for context, and lastStep which is the
+ * last performed CortexStep. It returns a promise that resolves with a new
+ * CortexStep.
+ *
+ * @typedef {(signal: AbortSignal, newMemory: ChatMessage, lastStep: CortexStep) => Promise<CortexStep>} MentalProcess
+ */
+export type MentalProcess = (
+  signal: AbortSignal,
+  newMemory: ChatMessage,
+  lastStep: CortexStep
+) => Promise<CortexStep>;
+
+/**
+ * `ProcessConfig` interface represents the configuration for a mental process.
+ * It contains the name of the process and the process function itself.
+ *
+ * @interface ProcessConfig
+ */
 export interface ProcessConfig {
   name: string;
   process: MentalProcess;
 }
 
+/**
+ * `QueuingStrategy` is a function type that defines how jobs are queued in the
+ * CortexScheduler. It takes the current job, the existing queue, and the new job
+ * and returns a modified queue.
+ *
+ * @typedef {(currentJob: Job | null, queue: Job[], newJob: Job) => Job[]} QueuingStrategy
+ */
 export type QueuingStrategy = (
   currentJob: Job | null,
   queue: Job[],
@@ -37,9 +64,20 @@ export const defaultQueuingStrategy: QueuingStrategy = (
   newJob: Job
 ) => [...queue, newJob];
 
-type ManagerOptions = {
-  queuingStrategy: QueuingStrategy;
-};
+/**
+ * `CortexScheduler` is a class that manages the execution of mental processes
+ * in a queue. It ensures that only one process runs at a time, and provides
+ * mechanisms for process registration, dispatching, and cancellation.
+ *
+ * @class CortexScheduler
+ *
+ * @method register: Used to register a new process in the CortexScheduler.
+ * @method dispatch: Adds a process to the queue and starts the process if
+ * the CortexScheduler is not currently running any process.
+ * @method run: Starts the execution of jobs in the queue. It dequeues the next
+ * job and runs the mental process. If an error occurs, it is logged and the
+ * next job is dequeued.
+ */
 export class CortexScheduler {
   private processQueue: Job[] = [];
   private currentJob: Job | null = null;
