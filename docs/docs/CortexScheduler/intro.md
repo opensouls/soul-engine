@@ -9,7 +9,7 @@ Welcome to the **CortexScheduler** class, a core component of the SocialAGI proj
 
 CortexScheduler's primary responsibility is to orchestrate the flow of asynchronous 'mental processes' in response to world events in a way that's easy to understand, test, and reason about. `CortexScheduler` tackles this challenge by converting the event-driven model into a synchronous one, allowing developers to work with a more straightforward and predictable system.
 
-For example, an initialized scheduler can be used to route Discord client message events to the "SamanthaReplies" mental process: 
+For example, a scheduler can be used to route Discord client message events to the "SamanthaReplies" mental process: 
 ```javascript
 // initialize scheduler
 // ...
