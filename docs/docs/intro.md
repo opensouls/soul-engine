@@ -13,7 +13,7 @@ The library has three main value propositions:
 
 1. *Streamlined Context Management with `new CortexStep(...)`*. [CortexStep](/CortexStep/intro) facilitates the ordered construction of context with LLMs. It works on the principle of treating each interaction as a single step or functional transformation on working memory, offering a predictable and manageable way to guide the thought process of an LLM. This approach results in consistent, easier-to-follow interaction flows.
 1. *Efficient Scheduling of Mental Processes with `new CortexScheduler(...)`*. [CortexScheduler](/CortexScheduler/intro) orchestrates the scheduling and dispatching of mental processes, ensuring a synchronous flow of memory transformations from one event to the next. By turning the event-driven world into a synchronous system, CortexScheduler allows for straightforward debugging, testing, and reasoning, making the cognitive structure of your AI more understandable and predictable.
-1. *Ego, will, and personality 'out of the box' with `new Soul(...)`*. The Soul (TODO) class is your tool to instill personality traits into your LLMs with just a few lines of code. Soul provides sensible defaults for empathetic and agentic social interactions 'out of the box', leading to more nuanced and engaging interactions.
+1. *Ego, will, and personality 'out of the box' with `new Soul(...)`*. The [Soul](/Soul) class is your tool to instill personality traits into your LLMs with just a few lines of code. Soul provides sensible defaults for empathetic and agentic social interactions 'out of the box', leading to more nuanced and engaging interactions.
 
 ## Getting Started with SocialAGI
 
