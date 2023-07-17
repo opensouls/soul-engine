@@ -25,4 +25,4 @@ $ npm install socialagi
 
 ## Supported LLMs
 
-Currently only OpenAI's language models are supported. As other language models become feasible to include in the `SocialAGI` library, we will add them.
+SocialAGI is primarily intended to work with OpenAI, however, it is possible to substitute in any language model through our [executor and streaming interfaces](/languageModels).
