@@ -64,7 +64,7 @@ The repository has three main components
 
 The easiest way to get started developing with `socialagi` is to check out the [`/example-webapp`](https://github.com/opensouls/socialagi-ex-webapp) or explore the [documentation](http://socialagi.dev).
 
-## 🧠  Documentation
+## 🧠 Documentation
 
 Check out the full documentation at [socialagi.dev](http://socialagi.dev)!
 
