@@ -1,7 +1,7 @@
 {
   "name": "socialagi",
-  "version": "0.0.25",
-  "description": "Simple, opinionated framework for creating AI souls",
+  "version": "0.0.26",
+  "description": "Practical Tools for Guiding LLM Cognition",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
