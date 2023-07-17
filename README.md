@@ -14,7 +14,7 @@ Check out [Meet Samantha](http://meetsamantha.ai)
 
 Running off SocialAGI
 
-```
+```javascript
 import { Soul, Blueprints } from "socialagi";
 
 const samantha = new Soul(Blueprints.SAMANTHA);
