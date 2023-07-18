@@ -16,7 +16,7 @@ const samantha = new Soul(Blueprints.SAMANTHA);
 
 samantha.on("says", console.log);
 
-samantha.tell("Hi Samantha!)
+samantha.tell("Hi Samantha!);
 ```
 
 ## 🤔 What is this?
