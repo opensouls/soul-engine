@@ -1,7 +1,7 @@
 {
   "name": "socialagi",
-  "version": "0.0.26",
-  "description": "Practical Tools for Guiding LLM Cognition",
+  "version": "0.0.27",
+  "description": "Subroutines for AI Souls",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
