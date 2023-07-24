@@ -1,0 +1,168 @@
+.App {
+  width: 100%;
+  height: 100%;
+  background-color: var(--ifm-background-color);
+}
+
+
+.containerTest {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+.panel {
+  height: 100vh;
+  flex: 1;
+  box-sizing: border-box;
+  padding: 0px;
+  overflow: auto;
+  flex-direction: column;
+}
+
+.editorPreambleMessages {
+}
+
+.messages {
+  flex: 1;
+  overflow: auto;
+  overflow-y: scroll;
+  margin-left: 20px;
+  margin-right: 20px;
+  margin-top: 20px;
+}
+
+input[type='text'] {
+  width: 80%;
+  padding: 5px;
+  font-size: 14px;
+}
+
+button {
+  padding: 5px 10px;
+}
+
+.runBtnContainer {
+  height: 74px;
+  width: 100%;
+  padding: 18px;
+}
+
+.runBtn {
+  background-color: var(--ifm-breadcrumb-item-background-active);
+  width: 100%;
+  border-color: transparent;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.runBtnEmph {
+  color: var(--ifm-breadcrumb-color-active);
+}
+
+.ace_editor {
+    background: var(--prism-background-color);
+}
+
+.panelDivider {
+  height: 100vh;
+  width: 1px;
+  background-color: var(--ifm-color-emphasis-300);
+}
+
+.run-code-button-chevron {
+  margin: -5px;
+}
+
+.user-message {
+  background-color: var(--ifm-breadcrumb-item-background-active);
+}
+
+.non-user-message {
+  background-color: var(--ifm-breadcrumb-item-background-active);
+}
+
+.log {
+  background-color: var(--ifm-breadcrumb-item-background-active);
+}
+
+input {
+  background-color: transparent;
+  border-radius: 5px;
+  padding: 14px !important;
+  outline: none;
+  border: 0px solid var(--ifm-color-emphasis-300);
+}
+
+form {
+  margin-left: 10px;
+  flex: 1;
+}
+
+.submit-btn {
+  background-color: transparent;
+  border: transparent;
+}
+
+.submit-group {
+  border: 1px solid var(--ifm-color-emphasis-300);
+  display: flex;
+  flex-direction: row;
+  margin: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.1);
+}
+
+.send-btn {
+  margin-top: 2px;
+  margin-bottom: -2px;
+  margin-right: 3px;
+  position: relative;
+  color: var(--ifm-color-emphasis-300);
+}
+
+.active {
+  color: var(--ifm-breadcrumb-color-active) !important;
+}
+
+.ace-editor-div {
+  height: calc(100vh - 74px);
+}
+
+.message-container {
+  background-color: var(--ifm-breadcrumb-item-background-active);
+  padding: 5px;
+  padding-left: 10px;
+  padding-right: 10px;
+  margin-top: 2px;
+  border-radius: 4px;
+}
+
+.message-container-log {
+  padding-left: 10px;
+  padding-right: 10px;
+  border-radius: 4px;
+  color: var(--ifm-color-emphasis-300);
+  font-style: italic;
+  font-size: 13px;
+}
+
+.message-heading {
+  font-style: italic;
+  font-weight: bold;
+  color: var(--ifm-color-emphasis-600);
+  font-size: 14px;
+}
+
+.message-heading-log {
+  font-style: italic;
+  margin-right: 20px;
+  color: var(--ifm-color-emphasis-200);
+  font-size: 13px;
+}
+
+.log-container {
+  display: flex;
+  flex-direction: row;
+  margin-top: -10px;
+}
