@@ -101,6 +101,7 @@ form {
 .submit-btn {
   background-color: transparent;
   border: transparent;
+  cursor: pointer;
 }
 
 .submit-group {

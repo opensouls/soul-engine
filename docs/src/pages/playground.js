@@ -59,9 +59,11 @@ function Playground() {
   }, [messages]);
 
   const handleChatInput = (e) => {
-    e.preventDefault();
-    playground.addUserMessage(inputText);
-    setInputText("");
+    if (inputText?.length > 0) {
+      e.preventDefault();
+      playground.addUserMessage(inputText);
+      setInputText("");
+    }
   };
 
   const handleEditorChange = (newValue) => {
@@ -222,7 +224,11 @@ function Playground() {
                 placeholder="Send message..."
               />
             </form>
-            <button type="submit" className="submit-btn">
+            <button
+              onClick={handleChatInput}
+              type="submit"
+              className="submit-btn"
+            >
               <IoIosSend
                 className={"send-btn" + (inputText.length > 0 ? " active" : "")}
                 size={26}
