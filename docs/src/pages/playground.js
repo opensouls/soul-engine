@@ -121,6 +121,18 @@ function Playground() {
     }
   };
 
+  const [showLogs, setShowLogs] = useState(true);
+
+  const handleToggle = () => {
+    setShowLogs(!showLogs);
+    chatEndRef.current.scrollTop = chatEndRef.current.scrollHeight;
+  };
+
+  const numberLogs = messages.filter((msg) => msg.sender !== "log").length;
+  const shownMessages = messages.filter(
+    (msg) => (!showLogs && msg.sender !== "log") || showLogs
+  );
+
   return (
     <div className="App">
       <div className="containerTest">
@@ -153,27 +165,50 @@ function Playground() {
           className="panel"
           style={{ display: "flex", flexDirection: "column" }}
         >
-          <ApiKeyPopup
-            showPopupOverride={enterApiKey}
-            resetShowPopupOverride={() => setEnterApiKey(false)}
-          />
+          <div className="settings">
+            <button onClick={handleToggle} className="apiButton">
+              {showLogs
+                ? "Hide Logs"
+                : "Show Logs" + (numberLogs > 0 ? ` (${numberLogs})` : "")}
+            </button>
+            <ApiKeyPopup
+              showPopupOverride={enterApiKey}
+              resetShowPopupOverride={() => setEnterApiKey(false)}
+            />
+          </div>
           <div className="messages" ref={chatEndRef}>
-            {messages.map((msg, index) => {
+            {shownMessages.map((msg, index) => {
               const isLog = msg.sender === "log";
               const isUser = msg.sender === "user";
+              const headingIsSameAsParent =
+                (shownMessages[index - 1] || {}).sender === msg.sender;
               return isLog ? (
                 <p className="log-container" key={index}>
-                  <div className="message-heading-log">{msg.sender}</div>
+                  <div
+                    className={
+                      "message-heading-log" +
+                      (headingIsSameAsParent ? " transparent" : "")
+                    }
+                  >
+                    {msg.sender}
+                  </div>
                   <div className="message-container-log">{msg.message}</div>
                 </p>
               ) : (
                 <p key={index}>
+                  {!headingIsSameAsParent && (
+                    <div
+                      className={"message-heading" + (isUser ? "" : " active")}
+                    >
+                      {isUser ? "you" : msg.sender}
+                    </div>
+                  )}
                   <div
-                    className={"message-heading" + (isUser ? "" : " active")}
+                    className="message-container"
+                    style={{ marginTop: headingIsSameAsParent ? -12 : null }}
                   >
-                    {isUser ? "you" : msg.sender}
+                    {msg.message}
                   </div>
-                  <div className="message-container">{msg.message}</div>
                 </p>
               );
             })}
