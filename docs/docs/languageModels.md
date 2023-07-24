@@ -4,7 +4,7 @@ sidebar_position: 8
 
 # Language Models
 
-The SocialAGI library is written primarily to interface with GPT3.5 and GPT4 from OpenAI using the OpenAI chat interface. However, the library decouples the interfaces directly from the chat models with the `LanguageModelProgramExecutor` and `ChatCompletionStreamer` interfaces. 
+The SocialAGI library is written primarily to interface with GPT3.5 and GPT4 from OpenAI using the OpenAI chat interface. However, the library decouples the interfaces directly from the chat models with the `LanguageModelProgramExecutor` and `ChatCompletionStreamer` interfaces.
 
 ## Interfaces
 
@@ -47,16 +47,18 @@ const streamer = new OpenAIStreamingChat(
   {},
   {
     model: "gpt-3.5-turbo",
-  }
+  },
 );
 ```
+
 and
+
 ```javascript
 const executor = new OpenAILanguageProgramProcessor(
   {},
   {
     model: "gpt-3.5-turbo",
-  }
+  },
 );
 ```
 

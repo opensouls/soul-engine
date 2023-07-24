@@ -8,7 +8,7 @@ sidebar_position: 3
 Let's review a simple example of using the **CortexScheduler** to help orchestrate calls to a discord bot. Here, we register the "SamanthaReplies" mental process with the scheduler, along with a memory initialization.
 
 ```javascript
-import {CortexStep, CortexScheduler} from "socialagi";
+import { CortexStep, CortexScheduler } from "socialagi";
 
 const samanthaReplies = async (signal, newMemory, lastStep) => {
   let step = lastStep;
@@ -25,10 +25,10 @@ const samanthaRepliesConfig = {
 };
 
 const initialMemories = [
-{
-  role: "system",
-  content: "<Context>You are modeling the mind of Samantha</Context>",
-},
+  {
+    role: "system",
+    content: "<Context>You are modeling the mind of Samantha</Context>",
+  },
 ];
 let firstStep = new CortexStep("Samantha");
 firstStep = firstStep.withMemory(initialMemories);
@@ -37,17 +37,19 @@ const cortex = new CortexScheduler(firstStep, {
 });
 cortex.register(samanthaRepliesConfig);
 ```
+
 Now, we have a scheduler that can dispatch events to the 'SamanthaReplies' mental process.
+
 ```javascript
 // ...
 
-discordClient.on('messageCreate', async message => {
+discordClient.on("messageCreate", async (message) => {
   cortex.dispatch("SamanthaReplies", {
     role: "user",
     content: message.content,
-    name: message.author.username
+    name: message.author.username,
   });
-})
+});
 ```
 
 ## "Double texting"
@@ -76,7 +78,5 @@ const cortex = new CortexScheduler(firstStep, {
   queuingStrategy: abortQueuingStrategy,
 });
 ```
+
 Now, this could be made further more realistic yet by modeling a random process (or even based on a LLM call) that decides to proceed or not.
-
-
-

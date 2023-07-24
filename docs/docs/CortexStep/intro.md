@@ -10,6 +10,7 @@ sidebar_position: 1
 CortexStep provides a structured approach to guide language models sequentially, similar to the way we assemble building blocks. Each instruction and its resulting output are encapsulated within discrete 'steps'. This means you can build complex cognitive sequences without needing to manually handle the context directly.
 
 As a very simple example, consider this code snippet that has a Wizard asking 5 why questions before responding:
+
 ```javascript
 import {CortexStep} from "socialagi";
 

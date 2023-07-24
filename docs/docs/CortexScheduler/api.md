@@ -9,46 +9,49 @@ sidebar_position: 2
 
 Adhering to the principles of concurrency control, `CortexScheduler` ensures that no two jobs interfere with each other, providing a seamless and safe task management mechanism.
 
-## Key Concepts and Methods 
+## Key Concepts and Methods
 
 1. **Initialization of `CortexScheduler`**
 
    Initialize `CortexScheduler` by providing an initial `CortexStep`. If you want to customize job ordering, you can optionally supply a `QueuingStrategy`.
 
-    ```javascript
-    const cortexScheduler = new CortexScheduler(firstStep);
-    // Or with a custom QueuingStrategy
-    const cortexScheduler = new CortexScheduler(firstStep, { queuingStrategy: customQueuingStrategy });
-    ```
+   ```javascript
+   const cortexScheduler = new CortexScheduler(firstStep);
+   // Or with a custom QueuingStrategy
+   const cortexScheduler = new CortexScheduler(firstStep, {
+     queuingStrategy: customQueuingStrategy,
+   });
+   ```
 
 2. **Registration of Mental Processes with `register()`**
 
-    Use the `register()` method to add a new mental process. It requires a `ProcessConfig` object that includes the process `name` and the `process` function.
+   Use the `register()` method to add a new mental process. It requires a `ProcessConfig` object that includes the process `name` and the `process` function.
 
-    ```javascript
-    cortexScheduler.register({
-      name: 'ProcessName',
-      process: async (signal, newMemory, lastStep) => {
-        // Implement your process here
-      },
-    });
-    ```
+   ```javascript
+   cortexScheduler.register({
+     name: "ProcessName",
+     process: async (signal, newMemory, lastStep) => {
+       // Implement your process here
+     },
+   });
+   ```
 
 3. **Execution of a Mental Process via `dispatch()`**
 
-    The `dispatch()` method schedules a registered mental process to be executed when resources are next available. It takes the process `name` and a `newMemory` object as parameters. The `newMemory` object is a `ChatMessage` type, representing the current user message or a system-generated message. The method returns a `Promise` that resolves when the job is complete.
+   The `dispatch()` method schedules a registered mental process to be executed when resources are next available. It takes the process `name` and a `newMemory` object as parameters. The `newMemory` object is a `ChatMessage` type, representing the current user message or a system-generated message. The method returns a `Promise` that resolves when the job is complete.
 
-    ```javascript
-    // newMemory is of type ChatMessage
-    const newMemory = { role: 'user', content: 'Hello, AI!' };  
-    cortexScheduler.dispatch('ProcessName', newMemory)
-      .then(() => {
-        // Actions to perform after the job is done
-      })
-      .catch((error) => {
-        // Error handling
-      });
-    ```
+   ```javascript
+   // newMemory is of type ChatMessage
+   const newMemory = { role: "user", content: "Hello, AI!" };
+   cortexScheduler
+     .dispatch("ProcessName", newMemory)
+     .then(() => {
+       // Actions to perform after the job is done
+     })
+     .catch((error) => {
+       // Error handling
+     });
+   ```
 
 ## Queuing Strategy
 
@@ -59,7 +62,9 @@ const customQueuingStrategy = (currentJob, queue, newJob) => {
   // Define your custom queuing strategy
 };
 
-const cortexScheduler = new CortexScheduler(firstStep, { queuingStrategy: customQueuingStrategy });
+const cortexScheduler = new CortexScheduler(firstStep, {
+  queuingStrategy: customQueuingStrategy,
+});
 ```
 
 ## Managing Jobs

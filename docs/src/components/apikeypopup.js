@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import './ApiKeyPopup.css';
+import React, { useState } from "react";
+import "./ApiKeyPopup.css";
 
-function ApiKeyPopup({showPopupOverride, resetShowPopupOverride}) {
+function ApiKeyPopup({ showPopupOverride, resetShowPopupOverride }) {
   const [showPopup, setShowPopup] = useState(false);
-  const [apiKey, setApiKey] = useState('');
+  const [apiKey, setApiKey] = useState("");
 
   const handleChange = (event) => {
     setApiKey(event.target.value);
@@ -11,28 +11,30 @@ function ApiKeyPopup({showPopupOverride, resetShowPopupOverride}) {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    localStorage.setItem('apiKey', apiKey);
+    localStorage.setItem("apiKey", apiKey);
     setShowPopup(false);
   };
 
   React.useEffect(() => {
-      setApiKey(localStorage.getItem('apiKey'));
-  }, [])
+    setApiKey(localStorage.getItem("apiKey"));
+  }, []);
 
   const handleClick = () => {
     setShowPopup(true);
-    resetShowPopupOverride()
+    resetShowPopupOverride();
   };
 
   React.useEffect(() => {
-    setShowPopup(showPopupOverride)
-  }, [showPopupOverride])
+    setShowPopup(showPopupOverride);
+  }, [showPopupOverride]);
 
   return (
     <div className="ApiKeyPopup">
-      <button onClick={handleClick} className="apiButton">API Key</button>
+      <button onClick={handleClick} className="apiButton">
+        API Key
+      </button>
 
-      {showPopup &&
+      {showPopup && (
         <div className="overlay">
           <div className="popup">
             <form onSubmit={handleSubmit}>
@@ -44,7 +46,7 @@ function ApiKeyPopup({showPopupOverride, resetShowPopupOverride}) {
             </form>
           </div>
         </div>
-      }
+      )}
     </div>
   );
 }

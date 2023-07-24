@@ -35,7 +35,7 @@ Call your custom action using the `next` method:
 
 ```javascript
 let spec = { thought: "What is the nature of consciousness?" };
-step = await step.next('ponderThought', spec);
+step = await step.next("ponderThought", spec);
 ```
 
 Note: Always reassign the result of the `next` call to your `CortexStep` instance, as each step returns a new instance, consistent with functional programming principles.

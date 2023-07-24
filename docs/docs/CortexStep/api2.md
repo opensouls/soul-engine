@@ -26,7 +26,7 @@ The `CortexStepOptions` object includes:
 let step = new CortexStep("Assistant", {
   pastCortexStep: previousStep,
   processor: new OpenAILanguageProgramProcessor(),
-  memories: [[{role: "system", content: "You are a helpful assistant."}]],
+  memories: [[{ role: "system", content: "You are a helpful assistant." }]],
   lastValue: "Solved a complex math problem",
 });
 ```
@@ -63,8 +63,8 @@ let answer = await step.queryMemory("What was the last user query?");
 
 ```javascript
 step = step.updateMemory(
-  memory => memory[0].role === "user",
-  memory => [...memory, { role: "assistant", content: "I remember this!" }]
+  (memory) => memory[0].role === "user",
+  (memory) => [...memory, { role: "assistant", content: "I remember this!" }],
 );
 ```
 
@@ -77,5 +77,5 @@ This `value` can be very useful in chaining actions where the output of one acti
 ```javascript
 let value = step.value;
 ```
-  
+
 Remember, the `CortexStep` class is designed to be functional - that is, none of its methods alter the state of the existing instance. Instead, they return a new instance with the updated state. This design allows for easy chaining of actions and states while maintaining immutability.

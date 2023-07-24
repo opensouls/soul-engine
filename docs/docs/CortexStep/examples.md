@@ -14,19 +14,22 @@ Let's dive right in!
 Using CortexStep can be thought of as building up a set of memories, and then performing functional, append-only manipulations on those memories. Here is a simple example that initializes a `CortexStep` with memories of being a helpful AI assitant.
 
 ```javascript
-import {CortexStep} from "socialagi";
+import { CortexStep } from "socialagi";
 
-let step = new CortexStep("A Helpful Assistant")
+let step = new CortexStep("A Helpful Assistant");
 const initialMemory = [
   {
     role: ChatMessageRoleEnum.System,
-    content: "<CONTEXT>You are modeling the mind of a helpful AI assitant</CONTEXT>",
+    content:
+      "<CONTEXT>You are modeling the mind of a helpful AI assitant</CONTEXT>",
   },
 ];
 
 step = step.withMemory(initialMemory);
 ```
+
 Then, during an event loop, `withReply(...)` would be called with a memory of each new message:
+
 ```javascript
 async function withReply(step: CortexStep, newMessage: ChatMessage): CortexStep {
   let nextStep = step.withMemory(newMessage);
@@ -69,7 +72,7 @@ async function withIntrospectiveReply(step: CortexStep, newMessage: ChatMessage)
 
 ## Decision making
 
-Moving beyond a simple dialog agent, the `CortexStep` paradigm easily supports decision making.  
+Moving beyond a simple dialog agent, the `CortexStep` paradigm easily supports decision making.
 
 In this example, we tell an agentic detective to think through a set of case memories before making a decision on what action to take.
 
@@ -81,22 +84,22 @@ async function caseDecision(caseMemories: ChatMessage[]): string {
     content: "<Context>You are modeling the mind of a detective who is currently figuring out a complicated case</Context>",
   },
   ];
-  
+
   let cortexStep = new CortexStep("Detective");
   cortexStep = cortexStep
       .withMemory(initialMemory)
       .withMemory(caseMemories);
-  
+
   const analysis = await cortexStep.next(Action.INTERNAL_MONOLOGUE, {
     action: "analyses",
     description: "The detective analyses the evidence",
   });
-  
+
   const hypothesis = await analysis.next(Action.INTERNAL_MONOLOGUE, {
     action: "hypothesizes",
     description: "The detective makes a hypothesis based on the analysis",
   });
-  
+
   const nextStep = await hypothesis.next(Action.DECISION, {
     description: "Decides the next step based on the hypothesis",
     choices: ["interview suspect", "search crime scene", "check alibi"],
@@ -108,7 +111,7 @@ async function caseDecision(caseMemories: ChatMessage[]): string {
 
 ## Brainstorming
 
-Similar to decision making which narrows effective context scope, `CortexStep` supports brainstorming actions that expand scope. As opposed to choosing from a list of options, a new list of options is generated. 
+Similar to decision making which narrows effective context scope, `CortexStep` supports brainstorming actions that expand scope. As opposed to choosing from a list of options, a new list of options is generated.
 
 In this example, we ask a chef to consider a basket of ingredients, then brainstorm what dishes could be made.
 
@@ -120,21 +123,21 @@ async function makeDishSuggestions(ingredientsMemories: ChatMessage[]): string[]
       content: "<Context>You are modeling the mind of a chef who is preparing a meal</Context>",
     },
   ];
-  
+
   let cortexStep = new CortexStep("Chef");
   cortexStep = cortexStep
     .withMemory(initialMemory)
     .withMemory(ingredientsMemories);
-  
+
   const ingredients = await cortexStep.next(Action.INTERNAL_MONOLOGUE, {
     action: "considers",
     description: "The chef considers the ingredients",
   });
-  
+
   const mealIdeas = await ingredients.next(Action.BRAINSTORM_ACTIONS, {
     actionsForIdea: "Decides the meal to prepare",
   });
-  
+
   return mealIdeas.value;
 }
 ```
@@ -185,10 +188,10 @@ let step = await cortexStep.next(Action.EXTERNAL_DIALOG, {
 });
 
 let confession;
-while(true) {
-  // withUserSuspectInput awaits for the suspect's input, then adds to the CortexStep 
+while (true) {
+  // withUserSuspectInput awaits for the suspect's input, then adds to the CortexStep
   [step, possibleConfession] = await withUserSuspectInput(step);
-  
+
   // The detective asks a probing question
   step = await step.next(Action.EXTERNAL_DIALOG, {
     action: "probes",
@@ -219,13 +222,13 @@ let decision;
 let processingTime = 0;
 const N = 10; // Arbitrary threshold
 
-while(processingTime <= N) {
+while (processingTime <= N) {
   // ...
 
   // Increase processing time
   processingTime++;
 
-  // If the processing time is reaching the limit, the detective feels 
+  // If the processing time is reaching the limit, the detective feels
   // the pressure and might give up
   if (processingTime > N) {
     let step = await step.next(Action.INTERNAL_MONOLOGUE, {
@@ -298,7 +301,8 @@ if (quest.value === "slay dragon") {
   if (quest.value === "search old records") {
     let quest = await quest.next(Action.ACTION, {
       action: "searches",
-      description: "Protagonist searches old records for clues about the artifact",
+      description:
+        "Protagonist searches old records for clues about the artifact",
     });
   } else {
     let quest = await quest.next(Action.ACTION, {
@@ -315,7 +319,7 @@ One could of course extend this model further with subsequent memories to provid
 
 ## Map-reduce ("Tree of thoughts")
 
-Map reduce is a very common pattern for complex data processing. In the LLM world, map-reduce is now often known as "Tree of thoughts". Here is an example that models a complex decision making process that maps an evaluation across several different options before merging them and making a final decision. 
+Map reduce is a very common pattern for complex data processing. In the LLM world, map-reduce is now often known as "Tree of thoughts". Here is an example that models a complex decision making process that maps an evaluation across several different options before merging them and making a final decision.
 
 ```javascript
 async function withAdvisorDecision(crisisMemory: ChatMessage[]): CortexStep {
@@ -359,24 +363,3 @@ async function withAdvisorDecision(crisisMemory: ChatMessage[]): CortexStep {
   return recommendation
 }
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

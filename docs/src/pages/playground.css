@@ -4,7 +4,6 @@
   background-color: var(--ifm-background-color);
 }
 
-
 .containerTest {
   display: flex;
   height: 100vh;
@@ -32,7 +31,7 @@
   margin-top: 20px;
 }
 
-input[type='text'] {
+input[type="text"] {
   width: 80%;
   padding: 5px;
   font-size: 14px;
@@ -61,7 +60,7 @@ button {
 }
 
 .ace_editor {
-    background: var(--prism-background-color);
+  background: var(--prism-background-color);
 }
 
 .panelDivider {

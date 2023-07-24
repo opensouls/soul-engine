@@ -84,10 +84,10 @@ async function addDialogLine(text: string) {
     const newProcess = await decision.next(Action.BRAINSTORM_ACTIONS, {
       actionsForIdea:
         `Previously, ${blueprint.name} used the following INTERNAL METACOGNITION to think to themselves before speaking: [${intermediateThoughtProcess}]. Now, REVISE the INTERNAL METACOGNITION, adding, deleting, or modifying the processes.
-        
+
 For example. Revise [process1, process2] to [process1', process4, process5]. The revised processes must be different than the prior ones.
 
-MAKE SURE the new actions are all parts of one's INTERNAL thought process PRIOR to speaking to the user, directed at oneself. Actions like provoking are all more external and don't qualify.   
+MAKE SURE the new actions are all parts of one's INTERNAL thought process PRIOR to speaking to the user, directed at oneself. Actions like provoking are all more external and don't qualify.
 `.trim(),
     });
     intermediateThoughtProcess = newProcess.value as string[];
@@ -108,22 +108,3 @@ rl.on("line", async (line) => {
   }
 });
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
