@@ -43,16 +43,6 @@ function Playground() {
   const playground = useRef(new PlaygroundAPI()).current;
 
   useEffect(() => {
-    playground.on("message", (message) => {
-      setMessages((prev) => [...prev, message]);
-    });
-
-    playground.on("log", (log) => {
-      setMessages((prev) => [...prev, { sender: "log", message: log }]);
-    });
-  }, []);
-
-  useEffect(() => {
     if (chatEndRef.current) {
       chatEndRef.current.scrollTop = chatEndRef.current.scrollHeight;
     }
@@ -83,6 +73,13 @@ function Playground() {
       setEnterApiKey(true);
       return;
     }
+    playground.reset();
+    playground.on("message", (message) => {
+      setMessages((prev) => [...prev, message]);
+    });
+    playground.on("log", (log) => {
+      setMessages((prev) => [...prev, { sender: "log", message: log }]);
+    });
     setLastRunCode(editorCode);
     const exposedAPI = {
       addMessage: (message) => {
@@ -130,7 +127,7 @@ function Playground() {
     chatEndRef.current.scrollTop = chatEndRef.current.scrollHeight;
   };
 
-  const numberLogs = messages.filter((msg) => msg.sender !== "log").length;
+  const numberLogs = messages.filter((msg) => msg.sender === "log").length;
   const shownMessages = messages.filter(
     (msg) => (!showLogs && msg.sender !== "log") || showLogs
   );
@@ -168,11 +165,13 @@ function Playground() {
           style={{ display: "flex", flexDirection: "column" }}
         >
           <div className="settings">
-            <button onClick={handleToggle} className="apiButton">
-              {showLogs
-                ? "Hide Logs"
-                : "Show Logs" + (numberLogs > 0 ? ` (${numberLogs})` : "")}
-            </button>
+            {numberLogs > 0 && (
+              <button onClick={handleToggle} className="apiButton">
+                {showLogs
+                  ? "Hide Logs"
+                  : "Show Logs" + (numberLogs > 0 ? ` (${numberLogs})` : "")}
+              </button>
+            )}
             <ApiKeyPopup
               showPopupOverride={enterApiKey}
               resetShowPopupOverride={() => setEnterApiKey(false)}

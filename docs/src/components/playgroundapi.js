@@ -15,6 +15,10 @@ export class PlaygroundAPI {
     });
   }
 
+  reset() {
+    this.observers = [];
+  }
+
   addMessage(message) {
     this.emit("message", message);
   }
