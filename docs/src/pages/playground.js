@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Editor from "../components/editor";
 import PlaygroundAPI from "../components/playgroundapi";
 import { IoIosSend } from "react-icons/io";
+import Layout from "@theme/Layout";
 
 import * as socialagi from "socialagi";
 
@@ -133,110 +134,124 @@ function Playground() {
   );
 
   return (
-    <div className="App">
-      <div className="containerTest">
-        <div className="panel">
-          <div className="runBtnContainer">
-            <button
-              className={`runBtn` + (codeUpdated ? " runBtnEmph" : "")}
-              onClick={runUserCode}
-            >
-              <div className="clean-btn tocCollapsibleButton run-code-button-chevron">
-                {codeUpdated
-                  ? lastRunCode?.length > 0
-                    ? `Restart SocialAGI`
-                    : "Run SocialAGI"
-                  : `Run${lastRunCode?.length > 0 ? "ning" : ""} SocialAGI${
-                      lastRunCode?.length > 0 ? "..." : ""
-                    }`}
-              </div>
-            </button>
-          </div>
-          <div className="ace-editor-div">
-            <Editor
-              editorCode={editorCode}
-              handleEditorChange={handleEditorChange}
-            />
-          </div>
-        </div>
-        <div className="panelDivider" />
-        <div
-          className="panel"
-          style={{ display: "flex", flexDirection: "column" }}
-        >
-          <div className="settings">
-            {numberLogs > 0 && (
-              <button onClick={handleToggle} className="apiButton">
-                {showLogs
-                  ? "Hide Logs"
-                  : "Show Logs" + (numberLogs > 0 ? ` (${numberLogs})` : "")}
+    <Layout
+      title="Playground"
+      description="Try out SocialAGI in the Playground"
+    >
+      <div className="App">
+        <div className="containerTest">
+          <div className="panel">
+            <div className="runBtnContainer">
+              <button
+                className={`runBtn` + (codeUpdated ? " runBtnEmph" : "")}
+                onClick={runUserCode}
+              >
+                <div className="clean-btn tocCollapsibleButton run-code-button-chevron">
+                  {codeUpdated
+                    ? lastRunCode?.length > 0
+                      ? `Restart SocialAGI`
+                      : "Run SocialAGI"
+                    : `Run${lastRunCode?.length > 0 ? "ning" : ""} SocialAGI${
+                        lastRunCode?.length > 0 ? "..." : ""
+                      }`}
+                </div>
               </button>
-            )}
-            <ApiKeyPopup
-              showPopupOverride={enterApiKey}
-              resetShowPopupOverride={() => setEnterApiKey(false)}
-            />
+            </div>
+            <div className="ace-editor-div">
+              <Editor
+                editorCode={editorCode}
+                handleEditorChange={handleEditorChange}
+              />
+            </div>
           </div>
-          <div className="messages" ref={chatEndRef}>
-            {shownMessages.map((msg, index) => {
-              const isLog = msg.sender === "log";
-              const isUser = msg.sender === "user";
-              const headingIsSameAsParent =
-                (shownMessages[index - 1] || {}).sender === msg.sender;
-              return isLog ? (
-                <p className="log-container" key={index}>
-                  <div
-                    className={
-                      "message-heading-log" +
-                      (headingIsSameAsParent ? " transparent" : "")
-                    }
-                  >
-                    {msg.sender}
-                  </div>
-                  <div className="message-container-log">{msg.message}</div>
-                </p>
-              ) : (
-                <p key={index}>
-                  {!headingIsSameAsParent && (
+          <div className="panelDivider" />
+          <div
+            className="panel"
+            style={{ display: "flex", flexDirection: "column" }}
+          >
+            <div className="settings">
+              {numberLogs > 0 && (
+                <button onClick={handleToggle} className="apiButton">
+                  {showLogs
+                    ? "Hide Logs"
+                    : "Show Logs" + (numberLogs > 0 ? ` (${numberLogs})` : "")}
+                </button>
+              )}
+              <ApiKeyPopup
+                showPopupOverride={enterApiKey}
+                resetShowPopupOverride={() => setEnterApiKey(false)}
+              />
+            </div>
+            <div className="messages" ref={chatEndRef}>
+              {shownMessages.map((msg, index) => {
+                const isLog = msg.sender === "log";
+                const isUser = msg.sender === "user";
+                const headingIsSameAsParent =
+                  (shownMessages[index - 1] || {}).sender === msg.sender;
+                return isLog ? (
+                  <p className="log-container" key={index}>
                     <div
-                      className={"message-heading" + (isUser ? "" : " active")}
+                      className={
+                        "message-heading-log" +
+                        (headingIsSameAsParent ? " transparent" : "")
+                      }
                     >
-                      {isUser ? "you" : msg.sender}
+                      {msg.sender}
                     </div>
-                  )}
-                  <div
-                    className="message-container"
-                    style={{ marginTop: headingIsSameAsParent ? -12 : null }}
-                  >
-                    {msg.message}
-                  </div>
-                </p>
-              );
-            })}
-          </div>
-          <div className="submit-group">
-            <form onSubmit={handleChatInput}>
-              <input
-                type="text"
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                placeholder="Send message..."
-              />
-            </form>
-            <button
-              onClick={handleChatInput}
-              type="submit"
-              className="submit-btn"
-            >
-              <IoIosSend
-                className={"send-btn" + (inputText.length > 0 ? " active" : "")}
-                size={26}
-              />
-            </button>
+                    <div className="message-container-log">{msg.message}</div>
+                  </p>
+                ) : (
+                  <p key={index}>
+                    {!headingIsSameAsParent && (
+                      <div
+                        className={
+                          "message-heading" + (isUser ? "" : " active")
+                        }
+                      >
+                        {isUser ? "you" : msg.sender}
+                      </div>
+                    )}
+                    <div
+                      className="message-container"
+                      style={{ marginTop: headingIsSameAsParent ? -12 : null }}
+                    >
+                      {msg.message}
+                    </div>
+                  </p>
+                );
+              })}
+            </div>
+            <div className="submit-group">
+              <form onSubmit={handleChatInput}>
+                <input
+                  type="text"
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  placeholder="Send message..."
+                />
+              </form>
+              <button
+                onClick={handleChatInput}
+                type="submit"
+                className="submit-btn"
+              >
+                <IoIosSend
+                  className={
+                    "send-btn" + (inputText.length > 0 ? " active" : "")
+                  }
+                  size={26}
+                />
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+      <style global jsx>{`
+        footer {
+          display: none;
+        }
+      `}</style>
+    </Layout>
   );
 }
 

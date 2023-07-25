@@ -28,6 +28,7 @@ function Editor({ editorCode, handleEditorChange }) {
         enableSnippets: true,
         showLineNumbers: true,
         tabSize: 2,
+        printMargin: false,
       }}
     />
   );
