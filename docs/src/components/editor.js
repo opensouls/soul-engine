@@ -1,11 +1,17 @@
 import React from "react";
-import AceEditor from "react-ace";
 
-import "ace-builds/src-noconflict/mode-javascript";
-import "ace-builds/src-noconflict/theme-twilight";
-import "ace-builds/src-noconflict/ext-language_tools";
+const isBrowser = typeof window !== "undefined";
 
 function Editor({ editorCode, handleEditorChange }) {
+  if (!isBrowser) {
+    return null;
+  }
+  const AceEditor = require("react-ace").default;
+
+  require("ace-builds/src-noconflict/mode-javascript");
+  require("ace-builds/src-noconflict/theme-twilight");
+  require("ace-builds/src-noconflict/ext-language_tools");
+
   return (
     <AceEditor
       mode="javascript"
