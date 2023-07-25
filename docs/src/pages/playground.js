@@ -62,7 +62,20 @@ function Playground() {
 
   const chatEndRef = useRef(null);
 
-  const playground = useRef(new PlaygroundAPI()).current;
+  const [playground, setPlayground] = React.useState(new PlaygroundAPI());
+  useEffect(() => {
+    const addMessage = (message) => {
+      setMessages((prev) => [...prev, message]);
+    };
+    const addLog = (log) => {
+      setMessages((prev) => [...prev, { sender: "log", message: log }]);
+    };
+    playground.on("message", addMessage);
+    playground.on("log", addLog);
+    return () => {
+      playground.reset();
+    };
+  }, [playground]);
 
   useEffect(() => {
     if (chatEndRef.current) {
@@ -112,13 +125,8 @@ function Playground() {
       setEnterApiKey(true);
       return;
     }
-    playground.reset();
-    playground.on("message", (message) => {
-      setMessages((prev) => [...prev, message]);
-    });
-    playground.on("log", (log) => {
-      setMessages((prev) => [...prev, { sender: "log", message: log }]);
-    });
+    const newPlayground = new PlaygroundAPI();
+    setPlayground(newPlayground);
     setLastRunCode(editorCode);
     const history = JSON.parse(localStorage.getItem("editorHistory") || "[]");
     if ((history.slice(-1)[0] || [])?.code !== editorCode) {
@@ -127,13 +135,13 @@ function Playground() {
     }
     const exposedAPI = {
       addMessage: (message) => {
-        playground.addMessage(message);
+        newPlayground.addMessage(message);
       },
       log: (log) => {
-        playground.log(log);
+        newPlayground.log(log);
       },
       on: (eventName, fn) => {
-        playground.on(eventName, fn);
+        newPlayground.on(eventName, fn);
       },
     };
 
