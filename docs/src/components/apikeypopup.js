@@ -13,6 +13,7 @@ function ApiKeyPopup({ showPopupOverride, resetShowPopupOverride }) {
     event.preventDefault();
     localStorage.setItem("apiKey", apiKey);
     setShowPopup(false);
+    resetShowPopupOverride();
   };
 
   React.useEffect(() => {

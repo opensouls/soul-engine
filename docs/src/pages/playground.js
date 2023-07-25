@@ -79,7 +79,7 @@ function Playground() {
       return;
     }
     setMessages([]);
-    if ((localStorage.getItem("apiKey")?.length || 0) === 0) {
+    if (!((localStorage.getItem("apiKey")?.length || 0) > 0)) {
       setEnterApiKey(true);
       return;
     }
@@ -144,7 +144,7 @@ function Playground() {
               className={`runBtn` + (codeUpdated ? " runBtnEmph" : "")}
               onClick={runUserCode}
             >
-              <div className="clean-btn tocCollapsibleButton_node_modules-@docusaurus-theme-classic-lib-theme-TOCCollapsible-CollapseButton-styles-module run-code-button-chevron">
+              <div className="clean-btn tocCollapsibleButton run-code-button-chevron">
                 {codeUpdated
                   ? lastRunCode?.length > 0
                     ? `Restart SocialAGI`
