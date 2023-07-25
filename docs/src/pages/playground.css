@@ -143,6 +143,7 @@ form {
   padding-right: 10px;
   margin-top: 2px;
   border-radius: 4px;
+  color: var(--ifm-color-content);
 }
 
 .message-container-log {

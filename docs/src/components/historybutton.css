@@ -41,6 +41,7 @@ body {
   padding-top: 8px;
   cursor: pointer;
   margin-bottom: 3px;
+  color: var(--ifm-color-emphasis-700);
 }
 
 .history-button-update:hover {

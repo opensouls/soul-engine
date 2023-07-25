@@ -4,6 +4,7 @@ import PlaygroundAPI from "../components/playgroundapi";
 import { IoIosSend } from "react-icons/io";
 import Layout from "@theme/Layout";
 import { useHistory } from "react-router-dom";
+import BrowserOnly from "@docusaurus/BrowserOnly";
 
 import * as socialagi from "socialagi";
 
@@ -43,7 +44,7 @@ conversation.on("thinks", (text) => {
   playground.log(text)
 });`.trim();
 
-function Playground() {
+const BrowserPlayground = () => {
   const [messages, setMessages] = useState([
     // { sender: "user", message: "here's a bunch of text. Hello! Welcome!!!" },
     // { sender: "log", message: "here's a bunch of text. Hello! Welcome!!!" },
@@ -337,6 +338,10 @@ function Playground() {
       `}</style>
     </Layout>
   );
+};
+
+function Playground() {
+  return <BrowserOnly>{BrowserPlayground}</BrowserOnly>;
 }
 
 export default Playground;
