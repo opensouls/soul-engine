@@ -28,7 +28,8 @@
   overflow-y: scroll;
   margin-left: 20px;
   margin-right: 20px;
-  margin-top: 20px;
+  margin-top: 10px;
+  padding-top: 10px;
 }
 
 input[type="text"] {
@@ -149,8 +150,8 @@ form {
   padding-right: 10px;
   border-radius: 4px;
   color: var(--ifm-color-emphasis-300);
-  font-style: italic;
   font-size: 13px;
+  white-space: pre-line;
 }
 
 .message-heading {
@@ -171,6 +172,10 @@ form {
   display: flex;
   flex-direction: row;
   margin-top: -10px;
+}
+
+.log-container-bright {
+  color: var(--ifm-color-emphasis-600) !important;
 }
 
 .settings {

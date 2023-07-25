@@ -272,7 +272,14 @@ function Playground() {
                     >
                       {msg.sender}
                     </div>
-                    <div className="message-container-log">{msg.message}</div>
+                    <div
+                      className={
+                        "message-container-log" +
+                        (!showSendMessage ? " log-container-bright" : "")
+                      }
+                    >
+                      {msg.message}
+                    </div>
                   </p>
                 ) : (
                   <p key={index}>
