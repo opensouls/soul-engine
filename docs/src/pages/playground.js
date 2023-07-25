@@ -117,6 +117,7 @@ function Playground() {
 
   const history = useHistory();
   React.useEffect(() => history.listen(saveEditorHistory), [history]);
+  const [showSendMessage, setShowSendMessage] = React.useState(false);
 
   const codeUpdated = lastRunCode !== editorCode;
   const runUserCode = () => {
@@ -158,6 +159,15 @@ function Playground() {
         return `const ${importNames} = importMap['${libraryName}']`;
       }
     );
+    if (
+      processedCode.includes('playground.on("userMessage"') ||
+      processedCode.includes("playground.on('userMessage'") ||
+      processedCode.includes("playground.on(`userMessage`")
+    ) {
+      setShowSendMessage(true);
+    } else {
+      setShowSendMessage(false);
+    }
 
     try {
       window.process = {
@@ -285,29 +295,31 @@ function Playground() {
                 );
               })}
             </div>
-            <div className="submit-group">
-              <form onSubmit={handleChatInput}>
-                <input
-                  className="inter-font"
-                  type="text"
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  placeholder="Send message..."
-                />
-              </form>
-              <button
-                onClick={handleChatInput}
-                type="submit"
-                className="submit-btn"
-              >
-                <IoIosSend
-                  className={
-                    "send-btn" + (inputText.length > 0 ? " active" : "")
-                  }
-                  size={26}
-                />
-              </button>
-            </div>
+            {showSendMessage && (
+              <div className="submit-group">
+                <form onSubmit={handleChatInput}>
+                  <input
+                    className="inter-font"
+                    type="text"
+                    value={inputText}
+                    onChange={(e) => setInputText(e.target.value)}
+                    placeholder="Send message..."
+                  />
+                </form>
+                <button
+                  onClick={handleChatInput}
+                  type="submit"
+                  className="submit-btn"
+                >
+                  <IoIosSend
+                    className={
+                      "send-btn" + (inputText.length > 0 ? " active" : "")
+                    }
+                    size={26}
+                  />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
