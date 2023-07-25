@@ -3,6 +3,7 @@ import Editor from "../components/editor";
 import PlaygroundAPI from "../components/playgroundapi";
 import { IoIosSend } from "react-icons/io";
 import Layout from "@theme/Layout";
+import { useHistory } from "react-router-dom";
 
 import * as socialagi from "socialagi";
 
@@ -74,21 +75,23 @@ function Playground() {
 
   const lastEditorCode = React.useRef();
   lastEditorCode.current = editorCode;
+  const saveEditorHistory = () => {
+    const history = JSON.parse(localStorage.getItem("editorHistory") || "[]");
+    if ((history.slice(-1)[0] || [])?.code !== lastEditorCode.current) {
+      history.push({ code: lastEditorCode.current, timestamp: Date.now() });
+      localStorage.setItem("editorHistory", JSON.stringify(history));
+    }
+  };
   useEffect(() => {
-    const handleBeforeUnload = () => {
-      const history = JSON.parse(localStorage.getItem("editorHistory") || "[]");
-      if ((history.slice(-1)[0] || [])?.code !== lastEditorCode.current) {
-        history.push({ code: lastEditorCode.current, timestamp: Date.now() });
-        localStorage.setItem("editorHistory", JSON.stringify(history));
-      }
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("beforeunload", saveEditorHistory);
 
     return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("beforeunload", saveEditorHistory);
     };
   }, []);
+
+  const history = useHistory();
+  React.useEffect(() => history.listen(saveEditorHistory), [history]);
 
   const codeUpdated = lastRunCode !== editorCode;
   const runUserCode = () => {
