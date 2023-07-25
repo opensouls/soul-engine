@@ -2,10 +2,15 @@
 // get local copy of memory to work with
 // memory updates occur inbetween processes
 
-import { AbortController, AbortSignal } from "abort-controller";
+import {
+  AbortController as NodeAbortController,
+  AbortSignal,
+} from "abort-controller";
 import { CortexStep } from "./cortexStep";
 import { ChatMessage } from "./languageModels";
 import { Mutex } from "async-mutex";
+
+const AbortController = globalThis.AbortController || NodeAbortController;
 
 interface Job {
   process: MentalProcess;
@@ -149,7 +154,7 @@ export class CortexScheduler {
         nextJob = nextJob as Job;
         try {
           this.lastStep = await nextJob.process(
-            nextJob.abortController.signal,
+            nextJob.abortController.signal as AbortSignal,
             nextJob.newMemory,
             this.lastStep
           );
