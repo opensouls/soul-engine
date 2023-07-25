@@ -55,7 +55,7 @@ button {
   font-size: 14px;
 }
 
-.runBtnEmph {
+.runBtn:hover {
   color: var(--ifm-breadcrumb-color-active);
 }
 
@@ -71,6 +71,7 @@ button {
 
 .run-code-button-chevron {
   margin: -5px;
+  font-weight: bold;
 }
 
 .user-message {

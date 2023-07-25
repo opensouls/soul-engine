@@ -31,10 +31,10 @@ conversation.on("thinks", (text) => {
 
 function Playground() {
   const [messages, setMessages] = useState([
-    // {sender: "user", message: "here's a bunch of text. Hello! Welcome!!!"},
-    // {sender: "log", message: "here's a bunch of text. Hello! Welcome!!!"},
-    //   {sender: "log", message: "here's a bunch of text. Hello! Welcome!!!"},
-    //   {sender: "samantha", message: "Hey, yo! what up"}
+    // { sender: "user", message: "here's a bunch of text. Hello! Welcome!!!" },
+    // { sender: "log", message: "here's a bunch of text. Hello! Welcome!!!" },
+    // { sender: "log", message: "here's a bunch of text. Hello! Welcome!!!" },
+    // { sender: "samantha", message: "Hey, yo! what up" },
   ]);
   const [inputText, setInputText] = useState("");
   const [editorCode, setEditorCode] = useState(defaultCode);
@@ -66,9 +66,6 @@ function Playground() {
 
   const codeUpdated = lastRunCode !== editorCode;
   const runUserCode = () => {
-    if (!codeUpdated) {
-      return;
-    }
     setMessages([]);
     if (!((localStorage.getItem("apiKey")?.length || 0) > 0)) {
       setEnterApiKey(true);
@@ -142,18 +139,15 @@ function Playground() {
         <div className="containerTest">
           <div className="panel">
             <div className="runBtnContainer">
-              <button
-                className={`runBtn` + (codeUpdated ? " runBtnEmph" : "")}
-                onClick={runUserCode}
-              >
+              <button className={`runBtn`} onClick={runUserCode}>
                 <div className="clean-btn tocCollapsibleButton run-code-button-chevron">
                   {codeUpdated
                     ? lastRunCode?.length > 0
                       ? `Restart SocialAGI`
                       : "Run SocialAGI"
-                    : `Run${lastRunCode?.length > 0 ? "ning" : ""} SocialAGI${
-                        lastRunCode?.length > 0 ? "..." : ""
-                      }`}
+                    : lastRunCode?.length > 0
+                    ? `Restart SocialAGI`
+                    : "Run SocialAGI"}
                 </div>
               </button>
             </div>
@@ -224,6 +218,7 @@ function Playground() {
             <div className="submit-group">
               <form onSubmit={handleChatInput}>
                 <input
+                  className="inter-font"
                   type="text"
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
