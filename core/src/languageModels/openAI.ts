@@ -7,6 +7,7 @@ import {
   ExecutorResponse,
   FunctionSpecification,
   LanguageModelProgramExecutor,
+  LanguageModelProgramExecutorExecuteOptions,
 } from ".";
 
 export enum Model {
@@ -81,12 +82,15 @@ export class OpenAILanguageProgramProcessor
 
   async execute(
     messages: ChatMessage[],
-    requestParams: ChatCompletionParams = {},
+    requestParams: LanguageModelProgramExecutorExecuteOptions = {},
     functions: FunctionSpecification[] = [],
   ): Promise<ExecutorResponse> {
+    const { functionCall, ...restRequestParams } = requestParams;
+
     const params = {
       ...this.defaultParams,
-      ...requestParams,
+      ...restRequestParams,
+      function_call: functionCall,
       messages: messages,
     }
     if (functions.length > 0) {
