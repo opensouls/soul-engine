@@ -65,6 +65,7 @@
   },
   "dependencies": {
     "@types/react-dom": "^18.2.6",
+    "abort-controller": "^3.0.0",
     "async-mutex": "^0.4.0",
     "next": "^13.4.8",
     "openai": "^4.0.0-beta.0",
