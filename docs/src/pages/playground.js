@@ -8,6 +8,7 @@ import * as socialagi from "socialagi";
 
 import "./playground.css";
 import ApiKeyPopup from "../components/apikeypopup";
+import { HistoryButton, HistoryTimeline } from "../components/historybutton";
 
 const defaultCode = `
 import {Blueprints, Soul} from 'socialagi';
@@ -37,7 +38,14 @@ function Playground() {
     // { sender: "samantha", message: "Hey, yo! what up" },
   ]);
   const [inputText, setInputText] = useState("");
-  const [editorCode, setEditorCode] = useState(defaultCode);
+  const [editorCode, setEditorCode] = useState(
+    JSON.parse(localStorage.getItem("editorHistory") || "[{}]").slice(-1)[0]
+      ?.code || defaultCode
+  );
+
+  // React.useEffect(() => {
+  //   localStorage.setItem("editorHistory", "[]");
+  // }, []);
 
   const chatEndRef = useRef(null);
 
@@ -64,6 +72,24 @@ function Playground() {
   const [lastRunCode, setLastRunCode] = React.useState("");
   const [enterApiKey, setEnterApiKey] = React.useState(false);
 
+  const lastEditorCode = React.useRef();
+  lastEditorCode.current = editorCode;
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      const history = JSON.parse(localStorage.getItem("editorHistory") || "[]");
+      if ((history.slice(-1)[0] || [])?.code !== lastEditorCode.current) {
+        history.push({ code: lastEditorCode.current, timestamp: Date.now() });
+        localStorage.setItem("editorHistory", JSON.stringify(history));
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
+
   const codeUpdated = lastRunCode !== editorCode;
   const runUserCode = () => {
     setMessages([]);
@@ -79,6 +105,11 @@ function Playground() {
       setMessages((prev) => [...prev, { sender: "log", message: log }]);
     });
     setLastRunCode(editorCode);
+    const history = JSON.parse(localStorage.getItem("editorHistory") || "[]");
+    if ((history.slice(-1)[0] || [])?.code !== editorCode) {
+      history.push({ code: editorCode, timestamp: Date.now() });
+      localStorage.setItem("editorHistory", JSON.stringify(history));
+    }
     const exposedAPI = {
       addMessage: (message) => {
         playground.addMessage(message);
@@ -130,6 +161,9 @@ function Playground() {
     (msg) => (!showLogs && msg.sender !== "log") || showLogs
   );
 
+  const [historyVisible, setHistoryVisible] = useState(false);
+  const toggleHistory = () => setHistoryVisible(!historyVisible);
+
   return (
     <Layout
       title="Playground"
@@ -138,24 +172,37 @@ function Playground() {
       <div className="App">
         <div className="containerTest">
           <div className="panel">
-            <div className="runBtnContainer">
-              <button className={`runBtn`} onClick={runUserCode}>
-                <div className="clean-btn tocCollapsibleButton run-code-button-chevron">
-                  {codeUpdated
-                    ? lastRunCode?.length > 0
-                      ? `Restart SocialAGI`
-                      : "Run SocialAGI"
-                    : lastRunCode?.length > 0
-                    ? `Restart SocialAGI`
-                    : "Run SocialAGI"}
+            <div className="editor-container">
+              <div className="editor-plus-run">
+                <div className="runBtnContainer">
+                  <HistoryButton
+                    visible={historyVisible}
+                    toggleHistory={toggleHistory}
+                  />
+                  <button className={`runBtn`} onClick={runUserCode}>
+                    <div className="clean-btn tocCollapsibleButton run-code-button-chevron">
+                      {codeUpdated
+                        ? lastRunCode?.length > 0
+                          ? `Restart SocialAGI`
+                          : "Run SocialAGI"
+                        : lastRunCode?.length > 0
+                        ? `Restart SocialAGI`
+                        : "Run SocialAGI"}
+                    </div>
+                  </button>
                 </div>
-              </button>
-            </div>
-            <div className="ace-editor-div">
-              <Editor
-                editorCode={editorCode}
-                handleEditorChange={handleEditorChange}
-              />
+                <div className="ace-editor-div">
+                  <HistoryTimeline
+                    currentCode={editorCode}
+                    visible={historyVisible}
+                    updateEditorCode={setEditorCode}
+                  />
+                  <Editor
+                    editorCode={editorCode}
+                    handleEditorChange={handleEditorChange}
+                  />
+                </div>
+              </div>
             </div>
           </div>
           <div className="panelDivider" />

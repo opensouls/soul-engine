@@ -1,0 +1,67 @@
+body {
+  background-color: #222;
+  color: #eee;
+}
+
+.history {
+  position: relative;
+}
+
+.history-button {
+  background-color: transparent;
+  border: none;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  cursor: pointer;
+  margin-left: -4px;
+  margin-top: 6px;
+  margin-right: 6px;
+}
+
+.history-button:hover {
+  color: var(--ifm-breadcrumb-color-active);
+}
+
+.history-timeline {
+  display: none;
+  position: relative;
+  top: 0;
+  padding: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.history-button-update {
+  width: 100%;
+  background-color: transparent;
+  border: 0px;
+  font-weight: bold;
+  padding-bottom: 8px;
+  padding-top: 8px;
+  cursor: pointer;
+  margin-bottom: 3px;
+}
+
+.history-button-update:hover {
+  background-color: var(--ifm-breadcrumb-item-background-active);
+  border-radius: var(--ifm-global-radius);
+}
+
+.history-active {
+  background-color: var(--ifm-breadcrumb-item-background-active);
+  border-radius: var(--ifm-global-radius);
+}
+
+.history-timeline.visible {
+  display: block;
+}
+
+.rotate {
+  animation: rotate 1s linear;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
