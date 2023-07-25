@@ -1,5 +1,3 @@
-import { CompletionCreateParams } from "openai/dist/esm/resources";
-
 /**
  * Get the content of a tag in a response from OpenAI.
  */
@@ -19,13 +17,9 @@ export interface ChatCompletionStreamer {
   }>;
 }
 
-
 export interface LanguageModelProgramExecutorExecuteOptions {
   stop?: string;
-  functionCall?:
-  | 'none'
-  | 'auto'
-  | { name: string };
+  functionCall?: "none" | "auto" | { name: string };
 }
 
 export interface ExecutorResponse {
@@ -40,7 +34,7 @@ export interface LanguageModelProgramExecutor {
   execute(
     records: ChatMessage[],
     requestParams?: LanguageModelProgramExecutorExecuteOptions,
-    functions?: FunctionSpecification[],
+    functions?: FunctionSpecification[]
   ): Promise<ExecutorResponse>;
 }
 
