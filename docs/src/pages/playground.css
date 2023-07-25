@@ -65,7 +65,7 @@ button {
 
 .panelDivider {
   height: calc(100vh - var(--ifm-navbar-height));
-  width: 1px;
+  width: 0.5px;
   background-color: var(--ifm-color-emphasis-300);
 }
 
