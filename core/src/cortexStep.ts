@@ -1,5 +1,6 @@
 /* eslint-disable no-case-declarations */
-import { ChatMessage, LanguageModelProgramExecutor } from "./languageModels";
+import { ChatMessage, FunctionCall, FunctionSpecification, LanguageModelProgramExecutor, LanguageModelProgramExecutorExecuteOptions } from "./languageModels";
+import { FunctionRunner } from "./languageModels/functions";
 import { OpenAILanguageProgramProcessor } from "./languageModels/openAI";
 import { isAbstractTrue } from "./testing";
 import { devLog } from "./utils";
@@ -21,6 +22,9 @@ type DecisionSpec = {
 type BrainstormSpec = {
   actionsForIdea: string;
 };
+type CallFunctionSpec = {
+  functionCall: Partial<FunctionCall>;
+};
 type ActionCompletionSpec = {
   action: string;
   description?: string;
@@ -35,18 +39,21 @@ export enum Action {
   EXTERNAL_DIALOG,
   DECISION,
   BRAINSTORM_ACTIONS,
+  CALL_FUNCTION,
 }
 type NextSpec =
   | BrainstormSpec
   | DecisionSpec
   | ExternalDialogSpec
   | InternalMonologueSpec
-  | CustomSpec;
+  | CustomSpec
+  | CallFunctionSpec;
 type CortexNext = (step: CortexStep, spec: NextSpec) => Promise<CortexStep>;
 type NextActions = {
   [key: string]: CortexNext;
 };
-type CortexValue = null | string | string[];
+
+export type CortexValue = null | string | string[];
 
 function toCamelCase(str: string) {
   return str
@@ -88,6 +95,7 @@ export class CortexStep {
     this.extraNextActions = options?.extraNextActions || {
       ...(pastCortexStep?.extraNextActions || {}),
     };
+
     this.processor =
       options?.processor ||
       options?.pastCortexStep?.processor ||
@@ -150,7 +158,8 @@ export class CortexStep {
 
   public async next(
     type: Action | string,
-    spec: NextSpec
+    spec: NextSpec,
+    functions: FunctionRunner[] = [],
   ): Promise<CortexStep> {
     switch (type) {
       case Action.INTERNAL_MONOLOGUE:
@@ -158,13 +167,15 @@ export class CortexStep {
         return this.generateAction({
           action: monologueSpec.action,
           description: monologueSpec.description,
-        } as ActionCompletionSpec);
+        } as ActionCompletionSpec,
+        functions);
       case Action.EXTERNAL_DIALOG:
         const dialogSpec = spec as ExternalDialogSpec;
         return this.generateAction({
           action: dialogSpec.action,
           description: dialogSpec.description,
-        } as ActionCompletionSpec);
+        } as ActionCompletionSpec,
+        functions);
       case Action.DECISION:
         const decisionSpec = spec as DecisionSpec;
         const choicesList = decisionSpec.choices.map((c) => "choice=" + c);
@@ -177,7 +188,8 @@ export class CortexStep {
           action: "decides",
           prefix: `choice=`,
           description: `${description}Choose one of: ${choicesString}`,
-        } as ActionCompletionSpec);
+        } as ActionCompletionSpec,
+        functions);
       case Action.BRAINSTORM_ACTIONS:
         const brainstormSpec = spec as BrainstormSpec;
         return this.generateAction({
@@ -185,7 +197,12 @@ export class CortexStep {
           prefix: "actions=[",
           description: `${this.entityName} brainstorms ideas for ${brainstormSpec.actionsForIdea}. Output as comma separated list, e.g. actions=[action1,action2]`,
           outputAsList: true,
-        } as ActionCompletionSpec);
+        } as ActionCompletionSpec,
+        functions);
+      case Action.CALL_FUNCTION:
+        const callFunctionSpec = spec as CallFunctionSpec;
+
+        return this.callFunctionAction(callFunctionSpec, functions);
     }
     if (Object.keys(this.extraNextActions).includes(type)) {
       return this.extraNextActions[type](this, spec);
@@ -194,8 +211,42 @@ export class CortexStep {
     }
   }
 
+  private async callFunctionAction(
+    spec: CallFunctionSpec,
+    functions: FunctionRunner[],
+  ): Promise<CortexStep> {
+    const { functionCall } = spec;
+
+    const resp = await this.processor.execute(this.messages, {
+      functionCall: { name: functionCall?.name || "" },
+    });
+
+    const funcCall = resp.functionCall
+    if (funcCall === undefined) {
+      throw new Error("expecting function call");
+    }
+
+    return this.executeFunction(funcCall, functions)
+  }
+
+  private async executeFunction(functionCall: FunctionCall, functions:FunctionRunner[]): Promise<CortexStep> {
+    const fn = functions.find((f) => f.specification.name === functionCall.name);
+    if (fn === undefined) {
+      console.error("functions: ", functions, "does not include ", functionCall)
+      throw new Error(`function ${functionCall.name} not found`);
+    }
+
+    const { memories, lastValue } = await fn.run(JSON.parse(functionCall.arguments || "undefined")) || []
+
+    return new CortexStep(this.entityName, {
+      pastCortexStep: this,
+      lastValue: lastValue,
+    }).withMemory(memories);
+  }
+
   private async generateAction(
-    spec: ActionCompletionSpec
+    spec: ActionCompletionSpec,
+    functions: FunctionRunner[],
   ): Promise<CortexStep> {
     const { action, prefix, description, outputAsList } = spec;
     const beginning = `<${this.entityName}><${action}>${prefix || ""}`;
@@ -211,14 +262,24 @@ Reply in the output format: \`${beginning}[[fill in]]</${action}>\`. Double chec
       },
     ] as ChatMessage[];
     const instructions = this.messages.concat(nextInstructions);
-    devLog("instructions: " + instructions);
-    const { content: resp } = await this.processor.execute(instructions, {
-      stop: `</${action}`,
-    });
+    devLog("instructions: ", instructions, "functions: ", functions.map((f) => f.specification));
+    const { content: resp, functionCall } = await this.processor.execute(
+      instructions,
+      {
+        stop: `</${action}`,
+      },
+      functions.map((f) => f.specification),
+    );
     devLog("resp:", resp);
+
     if (!resp) {
-      throw new Error("missing response");
+      if (!functionCall) {
+        throw new Error("missing response and function call");
+      }
+      // console.log("function call!", functionCall)
+      return this.executeFunction(functionCall, functions)
     }
+
     const nextValue = resp.replace(/^[^>]*>{0,1}[^>]*>/g, "");
     devLog("next value: ", nextValue);
     const contextCompletion = [
