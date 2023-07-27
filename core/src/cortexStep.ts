@@ -23,7 +23,7 @@ type BrainstormSpec = {
   actionsForIdea: string;
 };
 type CallFunctionSpec = {
-  functionCall: Partial<FunctionCall>;
+  name: string
 };
 type ActionCompletionSpec = {
   action: string;
@@ -215,11 +215,15 @@ export class CortexStep {
     spec: CallFunctionSpec,
     functions: FunctionRunner[],
   ): Promise<CortexStep> {
-    const { functionCall } = spec;
+    const { name } = spec;
 
-    const resp = await this.processor.execute(this.messages, {
-      functionCall: { name: functionCall?.name || "" },
-    });
+    const resp = await this.processor.execute(
+      this.messages,
+      {
+        functionCall: { name },
+      },
+      functions.map((f) => f.specification),
+    );
 
     const funcCall = resp.functionCall
     if (funcCall === undefined) {
@@ -276,7 +280,6 @@ Reply in the output format: \`${beginning}[[fill in]]</${action}>\`. Double chec
       if (!functionCall) {
         throw new Error("missing response and function call");
       }
-      // console.log("function call!", functionCall)
       return this.executeFunction(functionCall, functions)
     }
 
