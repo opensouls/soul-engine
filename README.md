@@ -6,7 +6,7 @@
 
 ## 🤔 What is this?
 
-**SocialAGI** offers developers clean, simple, and extensible abstractions for directing the cognitive processes of large language models (LLMs). Advanced AI agents, entities, and souls will comprise thousands of linguistic instructions (formerly known as 'prompts'): our focus is on streamlining the management this complexity, freeing you to create more effective and engaging AI experiences.
+**SocialAGI** offers developers clean, simple, and extensible abstractions for directing the cognitive processes of large language models (LLMs). AI Souls will comprise thousands of linguistic instructions (formerly known as 'prompts'): our focus is on streamlining the management this complexity, freeing you to create more effective and engaging AI experiences.
 
 ## 💡 Hosted example
 
@@ -34,11 +34,11 @@ samantha.tell("Hi Samantha!")
 
 ## 💫 AI Souls
 
-SocialAGI aims to simplify the developer experience as much as possible in creating agentic chatbots called digital souls. Unlike traditional chatbots, digital souls have personality, drive, ego, and will.
+SocialAGI aims to simplify the developer experience as much as possible in creating agentic and embodied chatbots called AI Souls. Unlike traditional chatbots, digital souls have personality, drive, ego, and will.
 
 We are solving problems all the way across the AI souls stack, including:
 - How do I create the most lifelike AI entity?
-- How do I quickly host a digital soul?
+- How do I quickly host an AI soul?
 - How do I manage dialog and cognitive memory?
 - How do I get away from boring technical details and instead sculpt personalities?
 
