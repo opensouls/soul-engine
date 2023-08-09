@@ -1,5 +1,11 @@
 /* eslint-disable no-case-declarations */
-import { ChatMessage, FunctionCall, FunctionSpecification, LanguageModelProgramExecutor, LanguageModelProgramExecutorExecuteOptions } from "./languageModels";
+import {
+  ChatMessage,
+  FunctionCall,
+  FunctionSpecification,
+  LanguageModelProgramExecutor,
+  LanguageModelProgramExecutorExecuteOptions,
+} from "./languageModels";
 import { FunctionRunner } from "./languageModels/functions";
 import { OpenAILanguageProgramProcessor } from "./languageModels/openAI";
 import { isAbstractTrue } from "./testing";
@@ -9,10 +15,12 @@ type CortexStepMemory = ChatMessage[];
 type WorkingMemory = CortexStepMemory[];
 type InternalMonologueSpec = {
   action: string;
+  prefix?: string;
   description?: string;
 };
 type ExternalDialogSpec = {
   action: string;
+  prefix?: string;
   description?: string;
 };
 type DecisionSpec = {
@@ -23,7 +31,7 @@ type BrainstormSpec = {
   actionsForIdea: string;
 };
 type CallFunctionSpec = {
-  name: string
+  name: string;
 };
 type ActionCompletionSpec = {
   action: string;
@@ -69,12 +77,15 @@ function toCamelCase(str: string) {
     .join("");
 }
 
+type LLMCallLogger = (message: string) => void;
 interface CortexStepOptions {
   pastCortexStep?: CortexStep;
   processor?: LanguageModelProgramExecutor;
   memories?: WorkingMemory;
   lastValue?: CortexValue;
   extraNextActions?: NextActions;
+  llmCallLogger?: LLMCallLogger;
+  stackUpdateLogger?: LLMCallLogger;
 }
 
 // TODO - try something with fxn call api
@@ -82,6 +93,7 @@ export class CortexStep {
   private readonly _lastValue: CortexValue;
   private readonly extraNextActions: NextActions;
   private readonly processor: LanguageModelProgramExecutor;
+  private readonly llmCallLogger: LLMCallLogger;
 
   public readonly entityName: string;
   public readonly memories: WorkingMemory;
@@ -91,6 +103,8 @@ export class CortexStep {
     const pastCortexStep = options?.pastCortexStep;
     this.memories = options?.memories || pastCortexStep?.memories || [];
     this._lastValue = options?.lastValue || pastCortexStep?.lastValue || null;
+    const emptyFunc = () => null;
+    this.llmCallLogger = options?.llmCallLogger || emptyFunc;
 
     this.extraNextActions = options?.extraNextActions || {
       ...(pastCortexStep?.extraNextActions || {}),
@@ -100,6 +114,9 @@ export class CortexStep {
       options?.processor ||
       options?.pastCortexStep?.processor ||
       new OpenAILanguageProgramProcessor();
+    if (options?.stackUpdateLogger) {
+      options.stackUpdateLogger(this.toString());
+    }
   }
 
   protected get lastValue() {
@@ -111,6 +128,7 @@ export class CortexStep {
     return new CortexStep(this.entityName, {
       pastCortexStep: this,
       memories: nextMemories,
+      llmCallLogger: this.llmCallLogger,
     });
   }
 
@@ -159,23 +177,29 @@ export class CortexStep {
   public async next(
     type: Action | string,
     spec: NextSpec,
-    functions: FunctionRunner[] = [],
+    functions: FunctionRunner[] = []
   ): Promise<CortexStep> {
     switch (type) {
       case Action.INTERNAL_MONOLOGUE:
         const monologueSpec = spec as InternalMonologueSpec;
-        return this.generateAction({
-          action: monologueSpec.action,
-          description: monologueSpec.description,
-        } as ActionCompletionSpec,
-        functions);
+        return this.generateAction(
+          {
+            action: monologueSpec.action,
+            prefix: monologueSpec.prefix,
+            description: monologueSpec.description,
+          } as ActionCompletionSpec,
+          functions
+        );
       case Action.EXTERNAL_DIALOG:
         const dialogSpec = spec as ExternalDialogSpec;
-        return this.generateAction({
-          action: dialogSpec.action,
-          description: dialogSpec.description,
-        } as ActionCompletionSpec,
-        functions);
+        return this.generateAction(
+          {
+            action: dialogSpec.action,
+            prefix: dialogSpec.prefix,
+            description: dialogSpec.description,
+          } as ActionCompletionSpec,
+          functions
+        );
       case Action.DECISION:
         const decisionSpec = spec as DecisionSpec;
         const choicesList = decisionSpec.choices.map((c) => "choice=" + c);
@@ -184,21 +208,25 @@ export class CortexStep {
           decisionSpec.description !== undefined
             ? `${decisionSpec.description}. `
             : "";
-        return this.generateAction({
-          action: "decides",
-          prefix: `choice=`,
-          description: `${description}Choose one of: ${choicesString}`,
-        } as ActionCompletionSpec,
-        functions);
+        return this.generateAction(
+          {
+            action: "decides",
+            prefix: `choice=`,
+            description: `${description}Choose one of: ${choicesString}`,
+          } as ActionCompletionSpec,
+          functions
+        );
       case Action.BRAINSTORM_ACTIONS:
         const brainstormSpec = spec as BrainstormSpec;
-        return this.generateAction({
-          action: "brainstorms",
-          prefix: "actions=[",
-          description: `${this.entityName} brainstorms ideas for ${brainstormSpec.actionsForIdea}. Output as comma separated list, e.g. actions=[action1,action2]`,
-          outputAsList: true,
-        } as ActionCompletionSpec,
-        functions);
+        return this.generateAction(
+          {
+            action: "brainstorms",
+            prefix: "actions=[",
+            description: `${this.entityName} brainstorms ideas for ${brainstormSpec.actionsForIdea}. Output as comma separated list, e.g. actions=[action1,action2]`,
+            outputAsList: true,
+          } as ActionCompletionSpec,
+          functions
+        );
       case Action.CALL_FUNCTION:
         const callFunctionSpec = spec as CallFunctionSpec;
 
@@ -213,7 +241,7 @@ export class CortexStep {
 
   private async callFunctionAction(
     spec: CallFunctionSpec,
-    functions: FunctionRunner[],
+    functions: FunctionRunner[]
   ): Promise<CortexStep> {
     const { name } = spec;
 
@@ -222,35 +250,47 @@ export class CortexStep {
       {
         functionCall: { name },
       },
-      functions.map((f) => f.specification),
+      functions.map((f) => f.specification)
     );
 
-    const funcCall = resp.functionCall
+    const funcCall = resp.functionCall;
     if (funcCall === undefined) {
       throw new Error("expecting function call");
     }
 
-    return this.executeFunction(funcCall, functions)
+    return this.executeFunction(funcCall, functions);
   }
 
-  private async executeFunction(functionCall: FunctionCall, functions:FunctionRunner[]): Promise<CortexStep> {
-    const fn = functions.find((f) => f.specification.name === functionCall.name);
+  private async executeFunction(
+    functionCall: FunctionCall,
+    functions: FunctionRunner[]
+  ): Promise<CortexStep> {
+    const fn = functions.find(
+      (f) => f.specification.name === functionCall.name
+    );
     if (fn === undefined) {
-      console.error("functions: ", functions, "does not include ", functionCall)
+      console.error(
+        "functions: ",
+        functions,
+        "does not include ",
+        functionCall
+      );
       throw new Error(`function ${functionCall.name} not found`);
     }
 
-    const { memories, lastValue } = await fn.run(JSON.parse(functionCall.arguments || "undefined")) || []
+    const { memories, lastValue } =
+      (await fn.run(JSON.parse(functionCall.arguments || "undefined"))) || [];
 
     return new CortexStep(this.entityName, {
       pastCortexStep: this,
       lastValue: lastValue,
+      llmCallLogger: this.llmCallLogger,
     }).withMemory(memories);
   }
 
   private async generateAction(
     spec: ActionCompletionSpec,
-    functions: FunctionRunner[],
+    functions: FunctionRunner[]
   ): Promise<CortexStep> {
     const { action, prefix, description, outputAsList } = spec;
     const beginning = `<${this.entityName}><${action}>${prefix || ""}`;
@@ -261,26 +301,38 @@ export class CortexStep {
         content: `
 Now, for ${this.entityName}, model ${model}.
 
-Reply in the output format: \`${beginning}[[fill in]]</${action}>\`. Double check you are returning valid XML.
+Reply in the output format: \`${beginning}[[fill in]]</${action}></${this.entityName}>\`. Double check you are returning valid XML.
 `.trim(),
       },
     ] as ChatMessage[];
     const instructions = this.messages.concat(nextInstructions);
-    devLog("instructions: ", instructions, "functions: ", functions.map((f) => f.specification));
+    devLog(
+      "instructions: ",
+      instructions,
+      "functions: ",
+      functions.map((f) => f.specification)
+    );
+
+    this.llmCallLogger(
+      `Instructions sent to LLM on stop </${action}:` +
+        JSON.stringify(instructions)
+    );
     const { content: resp, functionCall } = await this.processor.execute(
       instructions,
       {
         stop: `</${action}`,
       },
-      functions.map((f) => f.specification),
+      functions.map((f) => f.specification)
     );
     devLog("resp:", resp);
+
+    this.llmCallLogger(`Received from LLM:` + resp);
 
     if (!resp) {
       if (!functionCall) {
         throw new Error("missing response and function call");
       }
-      return this.executeFunction(functionCall, functions)
+      return this.executeFunction(functionCall, functions);
     }
 
     const nextValue = resp.replace(/^[^>]*>{0,1}[^>]*>/g, "");
@@ -305,6 +357,7 @@ ${beginning}${nextValue}</${action}></${this.entityName}>
       pastCortexStep: this,
       lastValue: outputAsList ? parsedNextValue : nextValue,
       memories: nextMemories,
+      llmCallLogger: this.llmCallLogger,
     });
   }
 
@@ -344,6 +397,7 @@ Use the output format <UNFILTERED_ANSWER>[[fill in]]</UNFILTERED_ANSWER>
     return new CortexStep(this.entityName, {
       pastCortexStep: this,
       memories: nextMemories,
+      llmCallLogger: this.llmCallLogger,
     });
   }
 }
