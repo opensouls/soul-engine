@@ -6,20 +6,13 @@
     "sourceType": "module"
   },
   "env": {
-    "node": true,
-    "jest/globals": true
+    "node": true
   },
   "extends": [
     "eslint:recommended",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:prettier/recommended"
+    "plugin:@typescript-eslint/recommended"
   ],
   "plugins": [
-    "@typescript-eslint",
-    "prettier",
-    "jest"
-  ],
-  "rules": {
-    "jest/expect-expect": "error"
-  }
+    "@typescript-eslint"
+  ]
 }
