@@ -8,7 +8,7 @@
     "esModuleInterop": true,
     "declaration": true,
     "types": ["node", "mocha"],
-    "moduleResolution": "node",
+    "moduleResolution": "Node16",
   },
   "include": ["src/**/*", "tests/**/*"],
   "exclude": ["node_modules"]
