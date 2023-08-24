@@ -37,7 +37,7 @@ export class OpenAIStreamingChat implements ChatCompletionStreamer {
   ) {
     this.client = new OpenAI(openAIConfig);
     this.defaultParams = {
-      model: Model.GPT_3_5_turbo_16k,
+      model: Model.GPT_3_5_turbo,
       stream: true,
       ...defaultParams,
     };
@@ -74,7 +74,7 @@ export class OpenAILanguageProgramProcessor
   ) {
     this.client = new OpenAI(openAIConfig);
     this.defaultParams = {
-      model: Model.GPT_3_5_turbo_16k,
+      model: Model.GPT_3_5_turbo,
       ...defaultParams,
       stream: false,
     };
