@@ -17,6 +17,12 @@ export class HuggingFaceEmbedder implements Embedder {
   }
 
   private async setupPipeline(modelName:string) {
+    /*
+    just noting for future explorers that we do a dynamic import because transformers.js is an ESM module,
+    and this repo is not yet and so doing the import at the top pollutes
+    this repo turning it into an ESM repo... super annoying and the whole industry
+    is dealing with this problem now as we transition into ESM.
+    */
     const { pipeline } = await import('@xenova/transformers');
     return pipeline('feature-extraction', modelName)
   }

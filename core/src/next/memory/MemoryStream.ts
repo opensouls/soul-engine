@@ -113,9 +113,10 @@ export class MemoryStream {
     const maxSimilarity = Math.max(...similarityValues);
 
     const scoredMemories = memoriesWithSimilarities.map(memory => {
-      const normalizedRecency = (memory.updatedAt.getTime() - minUpdatedAt) / (maxUpdatedAt - minUpdatedAt);
-      const normalizedImportance = (memory.importance - minImportance) / (maxImportance - minImportance);
-      const normalizedSimilarity = (this.similarityScore(embedding, memory) - minSimilarity) / (maxSimilarity - minSimilarity);
+      // if min and max are the same, then we'll get a divide by zero error, so we'll just use 1.0 instead.
+      const normalizedRecency = (memory.updatedAt.getTime() - minUpdatedAt) / ((maxUpdatedAt - minUpdatedAt) || 1.0);
+      const normalizedImportance = (memory.importance - minImportance) / ((maxImportance - minImportance) || 1.0);
+      const normalizedSimilarity = (memory.similarity - minSimilarity) / ((maxSimilarity - minSimilarity) || 1.0);
 
       const totalScore = normalizedRecency + normalizedImportance + normalizedSimilarity;
       return {
@@ -131,10 +132,13 @@ export class MemoryStream {
 
   /**
    * Calculates the similarity score between the given embedding and memory.
-   * The score is calculated as the Euclidean distance between the two embeddings.
+   * The score is calculated as the 1 - (Euclidean distance between the two embeddings).
+   * Higher numbers are more similar, normalized to be between 0 and 1.
    */
   private similarityScore(embedding: Embedding, memory: Memory):number {
-    const diff = memory.embedding.map((value, index) => value - embedding[index]);
-    return Math.hypot(...diff);
+    const diff = memory.embedding.map((value, index) => embedding[index] - value);
+    
+    // invert similarity so that higher similarity is better rather than 0 being best.
+    return 1 - Math.hypot(...diff);
   }
 }
