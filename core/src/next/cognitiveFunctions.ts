@@ -1,6 +1,6 @@
 import { EnumLike, z } from "zod"
-import { BrainStep } from "./BrainStep";
-import { ChatMessageRoleEnum } from "..";
+import { BrainFunction, CortexStep } from "./CortexStep";
+import { ChatMessageRoleEnum } from "./languageModels";
 import { html } from "common-tags";
 
 const singleResponse = (action:string, description:string) => {
@@ -13,7 +13,7 @@ const singleResponse = (action:string, description:string) => {
       name: action,
       description,
       parameters: params,
-      process: (step: BrainStep<any>, response: z.output<typeof params>) => {
+      process: (step: CortexStep<any>, response: z.output<typeof params>) => {
         return {
           value: response[action],
           memories: [{
@@ -40,7 +40,7 @@ export const decision = (description:string, choices: EnumLike) => {
       name: "decision",
       description,
       parameters: params,
-      process: (step: BrainStep<any>, response: z.output<typeof params>) => {
+      process: (step: CortexStep<any>, response: z.output<typeof params>) => {
         return {
           value: response,
           memories: [{
@@ -63,7 +63,7 @@ export const brainstorm = (description:string) => {
       name: "brainstorm",
       description,
       parameters: params,
-      process: (step: BrainStep<any>, response: z.output<typeof params>) => {
+      process: (step: CortexStep<any>, response: z.output<typeof params>) => {
         return {
           value: response,
           memories: [{
@@ -88,5 +88,13 @@ export const queryMemory = (query:string) => {
         answer: z.string().describe(`The answer to: ${query}`)
       })
     };
+  }
+}
+
+export const stringCommand = (command:string) => {
+  return () => {
+    return {
+      command,
+    }
   }
 }

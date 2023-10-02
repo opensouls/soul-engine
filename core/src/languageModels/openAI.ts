@@ -1,8 +1,9 @@
 import OpenAI from "openai";
-import { CompletionCreateParams } from "openai/dist/cjs/resources/chat";
+import { CompletionCreateParamsStreaming, CompletionCreateParamsNonStreaming } from "openai/resources/chat/completions"
 import {
   ChatCompletionStreamer,
   ChatMessage,
+  ChatStream,
   CreateChatCompletionParams,
   ExecutorResponse,
   FunctionSpecification,
@@ -20,7 +21,8 @@ export enum Model {
 type Config = ConstructorParameters<typeof OpenAI>[0];
 
 type StreamCompletionParams =
-  Partial<CompletionCreateParams.CreateChatCompletionRequestStreaming>;
+  Partial<CompletionCreateParamsStreaming>
+
 
 type DefaultStreamParams = StreamCompletionParams & {
   model: Model | string;
@@ -38,16 +40,19 @@ export class OpenAIStreamingChat implements ChatCompletionStreamer {
     this.client = new OpenAI(openAIConfig);
     this.defaultParams = {
       model: Model.GPT_3_5_turbo,
-      stream: true,
       ...defaultParams,
+      stream: true
     };
   }
 
-  async create(opts: CreateChatCompletionParams) {
-    const stream = await this.client.chat.completions.create({
+  async create(opts: CreateChatCompletionParams): Promise<{stream: ChatStream, abortController: AbortController}> {
+    const params: CompletionCreateParamsStreaming = 
+    {
       ...this.defaultParams,
       ...opts,
-    });
+      stream: true,
+    }
+    const stream = await this.client.chat.completions.create(params);
     return {
       stream,
       abortController: stream.controller,
@@ -56,7 +61,7 @@ export class OpenAIStreamingChat implements ChatCompletionStreamer {
 }
 
 type ChatCompletionParams =
-  Partial<CompletionCreateParams.CreateChatCompletionRequestNonStreaming>;
+  Partial<CompletionCreateParamsNonStreaming>;
 
 type DefaultCompletionParams = ChatCompletionParams & {
   model: Model | string;
@@ -92,11 +97,10 @@ export class OpenAILanguageProgramProcessor
       ...restRequestParams,
       function_call: functionCall,
       messages: messages,
+      functions: (functions.length > 0 ? functions : undefined),
+      stream :false,
     }
-    if (functions.length > 0) {
-      params.functions = functions;
-    }
-    const res = await this.client.chat.completions.create(params);
+    const res = await this.client.chat.completions.create({...params, stream: false});
     return {
       content: res?.choices[0]?.message?.content,
       functionCall: res?.choices[0]?.message?.function_call,
