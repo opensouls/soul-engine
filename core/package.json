@@ -70,6 +70,8 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
+    "@opentelemetry/api": "^1.6.0",
+    "@opentelemetry/sdk-node": "^0.43.0",
     "@types/react-dom": "^18.2.6",
     "abort-controller": "^3.0.0",
     "async-mutex": "^0.4.0",
