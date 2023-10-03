@@ -22,7 +22,7 @@ export class PersonModel {
     this.observerName = this.soul.blueprint.name;
   }
 
-  toLinguisticProgram(_conversation: ConversationProcessor) {
+  toLinguisticProgram(_conversation: any) {
     return `<CONTEXT>To date, ${this.observerName} remembers the following about ${this.name}, including records of their NAME, basic FACTS, current HISTORY narrative, personal GOALS, MOOD, and MENTAL STATE.</CONTEXT>
 
 Their historical memory, which may include blanks yet to be learned from conversation, reads:

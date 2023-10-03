@@ -283,6 +283,7 @@ export class ConversationProcessor extends EventEmitter {
   }
 
   public async read(msg: Message) {
+    devLog("reading: ", msg)
     const memory = new Memory({
       role: ChatMessageRoleEnum.User,
       entity: msg.userName,
@@ -304,6 +305,7 @@ export class ConversationProcessor extends EventEmitter {
 
     const participate = await this.participationStrategy.decideToParticipate();
     if (participate) {
+      devLog('participating')
       this.think();
     }
   }
