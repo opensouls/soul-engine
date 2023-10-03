@@ -22,12 +22,12 @@ describe("CortexStep", () => {
         description,
         parameters: params,
         command: html`
-          Analyze the chat history and answer from the first person perspective and voice of ${entityName}.
+          Carefully analyze the chat history line by line and decide what ${entityName} would ${action} next.
           
-          Answer in the first person perspective and voice of ${entityName} the completion to: ${entityName} ${action}
+          Answer in the first person perspective and voice of ${entityName} the completion to: ${entityName} ${action}:
 
           For example:
-          ${entityName} ${action} I will win this game!
+          ${entityName} ${action}: I will win this game!
 
           ${description}
         `,
@@ -182,7 +182,7 @@ describe("CortexStep", () => {
     expect(resp.value.answer).to.equal("Jonathan")
   })
 
-  it.only('does a long bogus monologue', async () => {
+  it('does a long bogus monologue', async () => {
     return tracer.startActiveSpan('bogus-monologue', async (span) => {
       try {
         span.setAttribute("test-spec", "bogus-mono")
