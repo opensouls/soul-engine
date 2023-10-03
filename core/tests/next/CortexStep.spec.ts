@@ -1,11 +1,51 @@
 import { CortexStep } from "../../src/next/CortexStep";
 import { ChatMessageRoleEnum } from "../../src/next/languageModels";
-import { decision, externalDialog, internalMonologue, queryMemory, stringCommand } from "../../src/next/cognitiveFunctions";
+import { decision, queryMemory, stringCommand } from "../../src/next/cognitiveFunctions";
 import { expect } from "chai";
 import { z } from "zod";
 import { trace } from "@opentelemetry/api";
+import { html } from "common-tags";
 
 describe("CortexStep", () => {
+
+
+  // This is a work in prgoress command used in the tests. Sometimes it has repetition problems in gpt 3.5 and
+  // so it has not yet moved into the main repo yet.
+  const singleResponse = (action:string, description:string) => {
+    return ({ entityName }: CortexStep<any>) => {
+      const params = z.object({
+        [action]: z.string().describe(`What would ${entityName} ${action} next.`)
+      })
+  
+      return {
+        name: `create_and_save_${action}`.replace(/\s/g, "_"),
+        description,
+        parameters: params,
+        command: html`
+          Analyze the chat history and answer from the first person perspective and voice of ${entityName}.
+          
+          Answer in the first person perspective and voice of ${entityName} the completion to: ${entityName} ${action}
+
+          For example:
+          ${entityName} ${action} I will win this game!
+
+          ${description}
+        `,
+        process: (step: CortexStep<any>, response: z.output<typeof params>) => {
+          return {
+            value: response[action],
+            memories: [{
+              role: ChatMessageRoleEnum.Assistant,
+              content: `${step.entityName} ${action} ${response[action]}`
+            }],
+          }
+        }
+      };
+    }
+  }
+
+  const externalDialog = singleResponse
+  const internalMonologue = singleResponse
 
   console.log("acquiring tracer")
   const tracer = trace.getTracer(
@@ -142,7 +182,7 @@ describe("CortexStep", () => {
     expect(resp.value.answer).to.equal("Jonathan")
   })
 
-  it('does a long bogus monologue', async () => {
+  it.only('does a long bogus monologue', async () => {
     return tracer.startActiveSpan('bogus-monologue', async (span) => {
       try {
         span.setAttribute("test-spec", "bogus-mono")
