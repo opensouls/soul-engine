@@ -74,17 +74,6 @@ const resp = await step.next(queryMemory("What is the name I'm looking for? Answ
 
 ```
 
-### Private Repo
-
-Since this repository is private, you'll need to authorize npm to pull from github packages for the @opensouls scope.
-To authorize npm, you need to login with the following command:
-
-```bash
-npm login --scope=@opensouls --auth-type=legacy --registry=https://npm.pkg.github.com`
-```
-
-When prompted, your username is your github username and your password is your personal access token (classic) with with the following scopes: `read:packages`
-You can create a personal access token here: https://github.com/settings/tokens
 
 ### Instrumentation
 
