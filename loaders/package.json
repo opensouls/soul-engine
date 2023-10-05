@@ -8,6 +8,10 @@
     "test": "mocha",
     "prepublishOnly": "npm run build"
   },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:opensouls/SocialAGI.git"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
