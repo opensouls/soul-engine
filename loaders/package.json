@@ -1,0 +1,30 @@
+{
+  "name": "@socialagi/loaders",
+  "version": "0.0.1",
+  "description": "A library for loading web pages and other resources for use in socialagi. It provides efficient and reliable loading mechanisms.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "mocha",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/chai": "^4.3.6",
+    "@types/common-tags": "^1.8.2",
+    "@types/mocha": "^10.0.2",
+    "@types/turndown": "^5.0.2",
+    "chai": "^4.3.10",
+    "common-tags": "^1.8.2",
+    "mocha": "^10.2.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "gpt-tokenizer": "^2.1.1",
+    "puppeteer": "^21.3.6",
+    "turndown": "^7.1.2"
+  }
+}
