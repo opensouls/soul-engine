@@ -33,15 +33,11 @@ Cognitive functions are used to generate responses. They are based on OpenAI's f
 
 ```typescript
 
-internalMonologue("feels", "Bogus notes how it feels to themself in one sentence")
-
 enum ConversationalAction {
    none = "none",
    rambles = "rambles",
 }
 decision("decision", ConversationalAction)
-
-externalDialog("shouts", "Bogus shouts incredibly loudly with all caps")
 
 brainstorm("Given the context, what are three lunches Samantha could make with those ingredients?")
 ```
@@ -49,7 +45,8 @@ brainstorm("Given the context, what are three lunches Samantha could make with t
 You can easily build your own cognitive functions and get strongly typed output from the Open Soul like this:
 
 ```typescript
-import { z } from "zod"
+// note that importing z from here is important as if you import it from "zod" then you will get type errors
+import { z } from "socialagi/next"
 
 export const queryMemory = (query:string) => {
   return () => {

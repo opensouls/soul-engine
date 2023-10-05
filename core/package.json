@@ -2,10 +2,10 @@
   "name": "socialagi",
   "version": "0.0.32",
   "description": "Subroutines for AI Souls",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "rm -rf dist && tsc",
     "test": "mocha",
     "prepublishOnly": "npm run build",
     "test-example": "ts-node examples/example.ts",
@@ -14,11 +14,11 @@
     "test-example4": "ts-node examples/example4.ts"
   },
   "exports": {
-    ".": "./dist/index.js",
-    "./next": "./dist/next/index.js"
+    ".": "./dist/src/index.js",
+    "./next": "./dist/src/next/index.js"
   },
   "files": [
-    "dist"
+    "dist/src"
   ],
   "keywords": [
     "soul",
@@ -79,7 +79,7 @@
     "next": "^13.4.8",
     "openai": "^4.2.0",
     "react": "^18.2.0",
-    "zod": "^3.22.2",
+    "zod": "^3.22.4",
     "zod-to-json-schema": "^3.21.4"
   }
 }
