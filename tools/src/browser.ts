@@ -1,10 +1,15 @@
 import TurndownService from "turndown"
-import { Browser } from "puppeteer";
+import puppeteer, { Browser, PuppeteerLaunchOptions } from "puppeteer";
+export { Browser } from "puppeteer"
 
 export interface WebBrowserArgs {
   browser: Browser;
   url: string;
   waitFor?: string;
+}
+
+export const createBrowser = (opts: PuppeteerLaunchOptions = {headless: "new"}): Promise<Browser> => {
+  return puppeteer.launch(opts)
 }
 
 const metadataFunction = `
