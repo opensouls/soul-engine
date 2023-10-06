@@ -2,12 +2,15 @@
   "name": "@socialagi/tools",
   "version": "0.0.1",
   "description": "A library for loading web pages and other resources for use in socialagi. It provides efficient and reliable tools for Open Souls to use.",
-  "main": "dist/index.js",
+  "main": "dist/src/index.js",
   "scripts": {
     "build": "tsc",
     "test": "mocha",
     "prepublishOnly": "npm run build"
   },
+  "files": [
+    "dist/src"
+  ],
   "repository": {
     "type": "git",
     "url": "git@github.com:opensouls/SocialAGI.git"

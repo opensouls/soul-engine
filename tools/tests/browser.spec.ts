@@ -1,12 +1,11 @@
 import { expect } from 'chai'
-import puppeteer, { Browser } from 'puppeteer'
-import { WebLoader } from '../src';
+import { WebLoader, Browser, createBrowser } from '../src';
 
 describe("browser", () => {
   let browser:Browser
 
   before(async () => {
-    browser = await puppeteer.launch({ headless: "new" });
+    browser = await createBrowser()
   })
 
   after(async () => {
