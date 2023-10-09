@@ -207,7 +207,7 @@ describe("CortexStep", () => {
         const feels = await monologue.next(internalMonologue("feels", "Bogus notes how it feels to themself in one sentence"))
         const thinks = await feels.next(internalMonologue("thinks", "what Bogus thinks to themself in one sentence"))
         const says = await thinks.next(externalDialog("says", "what Bogus says out loud next"))
-        const action = await says.next(decision("decision", BogusAction))
+        const action = await says.next(decision("Decide Bogus' next course of action in the dialog. Should he ramble or stop?", BogusAction))
         if (action.value.decision === BogusAction.rambles) {
           const rambles = await action.next(externalDialog("rambles", "Bogus rambles for two sentences out loud, extending its last saying"))
           const shouts = await rambles.next(externalDialog("shouts", "Bogus shouts incredibly loudly with all caps"))
