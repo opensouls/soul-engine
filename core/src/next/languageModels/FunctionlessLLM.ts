@@ -15,7 +15,7 @@ import { html } from "common-tags";
 import zodToJsonSchema from "zod-to-json-schema";
 import { Model } from "./openAI";
 
-const MAX_RETRIES = 6;
+const MAX_RETRIES = 10;
 
 const tracer = trace.getTracer(
   'open-souls-openai',
@@ -54,6 +54,26 @@ interface RetryInformation {
   retryCount: number
 }
 
+function extractJSON(str?: string | null) {
+  if (!str) return null;
+
+  const jsonStart = str.indexOf('{');
+  if (jsonStart === -1) return null;
+  
+  for (let i = jsonStart; i < str.length; i++) {
+      if (str[i] === '}') {
+          const potentialJson = str.slice(jsonStart, i + 1);
+          try {
+              JSON.parse(potentialJson);
+              return potentialJson;
+          } catch (e) {
+              // Not valid JSON
+          }
+      }
+  }
+
+  return null;
+}
 
 export class FunctionlessLLM
   implements LanguageModelProgramExecutor {
@@ -193,7 +213,7 @@ export class FunctionlessLLM
       const userMessageFromFunctionCall: ChatMessage = {
         role: ChatMessageRoleEnum.User,
         content: html`  
-          I want to call a function called ${functionCall.name}. The function is described as ${fn.description}. The function takes a single JSON argument.
+          I want to call a function called "${functionCall.name}". The function is described as: "${fn.description}". The function takes a single JSON argument.
 
           Please think carefully about the argument I should call the function with and answer using only JSON that matches the following JSON Schema:
   
@@ -205,14 +225,17 @@ export class FunctionlessLLM
         `
       }
   
-      params.messages = this.compressSystemMessagesIfNeeded([
-        ...params.messages, 
-        {
-          role: ChatMessageRoleEnum.System,
-          content: "You accept input in any format, but you only respond in JSON. Please conform your JSON responses to the provided schema."
-        },
-        userMessageFromFunctionCall
-      ])
+      if (!retryError) {
+        params.messages = this.compressSystemMessagesIfNeeded([
+          ...params.messages, 
+          {
+            role: ChatMessageRoleEnum.System,
+            content: "You accept input in any format, but you only respond in JSON. Please conform your JSON responses to the provided schema."
+          },
+          userMessageFromFunctionCall
+        ])
+      }
+
 
       span.setAttributes({
         "params": JSON.stringify(params),
@@ -234,17 +257,21 @@ export class FunctionlessLLM
         content: "",
         function_call: {
           name: functionCall.name,
-          arguments: content || ""
+          arguments: extractJSON(content) || ""
         }
       }
   
       const { error, parsed } = this.validateFunctioncall(functionCall, retMessage, functions);
       if (error) {
         console.warn("LLM returned invalid JSON, will retry")
-        if (retryError?.retryCount || 0 >= MAX_RETRIES) {
-          throw new Error(`Exceeded max retries of ${MAX_RETRIES} for error: ${JSON.stringify(error)}`);
-        }
-        return this.execute(messages, completionParams, functions, requestOptions, {
+        return this.execute([
+          ...messages,
+          userMessageFromFunctionCall,
+          {
+            role: ChatMessageRoleEnum.Assistant,
+            content: content || "",
+          },
+        ], completionParams, functions, requestOptions, {
           error: error,
           retryCount: retryError?.retryCount ? retryError.retryCount + 1 : 1,
           functionCall: res?.choices[0]?.message?.function_call,
@@ -293,17 +320,17 @@ export class FunctionlessLLM
             {
               role: ChatMessageRoleEnum.User,
               content: html`
-                The JSON you returned did not conform to the schema. The error was:
+                Your response contained an error. Maybe it wasn't correctly formatted JSON? The error was:
                 ${JSON.stringify(retryError.error, null, 2)}
 
-                Could you please correct the JSON you returned and conform to the schema? Remember you only answer in correctly formated JSON.
+                Please correct your response and make sure to answer with conforming JSON. Remember, you only answer in correctly formated JSON.
               `
             }
           ]
         }
 
         if (functions.length > 0) {
-          return this.executeAlternativeFunctionPath(messages, completionParams, functions, requestOptions)
+          return this.executeAlternativeFunctionPath(params.messages, completionParams, functions, requestOptions)
         }
 
         span.setAttributes({
@@ -366,7 +393,7 @@ export class FunctionlessLLM
     const returnedMessages:ChatMessage[] = []
     messages.forEach((message) => {
       if (message.role === ChatMessageRoleEnum.System) {
-        systemMessage += message.content
+        systemMessage += message.content + "\n"
         return
       }
       returnedMessages.push(message)

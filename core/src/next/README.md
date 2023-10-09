@@ -37,7 +37,7 @@ enum ConversationalAction {
    none = "none",
    rambles = "rambles",
 }
-decision("decision", ConversationalAction)
+decision("Should Bogus ramble or stop talking?", ConversationalAction)
 
 brainstorm("Given the context, what are three lunches Samantha could make with those ingredients?")
 ```
@@ -68,6 +68,40 @@ step = step.withMemory([{
 
 const resp = await step.next(queryMemory("What is the name I'm looking for? Answer in a single word"))
 // resp.answer === "Jonathan"
+
+```
+
+### Other Language Models
+
+CortexSteps can handle other language processors that implement `LanguageModelProgramExecutor` interface. The package also includes a `FuncionlessLLM` executor that lets you call any OpenAI API compatible API even if does not support function calls or multiple system messages.
+
+```typescript
+import { FunctionlessLLM } from "socialagi/next";
+
+const queryMemory = (query: string) => {
+  return () => {
+    return {
+      name: "queryMemory",
+      description: query,
+      parameters: z.object({
+        answer: z.string().describe(`The answer to: ${query}`)
+      })
+    };
+  }
+}
+let step = new CortexStep("Jonathan", {
+  processor: new FunctionlessLLM({
+    baseURL: "http://localhost:1234/v1",
+    // optionally, if your API only supports one single system call, you can set this to true
+    // and it will concatenate all system messages into a single message.
+    compressSystemMessages: false
+  })
+});
+step = step.withMemory([{
+  role: ChatMessageRoleEnum.System,
+  content: "The name you are looking for is Jonathan"
+}])
+const resp = await step.next(queryMemory("What is the name I'm looking for? Answer in a single word"))
 
 ```
 
