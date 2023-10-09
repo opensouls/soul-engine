@@ -37,7 +37,7 @@ enum ConversationalAction {
    none = "none",
    rambles = "rambles",
 }
-decision("decision", ConversationalAction)
+decision("Should Bogus ramble or stop talking?", ConversationalAction)
 
 brainstorm("Given the context, what are three lunches Samantha could make with those ingredients?")
 ```
