@@ -73,7 +73,7 @@ const resp = await step.next(queryMemory("What is the name I'm looking for? Answ
 
 ### Other Language Models
 
-CortexSteps can handle other language processors that implement `LanguageModelProgramExecutor` interface. We also include a `FuncionlessLLM` executor within the repo that lets you call any OpenAI API compatible API even if does not support function calls or multiple system messages.
+CortexSteps can handle other language processors that implement `LanguageModelProgramExecutor` interface. The package also includes a `FuncionlessLLM` executor that lets you call any OpenAI API compatible API even if does not support function calls or multiple system messages.
 
 ```typescript
 import { FunctionlessLLM } from "socialagi/next";
