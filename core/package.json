@@ -1,6 +1,6 @@
 {
   "name": "socialagi",
-  "version": "0.0.32",
+  "version": "0.0.33",
   "description": "Subroutines for AI Souls",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
