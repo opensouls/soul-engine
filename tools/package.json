@@ -3,8 +3,12 @@
   "version": "0.0.1",
   "description": "A library for loading web pages and other resources for use in socialagi. It provides efficient and reliable tools for Open Souls to use.",
   "main": "dist/src/index.js",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "scripts": {
-    "build": "tsc",
+    "build": "rm -rf dist && tsc",
     "test": "mocha",
     "prepublishOnly": "npm run build"
   },
