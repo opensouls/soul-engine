@@ -12,7 +12,7 @@ CortexStep provides a structured approach to guide language models sequentially,
 As a very simple example, consider this code snippet that has a Wizard asking 5 why questions before responding:
 
 ```javascript
-import {CortexStep} from "socialagi";
+import { CortexStep, internalMonologue } from "socialagi/next";
 
 let cortex = new CortexStep("Wizard");
 
@@ -21,16 +21,10 @@ let cortex = new CortexStep("Wizard");
 async function withDeepAnswer(cortex: CortexStep) {
   let count = 0;
   while (count < 5) {
-    cortex = await cortex.next(Action.INTERNAL_MONOLOGUE, {
-      action: "wonders",
-      description: "Asks themselves a deeper question",
-    });
+    cortex = await cortex.next(internalMonolouge("Wizard wonders, asking themselves the deeper questions"));
     count++;
   }
-  cortex = await cortex.next(Action.INTERNAL_MONOLOGUE, {
-    action: "answers",
-    description: "Answering the last question I asked myself",
-  });
+  cortex = await cortex.next(internalMonologue("Answering the last question I asked myself"));
 }
 
 // ...

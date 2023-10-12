@@ -42,7 +42,7 @@ export const decision = (description:string, choices: EnumLike) => {
       parameters: params,
       process: (step: CortexStep<any>, response: z.output<typeof params>) => {
         return {
-          value: response,
+          value: response.decision,
           memories: [{
             role: ChatMessageRoleEnum.Assistant,
             content: `${step.entityName} decides: ${response.decision}`
@@ -65,7 +65,7 @@ export const brainstorm = (description:string) => {
       parameters: params,
       process: (step: CortexStep<any>, response: z.output<typeof params>) => {
         return {
-          value: response,
+          value: response.answers,
           memories: [{
             role: ChatMessageRoleEnum.Assistant,
             content: html`
@@ -81,19 +81,32 @@ export const brainstorm = (description:string) => {
 
 export const queryMemory = (query:string) => {
   return () => {
+    const params = z.object({
+      answer: z.string().describe(`The answer to: ${query}`)
+    })
+
     return {
       name: "query_memory",
       description: query,
-      parameters: z.object({
-        answer: z.string().describe(`The answer to: ${query}`)
-      }),
+      parameters: params,
       command: html`
         Do not repeat ${query} and instead use a dialog history.
         Do not copy sections of the chat history as an answer.
         Do summarize and thoughtfully answer in sentence and paragraph format.
         
         Analyze the chat history step by step and answer the question: ${query}.
-      `
+      `,
+      process: (_step: CortexStep<any>, response: z.output<typeof params>) => {
+        return {
+          value: response.answer,
+          memories: [{
+            role: ChatMessageRoleEnum.Assistant,
+            content: html`
+              The answer to ${query} is ${response.answer}.
+            `
+          }],
+        }
+      }
     };
   }
 }

@@ -6,7 +6,7 @@ import { expect } from "chai";
 import { z } from "zod";
 import { trace } from "@opentelemetry/api";
 
-describe("CortexStep", () => {
+describe.only("CortexStep", () => {
   startInstrumentation()
 
   const tracer = trace.getTracer(
@@ -201,7 +201,7 @@ describe("CortexStep", () => {
         const thinks = await feels.next(internalMonologue("What does Bogus think to themself in one sentence"))
         const says = await thinks.next(externalDialog("What does Bogus says out loud next"))
         const action = await says.next(decision("Decide Bogus' next course of action in the dialog. Should he ramble or stop?", BogusAction))
-        if (action.value.decision === BogusAction.rambles) {
+        if (action.value === BogusAction.rambles) {
           const rambles = await action.next(externalDialog("Bogus rambles for two sentences out loud, extending his last saying"))
           const shouts = await rambles.next(externalDialog("Bogus shouts incredibly loudly with all caps"))
           const exclaims = await shouts.next(externalDialog("Bogus exclaims!"))
@@ -210,13 +210,13 @@ describe("CortexStep", () => {
           const query = (await continues.next(queryMemory("Please provide a summary of everything Bogus said"))).value
           span.end()
           console.log(query)
-          expect(query.answer).to.have.length.greaterThan(10)
+          expect(query).to.have.length.greaterThan(10)
         } else {
           console.log(action.toString())
           const query = (await action.next(queryMemory("Please provide a summary of everything Bogus said"))).value
           span.end()
           console.log(query)
-          expect(query.answer).to.have.length.greaterThan(10)
+          expect(query).to.have.length.greaterThan(10)
         }
       } catch (err: any) {
         span.end()

@@ -29,57 +29,41 @@ The class adheres to the principles of functional programming. Each method in `C
 
 3. **Next Cognitive Step with `next()`**
 
-   The `next()` method guides the AI to the subsequent cognitive step. This method requires an action type and a `spec` object that describes the details of this step.
+   The `next()` method guides the AI to the subsequent cognitive step. This method requires a cognitive function. The library offers built in cognitive functions, or you can [build your own](actions).
 
    ```javascript
-   let spec = {
-     action: "thinking",
-     description: "Understanding the user's message",
-   };
-   step = await step.next(Action.INTERNAL_MONOLOGUE, spec);
+   step = await step.next(internalMonologue("thinks, understanding the user's message"));
    ```
 
 ## Predefined Actions
 
-While `CortexStep` allows for the creation of [custom actions](actions), it comes with several predefined actions:
+While `CortexStep` allows for the creation of [custom actions](actions), it comes with several predefined cognitive functions:
 
-1. `INTERNAL_MONOLOGUE`: Simulates the AI's internal thought process.
-
-   ```javascript
-   let spec = {
-     action: "thinking",
-     description: "Contemplating the user's message",
-   };
-   step = await step.next(Action.INTERNAL_MONOLOGUE, spec);
-   ```
-
-2. `EXTERNAL_DIALOG`: Creates an external dialogue or output from the AI.
+1. `internalMonologue`: Simulates the AI's internal thought process.
 
    ```javascript
-   let spec = {
-     action: "greeting",
-     description: "AI generates a greeting message",
-   };
-   step = await step.next(Action.EXTERNAL_DIALOG, spec);
+   step = await step.next(internalMonologue("Contemplate the users message"));
    ```
 
-3. `DECISION`: Guides the AI through a decision-making process.
+2. `externalDialog`: Creates an external dialogue or output from the AI.
 
    ```javascript
-   let spec = {
-     description: "Choosing the next topic",
-     choices: ["Weather", "News", "Sports"],
-   };
-   step = await step.next(Action.DECISION, spec);
+   step = await step.next(externalDialog("Give the user a greeting message"));
    ```
 
-4. `BRAINSTORM_ACTIONS`: Facilitates brainstorming of potential actions for the AI.
+3. `decision`: Guides the AI through a decision-making process.
+
+   ```javascript
+   step = await step.next(decision(`Choose the next topic`, ["Weather", "News", "Sports"]));
+   ```
+
+4. `brainstorm`: Facilitates brainstorming of potential actions for the AI.
 
    ```javascript
    let spec = {
      actionsForIdea: "Next conversation topics",
    };
-   step = await step.next(Action.BRAINSTORM_ACTIONS, spec);
+   step = await step.next(brainstorm("Brainstorm the next conversation topics"));
    ```
 
 ## Generated output

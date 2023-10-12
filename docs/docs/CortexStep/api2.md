@@ -21,6 +21,9 @@ The `CortexStepOptions` object includes:
 - `processor`: A `LanguageModelProgramExecutor` instance handling the execution of language model instructions.
 - `memories`: An array of `WorkingMemory` instances representing initial memories.
 - `lastValue`: The last generated value.
+- `id`: a unique identifier of this particular cortext step
+- `parents`: used to keep track of previous cortext steps in a chain
+- `tags`: keeps tags on a cortex step that are added to instrumentation calls.
 
 ```javascript
 let step = new CortexStep("Assistant", {
@@ -41,36 +44,9 @@ let step = new CortexStep("Assistant", {
 let stringRepresentation = step.toString();
 ```
 
-### is(condition: string)
-
-`is(condition: string)` checks whether the last generated value satisfies the given condition. This method can be used for more complex checks involving the AI's current state.
-
-```javascript
-let isPositive = await step.is("positive");
-```
-
-### queryMemory(query: string)
-
-`queryMemory(query: string)` allows you to directly ask the AI about its memories.
-
-```javascript
-let answer = await step.queryMemory("What was the last user query?");
-```
-
-### updateMemory(matchFunction, updateFunction)
-
-`updateMemory(matchFunction, updateFunction)` updates the AI's memory. The `matchFunction` finds the memories to update, and the `updateFunction` applies the update.
-
-```javascript
-step = step.updateMemory(
-  (memory) => memory[0].role === "user",
-  (memory) => [...memory, { role: "assistant", content: "I remember this!" }],
-);
-```
-
 ## Understanding and Utilizing The Value Property
 
-`CortexStep` has a `value` property which represents the output generated from the last action. This `value` could be of three possible types: `null`, `string`, or `string[]`.
+`CortexStep` has a `value` property which represents the output generated from the last action. This `value` is strongly typed depending on the evaluated Cognitive Function.
 
 This `value` can be very useful in chaining actions where the output of one action might influence or be used in the next action. To access this `value`, simply use:
 
