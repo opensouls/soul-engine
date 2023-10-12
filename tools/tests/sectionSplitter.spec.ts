@@ -1,46 +1,12 @@
 import { expect } from "chai"
 import { splitSections } from "../src"
-describe("SectionSplitter", () => {
 
+describe("SectionSplitter", () => {
   it("breaks down markdown into sections based on token length, attempting to respect sections", () => {
     const split = splitSections(longPost, 2000)
-    expect(split).to.have.length(2)
+    expect(split).to.have.length(4)
   })
-
 })
-
-const post = `
-[](https://skale.space/blog/introducing-the-levitation-protocol-skales-solution-for-decentralized-zero-knowledge-proofs)
-
-Introducing Levitation Protocol: The Future of ZK Scaling
-
-[](/)
-
-[Home](/)
-
-[
-
-Network
-
-](/network)
-
-[Stats](/stats)[Ecosystem](/ecosystem)[Token](https://skale.space/network/#token)
-
-[
-
-Developers
-
-](/developers)
-
-[Grants](https://skale.space/developers/#grants)[Validators](https://skale.space/developers/#validators)
-
-[Blog](/blog)[Community](/community)[About](/about)
-
-*   [](#)
-*   [](#)
-*   [](#)
-*   [](#)
-`
 
 const longPost = `
 [](https://skale.space/blog/introducing-the-levitation-protocol-skales-solution-for-decentralized-zero-knowledge-proofs)

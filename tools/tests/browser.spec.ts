@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { WebLoader, Browser, createBrowser } from '../src';
+import { WebLoader, Browser, createBrowser, splitSections } from '../src';
 
 describe("browser", () => {
   let browser:Browser
@@ -20,6 +20,15 @@ describe("browser", () => {
     expect(pageContent).to.contain("I illustrated just how we’re going to imbue AI with the indescribable essence of humanity")
     expect(metadata.title).to.equal("Kevin Fischer on X")
     expect(metadata.source).to.equal(url)
+  })
+
+  it("loads and splits a really long site", async () => {
+    const url = "https://docs.unrealengine.com/5.3/en-US/installing-unreal-engine/"
+    const loader = new WebLoader({ browser, url })
+    const { pageContent, metadata } = await loader.load()
+    const sections = splitSections(pageContent, 500)
+    expect(sections).to.exist
+    expect(sections).to.have.length.greaterThan(50)
   })
 
 })
