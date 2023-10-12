@@ -5,6 +5,15 @@ sidebar_position: 2
 
 # Core API
 
+:::info
+
+Note that these docs describe the code from importing the "socialagi/next" export which contains the new style of code based heavily on OpenAI function calling.
+```typescript
+import { CortexStep } from "socialagi/next"
+```
+
+:::
+
 The `CortexStep` class is a critical component of the SocialAGI library, designed to provide a structured way to model the cognitive process of an AI during a conversational interaction. This is particularly focused on simulating an AI's internal monologue or thought process, capturing how an AI interprets input, makes decisions, and crafts responses.
 
 The class adheres to the principles of functional programming. Each method in `CortexStep` generates a new instance, preserving immutability and enabling a more predictable behavior.

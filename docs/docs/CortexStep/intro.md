@@ -5,6 +5,15 @@ sidebar_position: 1
 
 # Introduction
 
+:::info
+
+Note that these docs now describe importing the "socialagi/next" export which contains the new code based heavily on OpenAI function calling.
+```typescript
+import { CortexStep } from "socialagi/next"
+```
+
+:::
+
 **CortexStep** is a dedicated class designed for orchestrating advanced interactions with large language models (LLMs). Inspired by human cognitive processes, the core philosophy of CortexStep is based on the concept of append-only context building.
 
 CortexStep provides a structured approach to guide language models sequentially, similar to the way we assemble building blocks. Each instruction and its resulting output are encapsulated within discrete 'steps'. This means you can build complex cognitive sequences without needing to manually handle the context directly.
