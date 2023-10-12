@@ -1,7 +1,33 @@
 import { EnumLike, z } from "zod"
-import { CortexStep } from "./CortexStep";
+import { CortexStep, NextFunction, StepCommand } from "./CortexStep";
 import { ChatMessageRoleEnum } from "./languageModels";
 import { html } from "common-tags";
+
+
+export const externalDialog = (extraInstructions?: string) => {
+  return instruction(({ entityName: name }: CortexStep) => {
+    return html`
+      ${extraInstructions}
+
+      ${name} should respond as if they were speaking out loud. The response should be short (as most speech is short), include appropriate verbal ticks, use all caps when SHOUTING, and use punctuation (such as ellipses) to indicate pauses and breaks.
+      Do not include any other text than ${name}'s response!
+      Respond in the first person voice (use "I" instead of "${name}") and speaking style of ${name}. Pretend to be ${name}!
+    `
+  })
+}
+
+export const internalMonologue = (extraInstructions?: string) => {
+  return instruction(({ entityName: name }: CortexStep) => {
+    return html`
+      ${extraInstructions}
+
+      What would ${name} think to themselves? What would their internal monologue be?
+      The response should be short (as most internal thinking is short).
+      Do not include any other text than ${name}'s thoughts.
+      Respond in the first person voice (use "I" instead of "${name}") and speaking style of ${name}. Pretend to be ${name}!
+    `
+  })
+}
 
 export const decision = (description:string, choices: EnumLike) => {
   return () => {
@@ -72,10 +98,22 @@ export const queryMemory = (query:string) => {
   }
 }
 
-export const stringCommand = (command:string) => {
+/**
+ * `instruction` is used for instructions that do not use function calling. 
+ * Instead, these instructions are inserted directly into the dialog. 
+ * However, they are removed when the answer is returned.
+ */
+export const instruction = (command: StepCommand):NextFunction<unknown, string, string> => {
   return () => {
     return {
       command,
     }
   }
+}
+
+/**
+ * @deprecated
+ */
+export const stringCommand = (command:StepCommand) => {
+  return instruction(command)
 }

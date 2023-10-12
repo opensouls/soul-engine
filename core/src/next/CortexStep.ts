@@ -46,18 +46,20 @@ interface BrainStepInit<LastValue = string, MetaDataType = Record<string, unknow
   processor?: LanguageModelProgramExecutor
 }
 
-
 interface FunctionOutput<ProcessFunctionReturnType> {
   value: ProcessFunctionReturnType,
   memories?: Memory[]
 }
+
+export type StepCommandFunction = (step: CortexStep<any>) => Promise<string> | string
+export type StepCommand = string | StepCommandFunction
 
 interface BrainFunctionAsCommand<LastValueType = string, ParsedArgumentType = string, ProcessFunctionReturnType = string> {
   name?: string;
   description?: string;
   parameters?: z.ZodSchema<ParsedArgumentType>;
   process?: (step: CortexStep<LastValueType>, response: ParsedArgumentType) => Promise<FunctionOutput<ProcessFunctionReturnType>> | FunctionOutput<ProcessFunctionReturnType>;
-  command: string,
+  command: StepCommand,
 }
 
 
@@ -66,7 +68,7 @@ interface BrainFunctionWithFunction<LastValueType, ParsedArgumentType, ProcessFu
   description: string;
   parameters: z.ZodSchema<ParsedArgumentType>;
   process?: (step: CortexStep<LastValueType>, response: ParsedArgumentType) => Promise<FunctionOutput<ProcessFunctionReturnType>> | FunctionOutput<ProcessFunctionReturnType>;
-  command?: string,
+  command?: StepCommand,
 }
 
 export type BrainFunction<LastValueType, ParsedArgumentType, ProcessFunctionReturnType> = BrainFunctionAsCommand<LastValueType, ParsedArgumentType, ProcessFunctionReturnType> | BrainFunctionWithFunction<LastValueType, ParsedArgumentType, ProcessFunctionReturnType>
@@ -120,6 +122,30 @@ export class CortexStep<LastValueType = undefined> {
       .join("\n");
   }
 
+  private async stepCommandToString(command?: StepCommand) {
+    if (!command) {
+      return undefined
+    }
+    if (typeof command === 'string') {
+      return command
+    } else {
+      return command(this)
+    }
+  }
+
+  private memoriesWithCommandString = (commandString?: string) => {
+    if (commandString) {
+      return [
+        ...this.memories,
+        {
+          role: ChatMessageRoleEnum.System,
+          content: commandString,
+        }
+      ]
+    }
+    return this.memories
+  }
+
   private async executeNextCommand<ParsedArgumentType>(description: BrainFunction<LastValueType, ParsedArgumentType, any>, opts: NextOptions): Promise<ParsedArgumentType> {
     return tracer.startActiveSpan('execute-next-command', async (span) => {
       const rawFn = {
@@ -128,7 +154,7 @@ export class CortexStep<LastValueType = undefined> {
           description: description.description,
           parameters: description.parameters,
         },
-        command: description.command,
+        command: await this.stepCommandToString(description.command),
       }
 
       if (rawFn.specification) {
@@ -139,13 +165,7 @@ export class CortexStep<LastValueType = undefined> {
         span.setAttribute("command", rawFn.command)
       }
 
-      const memories = description.command ? [
-        ...this.memories,
-        {
-          role: ChatMessageRoleEnum.System,
-          content: description.command,
-        }
-      ] : [...this.memories]
+      const memories = this.memoriesWithCommandString(rawFn.command)
 
       const resp = await this.processor.execute<ParsedArgumentType>(
         memories,
@@ -183,7 +203,7 @@ export class CortexStep<LastValueType = undefined> {
           description: description.description,
           parameters: description.parameters,
         },
-        command: description.command,
+        command: await this.stepCommandToString(description.command),
       }
 
       if (rawFn.specification) {
@@ -194,13 +214,7 @@ export class CortexStep<LastValueType = undefined> {
         span.setAttribute("command", rawFn.command)
       }
 
-      const memories = description.command ? [
-        ...this.memories,
-        {
-          role: ChatMessageRoleEnum.System,
-          content: description.command,
-        }
-      ] : [...this.memories]
+      const memories = this.memoriesWithCommandString(rawFn.command)
 
       const { response, stream } = await this.processor.experimentalStreamingExecute<ParsedArgumentType>(
         memories,
@@ -308,6 +322,12 @@ export class CortexStep<LastValueType = undefined> {
     })
   }
 
+  /**
+   * This function is used to execute the next step in the process.
+   * @param functionFactory - A factory function that returns a cognitive function.
+   * @param opts - An optional parameter that can be used to pass per request options and tags
+   * @returns - Returns a Promise that resolves to a CortexStep object.
+   */
   async next<ParsedArgumentType, ProcessFunctionReturnType = undefined>(
     functionFactory: NextFunction<LastValueType, ParsedArgumentType, ProcessFunctionReturnType>,
     opts: NextOptions = {}
