@@ -1,63 +1,35 @@
+import { startInstrumentation } from "../../src/next/instrumentation"
 import { CortexStep } from "../../src/next/CortexStep";
 import { ChatMessageRoleEnum } from "../../src/next/languageModels";
-import { decision, queryMemory, stringCommand } from "../../src/next/cognitiveFunctions";
+import { decision, instruction, queryMemory, externalDialog, internalMonologue } from "../../src/next/cognitiveFunctions";
 import { expect } from "chai";
 import { z } from "zod";
 import { trace } from "@opentelemetry/api";
-import { html } from "common-tags";
 
 describe("CortexStep", () => {
+  startInstrumentation()
 
-
-  // This is a work in prgoress command used in the tests. Sometimes it has repetition problems in gpt 3.5 and
-  // so it has not yet moved into the main repo yet.
-  const singleResponse = (action:string, description:string) => {
-    return ({ entityName }: CortexStep<any>) => {
-      const params = z.object({
-        [action]: z.string().describe(`What would ${entityName} ${action} next.`)
-      })
-  
-      return {
-        name: `create_and_save_${action}`.replace(/\s/g, "_"),
-        description,
-        parameters: params,
-        command: html`
-          Carefully analyze the chat history line by line and decide what ${entityName} would ${action} next.
-          
-          Answer in the first person perspective and voice of ${entityName} the completion to: ${entityName} ${action}:
-
-          For example:
-          ${entityName} ${action}: I will win this game!
-
-          ${description}
-        `,
-        process: (step: CortexStep<any>, response: z.output<typeof params>) => {
-          return {
-            value: response[action],
-            memories: [{
-              role: ChatMessageRoleEnum.Assistant,
-              content: `${step.entityName} ${action} ${response[action]}`
-            }],
-          }
-        }
-      };
-    }
-  }
-
-  const externalDialog = singleResponse
-  const internalMonologue = singleResponse
-
-  console.log("acquiring tracer")
   const tracer = trace.getTracer(
     "cortexstep-tests"
   )
 
-  it("uses functions for external dialog", async () => {
+  it("creates external dialog", async () => {
     const step = new CortexStep("Bogus",)
     const resp = await step.withMemory([{
       role: ChatMessageRoleEnum.System,
       content: "You are modeling the mind of Bogus, a very bad dude.",
-    }]).next(externalDialog("shouts", "What does Bogus shout?"))
+    }]).next(externalDialog("What does Bogus shout?"))
+
+    expect(resp.value).to.be.an("string")
+    expect(resp.value).to.have.length.greaterThan(10)
+  })
+
+  it("creates internal monologues", async () => {
+    const step = new CortexStep("Bogus",)
+    const resp = await step.withMemory([{
+      role: ChatMessageRoleEnum.System,
+      content: "You are modeling the mind of Bogus, a very bad dude.",
+    }]).next(internalMonologue("How does bogus feel now?"))
 
     expect(resp.value).to.be.an("string")
     expect(resp.value).to.have.length.greaterThan(10)
@@ -70,7 +42,7 @@ describe("CortexStep", () => {
       const resp = await step.withMemory([{
         role: ChatMessageRoleEnum.System,
         content: "You are modeling the mind of Bogus, a very bad dude.",
-      }]).next(externalDialog("shouts", "What does Bogus shout about tag support?"), {
+      }]).next(externalDialog("What does Bogus whisper about tag support?"), {
         tags: {
           "test-run": "test"
         }
@@ -85,7 +57,7 @@ describe("CortexStep", () => {
       const resp = await step.withMemory([{
         role: ChatMessageRoleEnum.System,
         content: "You are modeling the mind of Bogus, a very bad dude.",
-      }]).next(externalDialog("whispers", "What does Bogus whisper about request option headers?"), {
+      }]).next(externalDialog("What does Bogus whisper about request option headers?"), {
         requestOptions: {
           headers: {
             "x-test-header": "test"
@@ -108,7 +80,7 @@ describe("CortexStep", () => {
           role: ChatMessageRoleEnum.User,
           content: "hi",
         }
-      ]).next(stringCommand("What would Bogus say now?"))
+      ]).next(externalDialog())
 
       expect(resp.memories[resp.memories.length - 1].content).to.eq(resp.value)
 
@@ -124,7 +96,7 @@ describe("CortexStep", () => {
         role: ChatMessageRoleEnum.System,
         content: "You are modeling the mind of Bogus, a very bad dude.",
       }
-    ]).experimentalStreamingNext(stringCommand("What one paragraph response would bogus have now?"))
+    ]).experimentalStreamingNext(instruction("What one paragraph response would bogus have now?"))
 
     let streamed = ""
 
@@ -150,12 +122,33 @@ describe("CortexStep", () => {
     const resp = await step.withMemory([{
       role: ChatMessageRoleEnum.System,
       content: "You are modeling the mind of Bogus, a very bad dude.",
-    }]).next(externalDialog("whispers", "What does Bogus whisper about request option headers?"))
+    }]).next(externalDialog("What does Bogus whisper about request option headers?"))
 
     expect(resp.tags).to.deep.equal({
       "test-spec": "child-tags"
     })
 
+    expect(resp.value).to.be.an("string")
+    expect(resp.value).to.have.length.greaterThan(10)
+  })
+
+  it('uses functions to create instructions', async () => {
+    const step = new CortexStep("Bogus",)
+    const resp = await step.withMemory([{
+      role: ChatMessageRoleEnum.System,
+      content: "You are modeling the mind of Bogus, a very bad dude.",
+    }]).next(instruction(({ entityName }) => `Describe ${entityName}'s favorite ice cream flavors in the form of a 3 line haiku.`))
+
+    expect(resp.value).to.be.an("string")
+    expect(resp.value).to.have.length.greaterThan(10)
+  })
+
+  it('uses strings to create instructions', async () => {
+    const step = new CortexStep("Bogus",)
+    const resp = await step.withMemory([{
+      role: ChatMessageRoleEnum.System,
+      content: "You are modeling the mind of Bogus, a very bad dude.",
+    }]).next(instruction(`Describe Bogus' favorite ice cream flavors in the form of a 3 line haiku.`))
     expect(resp.value).to.be.an("string")
     expect(resp.value).to.have.length.greaterThan(10)
   })
@@ -200,19 +193,19 @@ describe("CortexStep", () => {
         const monologue = new CortexStep("Bogus").withMemory(memory)
 
         enum BogusAction {
-          none = "none",
+          stop = "stop",
           rambles = "rambles",
         }
 
-        const feels = await monologue.next(internalMonologue("feels", "Bogus notes how it feels to themself in one sentence"))
-        const thinks = await feels.next(internalMonologue("thinks", "what Bogus thinks to themself in one sentence"))
-        const says = await thinks.next(externalDialog("says", "what Bogus says out loud next"))
+        const feels = await monologue.next(internalMonologue("Bogus notes how it feels to themself in one sentence"))
+        const thinks = await feels.next(internalMonologue("What does Bogus think to themself in one sentence"))
+        const says = await thinks.next(externalDialog("What does Bogus says out loud next"))
         const action = await says.next(decision("Decide Bogus' next course of action in the dialog. Should he ramble or stop?", BogusAction))
         if (action.value.decision === BogusAction.rambles) {
-          const rambles = await action.next(externalDialog("rambles", "Bogus rambles for two sentences out loud, extending its last saying"))
-          const shouts = await rambles.next(externalDialog("shouts", "Bogus shouts incredibly loudly with all caps"))
-          const exclaims = await shouts.next(externalDialog("exclaims", "Bogus exclaims"))
-          const continues = await exclaims.next(externalDialog("continues", "Bogus continues"))
+          const rambles = await action.next(externalDialog("Bogus rambles for two sentences out loud, extending his last saying"))
+          const shouts = await rambles.next(externalDialog("Bogus shouts incredibly loudly with all caps"))
+          const exclaims = await shouts.next(externalDialog("Bogus exclaims!"))
+          const continues = await exclaims.next(externalDialog("Bogus continues"))
           console.log(continues.toString());
           const query = (await continues.next(queryMemory("Please provide a summary of everything Bogus said"))).value
           span.end()
