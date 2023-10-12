@@ -9,7 +9,7 @@ export const externalDialog = (extraInstructions?: string) => {
     return html`
       ${extraInstructions}
 
-      ${name} should respond as if they were spekaing out loud. The response should be short (as most speech is short), include appropriate verbal ticks, use all caps when SHOUTING, and use punctuation (such as ellipses) to indicate pauses and breaks.
+      ${name} should respond as if they were speaking out loud. The response should be short (as most speech is short), include appropriate verbal ticks, use all caps when SHOUTING, and use punctuation (such as ellipses) to indicate pauses and breaks.
       Do not include any other text than ${name}'s response!
       Respond in the first person voice (use "I" instead of "${name}") and speaking style of ${name}. Pretend to be ${name}!
     `
