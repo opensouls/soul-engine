@@ -6,7 +6,7 @@ import { expect } from "chai";
 import { z } from "zod";
 import { trace } from "@opentelemetry/api";
 
-describe.only("CortexStep", () => {
+describe("CortexStep", () => {
   startInstrumentation()
 
   const tracer = trace.getTracer(
