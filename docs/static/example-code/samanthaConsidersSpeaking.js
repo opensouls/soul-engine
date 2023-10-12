@@ -1,23 +1,27 @@
 #!/bin/playground
 // Import a few important pieces from the socialagi library
 // check out https://www.socialagi.dev/ for further detail
-import { Action, CortexStep, CortexScheduler } from "socialagi";
+import {
+  CortexStep,
+  CortexScheduler,
+  decision,
+  externalDialog,
+} from "socialagi/next";
 import playground from "playground";
 
 // subroutine for modeling Samantha's replies
 const samanthaReplies = async (signal, newMemory, lastStep) => {
   let step = lastStep;
   step = step.withMemory([newMemory]);
-  const decides = await step.next(Action.DECISION, {
-    description:
+  const decides = await step.next(
+    decision(
       "based on the conversation so far, should samantha continue the conversation or exit the conversation?",
-    choices: ["speak", "exit"],
-  });
+      ["speak", "exit"]
+    )
+  );
   playground.log("decides: " + decides.value);
   if (decides.value === "choice=speak") {
-    step = await step.next(Action.EXTERNAL_DIALOG, {
-      action: "says",
-    });
+    step = await step.next(externalDialog());
     playground.addMessage({
       sender: "Samantha",
       message: step.value,
@@ -34,7 +38,7 @@ const initialMemories = [
   {
     role: "system",
     content:
-      "<Context>You are modeling the mind of Samantha, a chatty and sometimes forgiving robot</Context>",
+      "You are modeling the mind of Samantha, a chatty and sometimes forgiving robot",
   },
 ];
 let firstStep = new CortexStep("Samantha");

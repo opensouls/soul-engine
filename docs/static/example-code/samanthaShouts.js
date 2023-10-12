@@ -1,15 +1,13 @@
 #!/bin/playground
 // Import a few important pieces from the socialagi library
 // check out https://www.socialagi.dev/ for further detail
-import { Action, CortexStep, CortexScheduler } from "socialagi";
+import { CortexStep, CortexScheduler, externalDialog } from "socialagi/next";
 import playground from "playground";
 
 const samanthaReplies = async (signal, newMemory, lastStep) => {
   let step = lastStep;
   step = step.withMemory([newMemory]);
-  const shouts = await step.next(Action.EXTERNAL_DIALOG, {
-    action: "shouts in all caps",
-  });
+  const shouts = await step.next(externalDialog("shouts in all caps"));
   playground.addMessage({
     sender: "Samantha",
     message: shouts.value,

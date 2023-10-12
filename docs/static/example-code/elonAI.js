@@ -1,6 +1,12 @@
 #!/bin/playground
 // Import necessary modules from the socialagi library
-import { Action, CortexStep, CortexScheduler } from "socialagi";
+import {
+  CortexStep,
+  CortexScheduler,
+  decision,
+  externalDialog,
+  internalMonologue,
+} from "socialagi/next";
 import playground from "playground";
 
 const interviewTopics = [
@@ -20,16 +26,19 @@ const elonAIReplies = async (signal, newMemory, lastStep) => {
   let step = lastStep;
   step = step.withMemory([newMemory]);
 
-  step = await step.next(Action.INTERNAL_MONOLOGUE, {
-    action: "considers",
-    description: `ElonAI internally notes the user's response on the topic of ${interviewTopics[topicIndex]}`,
-  });
+  step = await step.next(
+    internalMonologue(
+      `ElonAI internally notes the user's response on the topic of ${interviewTopics[topicIndex]}`
+    )
+  );
   playground.log(step.value);
 
-  const assessment = await step.next(Action.DECISION, {
-    description: `Did I get a comprehensive understanding on the topic of: ${interviewTopics[topicIndex]}? comprehensive understanding means I could write a paragraph about the interviewee's experience`,
-    choices: ["yes", "no"],
-  });
+  const assessment = await step.next(
+    decision(
+      `Did I get a comprehensive understanding on the topic of: ${interviewTopics[topicIndex]}? comprehensive understanding means I could write a paragraph about the interviewee's experience`,
+      ["yes", "no"]
+    )
+  );
 
   playground.log(
     `Assessment on ${interviewTopics[topicIndex]}: ` +
@@ -45,10 +54,11 @@ const elonAIReplies = async (signal, newMemory, lastStep) => {
           : "complete interview")
     );
     patienceMeter = 0;
-    const assessment = await step.next(Action.EXTERNAL_DIALOG, {
-      action: "says",
-      description: `ElonAI says a critical comment on the last thing the user said. No questions.`,
-    });
+    const assessment = await step.next(
+      externalDialog(
+        `ElonAI says a critical comment on the last thing the user said. No questions.`
+      )
+    );
     playground.addMessage({
       sender: "ElonAI",
       message: assessment.value,
@@ -73,22 +83,25 @@ const elonAIReplies = async (signal, newMemory, lastStep) => {
     },
   ]);
 
-  const secondAssessment = await step.next(Action.DECISION, {
-    description: `Am I surprised in a large negative way by what the interviewee said?`,
-    choices: ["yes", "no"],
-  });
+  const secondAssessment = await step.next(
+    decision(
+      `Am I surprised in a large negative way by what the interviewee said?`,
+      ["yes", "no"]
+    )
+  );
   playground.log("Feedback? " + secondAssessment.value);
 
   if (secondAssessment.value.includes("yes") || patienceMeter > 50) {
     patienceMeter = 0;
-    step = await step.next(Action.EXTERNAL_DIALOG, {
-      action: "says",
-      description: `ElonAI lets out a judgemental remark, somewhat sarcastic, possibly scathing, ending with a period, directed at the candidate.${
-        topicIndex < 2
-          ? " IMPORTANT: The interview may end, but this remark should not say anything about ending the interview."
-          : ""
-      }`,
-    });
+    step = await step.next(
+      externalDialog(
+        `ElonAI lets out a judgemental remark, somewhat sarcastic, possibly scathing, ending with a period, directed at the candidate. ${
+          topicIndex < 2
+            ? " IMPORTANT: The interview may end, but this remark should not say anything about ending the interview."
+            : ""
+        }`
+      )
+    );
     playground.addMessage({
       sender: "ElonAI",
       message: step.value,
@@ -101,10 +114,12 @@ const elonAIReplies = async (signal, newMemory, lastStep) => {
           : "complete interview")
     );
     patienceMeter = 0;
-    const endEarly = await step.next(Action.DECISION, {
-      description: `Is this candidate so absurdly bad I should just end the interview now?`,
-      choices: ["yes", "no"],
-    });
+    const endEarly = await step.next(
+      decision(
+        `Is this candidate so absurdly bad I should just end the interview now?`,
+        ["yes", "no"]
+      )
+    );
     playground.log("End early? " + endEarly.value);
     if (endEarly.value.includes("yes")) {
       topicIndex = 3;
@@ -114,11 +129,11 @@ const elonAIReplies = async (signal, newMemory, lastStep) => {
           content: `<ElonAI><thinks>Fuck it. This interview is done - don't need to waste my time.</thinks></ElonAI>`,
         },
       ]);
-      step = await step.next(Action.EXTERNAL_DIALOG, {
-        action: "berates",
-        description:
-          "ElonAI's scathing remarks in detail, beginning with 'On second thought'",
-      });
+      step = await step.next(
+        externalDialog(
+          "ElonAI's berating, scathing remarks in detail, beginning with 'On second thought'"
+        )
+      );
       playground.addMessage({
         sender: "ElonAI",
         message: step.value,
@@ -135,10 +150,7 @@ const elonAIReplies = async (signal, newMemory, lastStep) => {
         content: `<ElonAI><thinks>Concluding the interview. Will provide feedback to the candidate if they made it. May be scathing and sarcastic possibly.</thinks></ElonAI>`,
       },
     ]);
-    step = await step.next(Action.EXTERNAL_DIALOG, {
-      action: "concludes",
-      description: "ElonAI's concluding remarks",
-    });
+    step = await step.next(externalDialog("ElonAI's concluding remarks"));
     playground.addMessage({
       sender: "ElonAI",
       message: step.value,
@@ -147,10 +159,11 @@ const elonAIReplies = async (signal, newMemory, lastStep) => {
     return;
   }
 
-  step = await step.next(Action.EXTERNAL_DIALOG, {
-    action: "inquires",
-    description: `ElonAI's inquiry about ${interviewTopics[topicIndex]}, asking a more detailed question going deeper, possibly referencing the last thing he said`,
-  });
+  step = await step.next(
+    externalDialog(
+      `ElonAI's inquiry about ${interviewTopics[topicIndex]}, asking a more detailed question going deeper, possibly referencing the last thing he said`
+    )
+  );
 
   playground.addMessage({
     sender: "ElonAI",
