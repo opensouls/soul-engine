@@ -14,36 +14,58 @@ import { HistoryButton, HistoryTimeline } from "../components/historybutton";
 
 const defaultCode = `
 // Import a few important pieces from the socialagi library
-// check out https://www.socialagi.dev/Soul for further detail
-import { Blueprints, Soul } from "socialagi";
-
-// The SocialAGI Playground API allows code executed here to communicate
-// with the Playground chat logs
+// check out https://www.socialagi.dev/ for further detail
+import { Action, CortexStep, CortexScheduler } from "socialagi";
 import playground from "playground";
 
-// Create our SocialAGI Soul from an example blueprint
-let blueprint = Blueprints.SAMANTHA;
-blueprint.personality += "\\nSamantha kikes Chocolate";
-const soul = new Soul(blueprint);
-const conversation = soul.getConversation("example");
+const samanthaReplies = async (signal, newMemory, lastStep) => {
+  let step = lastStep;
+  step = step.withMemory([newMemory]);
+  const shouts = await step.next(Action.EXTERNAL_DIALOG, {
+    action: "shouts in all caps",
+  });
+  playground.addMessage({
+    sender: "Samantha",
+    message: shouts.value,
+  });
+  return shouts;
+};
+const samanthaRepliesConfig = {
+  name: "SamanthaReplies",
+  process: samanthaReplies,
+};
+const initialMemories = [
+  {
+    role: "system",
+    content: "<Context>You are modeling the mind of Samantha</Context>",
+  },
+];
+let firstStep = new CortexStep("Samantha");
+firstStep = firstStep.withMemory(initialMemories);
+const cortex = new CortexScheduler(firstStep);
+cortex.register(samanthaRepliesConfig);
 
-// Listen for what the Soul wants to say
-conversation.on("says", (text) => {
-  // Route the Soul's message to the Playground chat logs
-  playground.addMessage({ sender: "samantha", message: text });
+// add initial context messages
+setTimeout(() => {
+  playground.addMessage({
+    sender: "Playground",
+    message: "In this example, Samantha is shouts in reply to every message",
+  });
+  playground.addMessage({
+    sender: "Playground",
+    message:
+      "Try exploring how using the verb 'shouting' changes Samantha's personality",
+  });
+  playground.log("Playground initialized");
+}, 1);
+
+playground.on("userMessage", async (message) => {
+  cortex.dispatch("SamanthaReplies", {
+    role: "user",
+    content: message,
+  });
 });
-
-// Listen for user messages in the Playground, and then route them
-// to the SocialAGI Soul
-playground.on("userMessage", (text) => {
-  conversation.tell(text);
-});
-
-// Listen for thoughts from the soul and them log them as secondary
-// outputs in the Playground chat
-conversation.on("thinks", (text) => {
-  playground.log(text);
-});`.trim();
+`.trim();
 
 const WarningMessage = () => {
   return (
@@ -90,6 +112,9 @@ const BrowserPlayground = () => {
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const load = params.get("load");
+    if (!load) {
+      return;
+    }
     fetch(`example-code/${load}.js`)
       .then((response) => {
         if (!response.ok) {
@@ -383,7 +408,7 @@ const BrowserPlayground = () => {
           </div>
         </div>
       )}
-      <style global jsx>{`
+      <style>{`
         footer {
           display: none;
         }

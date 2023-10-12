@@ -63,12 +63,6 @@ const Examples = () => {
       quote: '"I COULD BE THAT FRIEND FOR YOU" —Samantha',
       link: "samanthaShouts",
     },
-    {
-      title: "💫️ Soul interface",
-      subtitle: "Explore personality, ego, and drive, 'out of the box'",
-      quote: '"I feel like I should comfort the user" —Samantha',
-      link: "soulInterface",
-    },
   ];
 
   return (

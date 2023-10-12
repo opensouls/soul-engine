@@ -25,7 +25,7 @@ function Editor({ editorCode, handleEditorChange }) {
         useWorker: false,
         enableBasicAutocompletion: true,
         enableLiveAutocompletion: true,
-        enableSnippets: true,
+        enableSnippets: false,
         showLineNumbers: true,
         tabSize: 2,
         printMargin: false,
