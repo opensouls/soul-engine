@@ -1,6 +1,6 @@
 {
   "name": "@socialagi/tools",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A library for loading web pages and other resources for use in socialagi. It provides efficient and reliable tools for Open Souls to use.",
   "main": "dist/src/index.js",
   "publishConfig": {
