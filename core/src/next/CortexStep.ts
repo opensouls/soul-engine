@@ -122,7 +122,7 @@ export class CortexStep<LastValueType = undefined> {
       .join("\n");
   }
 
-  private async stepCommandToString(command?: StepCommand) {
+  private async stepCommandToString(command?: StepCommand):Promise<string|undefined> {
     if (!command) {
       return undefined
     }

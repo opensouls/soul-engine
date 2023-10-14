@@ -33,7 +33,7 @@ cortex.register(samanthaRepliesConfig);
 setTimeout(() => {
   playground.addMessage({
     sender: "Playground",
-    message: "In this example, Samantha is shouts in reply to every message",
+    message: "In this example, Samantha shouts in reply to every message",
   });
   playground.addMessage({
     sender: "Playground",
@@ -41,7 +41,7 @@ setTimeout(() => {
       "Try exploring how using the verb 'shouting' changes Samantha's personality",
   });
   playground.log("Playground initialized");
-}, 1);
+}, 100);
 
 playground.on("userMessage", async (message) => {
   cortex.dispatch("SamanthaReplies", {

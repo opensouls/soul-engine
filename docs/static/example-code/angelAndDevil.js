@@ -6,6 +6,7 @@ import {
   externalDialog,
   internalMonologue,
   decision,
+  OpenAILanguageProgramProcessor,
 } from "socialagi/next";
 import playground from "playground";
 
@@ -115,7 +116,11 @@ Notes:
   },
 ];
 
-let firstStepAngel = new CortexStep("Angel");
+let firstStepAngel = new CortexStep("Angel", {
+  processor: new OpenAILanguageProgramProcessor({
+    dangerouslyAllowBrowser: true,
+  }),
+});
 firstStepAngel = firstStepAngel.withMemory(initialMemoriesAngel);
 
 const cortexAngel = new CortexScheduler(firstStepAngel);
@@ -135,7 +140,11 @@ Notes:
   },
 ];
 
-let firstStepDevil = new CortexStep("Devil");
+let firstStepDevil = new CortexStep("Devil", {
+  processor: new OpenAILanguageProgramProcessor({
+    dangerouslyAllowBrowser: true,
+  }),
+});
 firstStepDevil = firstStepDevil.withMemory(initialMemoriesDevil);
 
 const cortexDevil = new CortexScheduler(firstStepDevil);
