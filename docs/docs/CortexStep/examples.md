@@ -232,29 +232,29 @@ console.log(decision.toString());
 Here's an example of a simplified internal monologue which makes a progressive sequence of branching decisions and while maintaining prior context.
 
 ```javascript
-let initialMemory = [
+const initialMemory = [
   {
-    role: "system",
+    role: ChatMessageRoleEnum.System,
     content: stripIndent`
       You are modeling the mind of a protagonist who is deciding on actions in a quest
     `
   },
 ];
 
-let quest = new CortexStep("Protagonist");
-quest = quest.withMemory(initialMemory);
+let quest = new CortexStep<any>("Protagonist");
+quest = quest.withMemory(initialMemory) as CortexStep<any>;
 
 // The protagonist considers the quests
 quest = await quest.next(
   decision(
     "Protagonist considers the quests",
-    ["slay dragon", "find artifact"]
+    ["slay dragon", "find artifact"],
   )
 );
 
 if (quest.value === "slay dragon") {
   // Branch 1: Slay the dragon
-  let quest = await quest.next(
+  quest = await quest.next(
     decision(
       "Protagonist decides how to prepare for the quest",
       ["gather weapons", "train skills"]
@@ -268,10 +268,10 @@ if (quest.value === "slay dragon") {
   }
 } else {
   // Branch 2: Find the artifact
-  let quest = await quest.next(
+  quest = await quest.next(
     decision(
       "Protagonist decides how to find the artifact",
-      ["search old records", "ask elders"],
+      ["search old records", "ask elders"]
     )
   );
 
@@ -283,53 +283,4 @@ if (quest.value === "slay dragon") {
 }
 
 console.log(quest.toString());
-```
-
-One could of course extend this model further with subsequent memories to provide additional context in which the decisions are made.
-
-## Map-reduce ("Tree of thoughts")
-
-Map reduce is a very common pattern for complex data processing. In the LLM world, map-reduce is now often known as "Tree of thoughts". Here is an example that models a complex decision making process that maps an evaluation across several different options before merging them and making a final decision.
-
-```typescript
-async function withAdvisorDecision(crisisMemory: ChatMessage[]): CortexStep {
-  let initialMemory = [
-    {
-      role: "system",
-      content: stripIndent`
-        You are modeling the mind of a royal advisor who is weighing strategies to handle a crisis.`,
-    },
-  ];
-
-  let cortexStep = new CortexStep("Advisor");
-  cortexStep = cortexStep.withMemory(initialMemory);
-  cortexStep = cortexStep.withMemory(crisisMemory);
-
-  let strategies = ["Diplomacy", "Military", "Trade sanctions"];
-
-  let evaluations = await Promise.all(
-    strategies.map(async (strategy) => {
-      let evaluationStep = await cortexStep.next(
-        internalMonolouge(`Advisor evaluates the ${strategy} strategy`)
-      );
-
-      let prosCons = await evaluationStep.next(
-        internalMonolouge(`Advisor considers the pros and cons of the ${strategy} strategy`)
-      );
-
-      return prosCons;
-    })
-  );
-
-  // Use the 'merge' function to combine all evaluations into a single CortexStep
-  cortexStep = CortexStep.merge(evaluations);
-
-  let recommendation = await cortexStep.next(
-    decision(
-      "Advisor makes a recommendation based on the evaluations",
-      strategies,
-    )
-  );
-  return recommendation
-}
 ```
