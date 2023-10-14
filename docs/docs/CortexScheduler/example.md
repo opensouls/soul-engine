@@ -22,6 +22,11 @@ const samanthaRepliesConfig = {
   process: samanthaReplies,
 };
 
+const abortQueuingStrategy = (currentJob:any, queue:any, newJob:any) => {
+  currentJob?.abortController?.abort();
+  return [newJob];
+};
+
 const initialMemories = [
   {
     role: "system",

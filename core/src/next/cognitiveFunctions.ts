@@ -29,11 +29,11 @@ export const internalMonologue = (extraInstructions?: string) => {
   })
 }
 
-export const decision = (description:string, choices: EnumLike) => {
+export const decision = (description:string, choices: EnumLike | string[]) => {
   return () => {
     
     const params = z.object({
-      decision: z.nativeEnum(choices).describe(description)
+      decision: z.nativeEnum(choices as EnumLike).describe(description)
     })
 
     return {

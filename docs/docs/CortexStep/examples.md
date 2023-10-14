@@ -14,7 +14,7 @@ Let's dive right in!
 Using CortexStep can be thought of as building up a set of memories, and then performing functional, append-only manipulations on those memories. Here is a simple example that initializes a `CortexStep` with memories of being a helpful AI assitant.
 
 ```javascript
-import { brainstorm, CortexStep, externalDialog, internalMonologue } from "socialagi/next";
+import { brainstorm, CortexStep, ChatMessageRoleEnum, externalDialog, internalMonologue, Memory } from "socialagi/next";
 
 let step = new CortexStep("A Helpful Assistant");
 const initialMemory = [
@@ -31,8 +31,8 @@ step = step.withMemory(initialMemory);
 Then, during an event loop, `withReply(...)` would be called with a memory of each new message:
 
 ```javascript
-async function withReply(step: CortexStep, newMessage: ChatMessage): CortexStep {
-  let nextStep = step.withMemory(newMessage);
+async function withReply(step: CortexStep, newMessage: Memory): Promise<CortexStep<any>> {
+  let nextStep = step.withMemory([newMessage]);
   nextStep = await nextStep.next(externalDialog());
   console.log("AI:", nextStep.value);
   return nextStep
@@ -48,11 +48,11 @@ In the previous example, we saw how to use `CortexStep` to write an AI assistant
 However, complex dialog agents require more thoughtful cognitive modeling than a direct reply. Samantha from [MeetSamantha.ai](http://meetsamantha.ai) feels so uncanny because her feelings and internal cognitive processes are modeled. Here's a 3 step process expressed in terms of `CortexSteps` that models the way she formulates a message.
 
 ```javascript
-async function withIntrospectiveReply(step: CortexStep, newMessage: ChatMessage): CortexStep {
-  let message = step.withMemory(newMessage);
+async function withIntrospectiveReply(step: CortexStep, newMessage: Memory): Promise<CortexStep<any>> {
+  let message = step.withMemory([newMessage]);
   const feels = await message.next(internalMonologue("How do they feel about the last message?"));
   const thinks = await feels.next(internalMonologue("Thinks about the feelings and the last user message"));
-  const says = await thinks.next(externalDilog);
+  const says = await thinks.next(externalDialog());
   console.log("Samantha:", says.value);
   return says
 }
@@ -65,10 +65,10 @@ Moving beyond a simple dialog agent, the `CortexStep` paradigm easily supports d
 In this example, we tell an agentic detective to think through a set of case memories before making a decision on what action to take.
 
 ```javascript
-async function caseDecision(caseMemories: ChatMessage[]): string {
+async function caseDecision(caseMemories: ChatMessage[]): Promise<string> {
   let initialMemory = [
   {
-    role: "system",
+    role: ChatMessageRoleEnum.System,
     content: "You are modeling the mind of a detective who is currently figuring out a complicated case",
   },
   ];
@@ -80,7 +80,7 @@ async function caseDecision(caseMemories: ChatMessage[]): string {
 
   const analysis = await cortexStep.next(internalMonologue("The detective analyzes the evidence"));
 
-  const hypothesis = await analysis.next(internalMonologue("The detective makes a hypothesis based on the analysis");
+  const hypothesis = await analysis.next(internalMonologue("The detective makes a hypothesis based on the analysis"));
 
   const nextStep = await hypothesis.next(
     decision(
@@ -100,10 +100,10 @@ Similar to decision making which narrows effective context scope, `CortexStep` s
 In this example, we ask a chef to consider a basket of ingredients, then brainstorm what dishes could be made.
 
 ```javascript
-async function makeDishSuggestions(ingredientsMemories: ChatMessage[]): string[] {
+async function makeDishSuggestions(ingredientsMemories: ChatMessage[]): Promise<string[]> {
   let initialMemory = [
     {
-      role: "system",
+      role: ChatMessageRoleEnum.System,
       content: "You are modeling the mind of a chef who is preparing a meal.",
     },
   ];
@@ -113,7 +113,7 @@ async function makeDishSuggestions(ingredientsMemories: ChatMessage[]): string[]
     .withMemory(initialMemory)
     .withMemory(ingredientsMemories);
 
-  const ingredients = await cortexStep.next(internalMonologue("The chef considers the ingredients");
+  const ingredients = await cortexStep.next(internalMonologue("The chef considers the ingredients"));
 
   const mealIdeas = await ingredients.next(
     brainstorms("Decides the meal to prepare")
@@ -132,12 +132,13 @@ While loops for controlling chains of thought are trivially supported in `Cortex
 In this simple example, we show a function that internally monologues a sequence of 5 successively deeper 'Why' questions.
 
 ```javascript
-async function with5Whys(step: CortexStep): CortexStep {
+const with5Whys = async (question: CortexStep<any>): Promise<CortexStep<any>> => {
   let i = 0;
   while (i < 5) {
     question = await question.next(internalMonologue("Asks a deep 'why?'"));
     i++;
   }
+  return question
 }
 ```
 
@@ -150,9 +151,8 @@ Here, a detective is modeled interrogating a suspectl
 ```javascript
 let initialMemory = [
   {
-    role: "system",
-    content: stripIndent`<Context>You are modeling the mind of Detective Smith who is \
-    questioning a suspect, seeking to extract a murder confession.</Context>`,
+    role: ChatMessageRoleEnum.System,
+    content: stripIndent`You are modeling the mind of Detective Smith who is questioning a suspect, seeking to extract a murder confession.`,
   },
 ];
 
@@ -171,7 +171,7 @@ while (true) {
   [step, possibleConfession] = await withUserSuspectInput(step);
 
   // The detective asks a probing question
-  step = await step.next(externalDialog("Detective Smith asks a probing question");
+  step = await step.next(externalDialog("Detective Smith asks a probing question"));
 
   // The detective interprets the suspect's response
   let response = await step.next(
@@ -245,7 +245,7 @@ let quest = new CortexStep("Protagonist");
 quest = quest.withMemory(initialMemory);
 
 // The protagonist considers the quests
-let quest = await quest.next(
+quest = await quest.next(
   decision(
     "Protagonist considers the quests",
     ["slay dragon", "find artifact"]
