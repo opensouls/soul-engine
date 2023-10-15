@@ -72,7 +72,14 @@ export class OpenAILanguageProgramProcessor
     defaultCompletionParams: ChatCompletionParams = {},
     defaultRequestOptions: RequestOptions = {}
   ) {
-    this.client = new OpenAI(openAIConfig);
+    console.log("DANGEROUSLY_ALLOW_OPENAI_BROWSER", process.env.DANGEROUSLY_ALLOW_OPENAI_BROWSER)
+    const defaultConfig = {
+      dangerouslyAllowBrowser: !!process.env.DANGEROUSLY_ALLOW_OPENAI_BROWSER
+    }
+    this.client = new OpenAI({
+      ...defaultConfig,
+      ...openAIConfig,
+    });
     this.defaultCompletionParams = {
       model: Model.GPT_3_5_turbo,
       ...defaultCompletionParams,
