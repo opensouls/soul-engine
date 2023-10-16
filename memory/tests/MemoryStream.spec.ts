@@ -12,6 +12,22 @@ describe("MemoryStream", () => {
     expect(memory.content).to.equal("Hello, world!")
   })
 
+  it("searches with text", async () => {
+    const memoryStream = new MemoryStream()
+
+    await memoryStream.store({
+      content: "The dog said hello",
+    })
+
+    await memoryStream.store({
+      content: "The cat said hello",
+    })
+
+    const returnedMemories = await memoryStream.search("hi said the canine")
+
+    expect(returnedMemories[0].content).to.equal("The dog said hello")
+  })
+
   it("gets relevant memories", async () => {
     const memoryStream = new MemoryStream()
 

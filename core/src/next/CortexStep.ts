@@ -1,8 +1,8 @@
 import { SpanStatusCode, trace } from "@opentelemetry/api";
+import { v4 as uuidv4 } from 'uuid';
+import { z } from "zod";
 import { ChatMessageRoleEnum, FunctionCall, LanguageModelProgramExecutor, FunctionSpecification, RequestOptions, LanguageModelProgramExecutorExecuteOptions, ExecutorResponse } from "./languageModels";
 import { OpenAILanguageProgramProcessor } from "./languageModels/openAI"
-import { z } from "zod";
-import crypto from "crypto"
 
 const tracer = trace.getTracer(
   'open-souls-CortexStep',
@@ -88,7 +88,7 @@ export class CortexStep<LastValueType = undefined> {
     this.memories = memories || [];
     this.lastValue = lastValue as LastValueType;
     this.entityName = entityName;
-    this.id = id || crypto.randomUUID()
+    this.id = id || uuidv4();
     this.parents = parents || []
     this.tags = tags || {}
     this.processor = processor || new OpenAILanguageProgramProcessor();
@@ -122,7 +122,7 @@ export class CortexStep<LastValueType = undefined> {
       .join("\n");
   }
 
-  private async stepCommandToString(command?: StepCommand) {
+  private async stepCommandToString(command?: StepCommand):Promise<string|undefined> {
     if (!command) {
       return undefined
     }

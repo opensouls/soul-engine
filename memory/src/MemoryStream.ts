@@ -96,6 +96,11 @@ export class MemoryStream {
     })
   }
 
+  async search(query: string, opts: SearchLimiters = {}) {
+    const embedding = await this.createEmbedding(query);
+    return this.relevantMemories(embedding, opts);
+  }
+
   async createEmbedding(content: string) {
     return this.embedder.createEmbedding(content)
   }
