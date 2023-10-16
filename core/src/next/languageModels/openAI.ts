@@ -72,7 +72,6 @@ export class OpenAILanguageProgramProcessor
     defaultCompletionParams: ChatCompletionParams = {},
     defaultRequestOptions: RequestOptions = {}
   ) {
-    console.log("DANGEROUSLY_ALLOW_OPENAI_BROWSER", process.env.DANGEROUSLY_ALLOW_OPENAI_BROWSER)
     const defaultConfig = {
       dangerouslyAllowBrowser: !!process.env.DANGEROUSLY_ALLOW_OPENAI_BROWSER
     }

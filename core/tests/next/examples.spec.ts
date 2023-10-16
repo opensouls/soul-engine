@@ -10,9 +10,8 @@ import {
   internalMonologue,
   brainstorm,
 } from "../../src/next";
-import { EnumLike } from "zod";
 
-describe.only("examples from the docs", () => {
+describe("examples from the docs", () => {
   describe("CortexStep examples", () => {
     let step: CortexStep<any>;
 
@@ -57,7 +56,7 @@ describe.only("examples from the docs", () => {
 
     it("runs caseDecision", async () => {
       const caseDecision = async (caseMemories: ChatMessage[]): Promise<string|number> => {
-        let initialMemory = [
+        const initialMemory = [
         {
           role: ChatMessageRoleEnum.System,
           content: "You are modeling the mind of a detective who is currently figuring out a complicated case",

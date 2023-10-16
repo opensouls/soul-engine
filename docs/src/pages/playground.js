@@ -7,6 +7,7 @@ import { useHistory } from "react-router-dom";
 import BrowserOnly from "@docusaurus/BrowserOnly";
 
 import * as socialagi from "socialagi";
+import * as next from "socialagi/next";
 
 import "./playground.css";
 import ApiKeyPopup from "../components/apikeypopup";
@@ -219,6 +220,7 @@ const BrowserPlayground = () => {
 
     const importMap = {
       socialagi: socialagi,
+      "socialagi/next": next,
       playground: exposedAPI,
     };
     let processedCode = editorCode;
@@ -244,6 +246,7 @@ const BrowserPlayground = () => {
       window.process = {
         env: {
           OPENAI_API_KEY: localStorage.getItem("apiKey"),
+          DANGEROUSLY_ALLOW_OPENAI_BROWSER: true,
         },
       };
       const func = new Function("importMap", "console", processedCode);
