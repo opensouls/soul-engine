@@ -27,10 +27,11 @@ describe("CortexStep", () => {
     const resp = await step.withMemory([{
       role: ChatMessageRoleEnum.System,
       content: "You are modeling the mind of Bogus, a very bad dude.",
-    }]).next(internalMonologue("How does bogus feel now?"))
+    }]).next(internalMonologue("How does bogus feel now?", "felt"))
 
     expect(resp.value).to.be.an("string")
     expect(resp.value).to.have.length.greaterThan(10)
+    expect(resp.memories[resp.memories.length - 1].content).to.eq("Bogus felt: " + resp.value)
   })
 
   describe("next", () => {

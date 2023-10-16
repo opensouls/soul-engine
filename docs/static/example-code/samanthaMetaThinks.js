@@ -3,27 +3,55 @@
 // Import a few important pieces from the socialagi library
 // check out https://www.socialagi.dev/ for further detail
 import {
-  brainstorms,
   CortexStep,
   CortexScheduler,
   ChatMessageRoleEnum,
   decision,
   externalDialog,
   internalMonologue,
+  z,
 } from "socialagi/next";
 import { Blueprints } from "socialagi";
 import playground from "playground";
 
 const blueprint = Blueprints.SAMANTHA;
 const goal = `Making the user happy`;
-let internalThoughtProcess = ["feelsToThemself", "wondersAboutIntention"];
+let internalThoughtProcess = ["feels to themselves", "wonders about intention"];
+
+const brainStormMetaCognition = (description) => {
+  return () => {
+    const params = z.object({
+      new_metacognitive_processes: z
+        .array(z.string())
+        .describe(
+          `two or three words to describe an internal thought process.`
+        ),
+    });
+
+    return {
+      name: "determine_new_internal_cognition_processes",
+      description,
+      parameters: params,
+      process: (_step, response) => {
+        return {
+          value: response.new_metacognitive_processes,
+        };
+      },
+    };
+  };
+};
 
 const samanthaReplies = async (signal, newMemory, lastStep) => {
-  let dialog = lastStep.withMemory(newMemory);
+  let dialog = lastStep.withMemory([newMemory]);
 
   let thoughtProcess = dialog;
   for (const process of internalThoughtProcess) {
-    thoughtProcess = await thoughtProcess.next(internalMonologue());
+    thoughtProcess = await thoughtProcess.next(
+      internalMonologue(
+        `Samantha ${process}. The response should be 1-2 sentences at most.`,
+        process
+      )
+    );
     playground.log(`${process}: ${thoughtProcess.value}`);
   }
   const says = await thoughtProcess.next(externalDialog());
@@ -41,15 +69,15 @@ const samanthaReplies = async (signal, newMemory, lastStep) => {
       ["changeThoughtProcess", "keepProcessTheSame"]
     )
   );
-  playground.log(`decides to: ${decisionStep.value}}`);
+  playground.log(`decides to: ${decisionStep.value}`);
   if (decisionStep.value === "changeThoughtProcess") {
     const newProcess = await decisionStep.next(
-      brainstorms(
+      brainStormMetaCognition(
         `Previously, ${blueprint.name} used the following INTERNAL METACOGNITION to think to themselves before speaking: [${internalThoughtProcess}]. Now, REVISE the INTERNAL METACOGNITION, adding, deleting, or modifying the processes.
         
 For example. Revise [process1, process2] to [process1', process4, process5]. The revised processes must be different than the prior ones.
 
-MAKE SURE the new actions are all parts of one's INTERNAL thought process PRIOR to speaking to the user, directed at oneself. Actions like provoking are all more external and don't qualify.   
+MAKE SURE the new actions are all INTERNAL thought processes to think through PRIOR to speaking to the user, directed at oneself. Actions like provoking are all more external and don't qualify.
 `.trim()
       )
     );
@@ -66,13 +94,12 @@ const samanthaRepliesConfig = {
 const initialMemories = [
   {
     role: ChatMessageRoleEnum.System,
-    content: `<CONTEXT>You are modeling the mind of ${blueprint.name}
+    content: `You are modeling the mind of ${blueprint.name}
 
 ${blueprint.personality}
 
 ${blueprint.name} has the following goal of: ${goal}
-
-</CONTEXT>`,
+`.trim(),
   },
 ];
 let firstStep = new CortexStep("Samantha");

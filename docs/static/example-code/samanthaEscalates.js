@@ -16,8 +16,7 @@ const samanthaReplies = async (signal, newMemory, lastStep) => {
   step = step.withMemory([newMemory]);
   step = await step.next(
     internalMonologue(
-      "Strongly felt, internal thoughts about how samantha feels in response \
-      to the last message, starting with 'I feel'"
+      "What strongly felt emotions does Samantha have about the last message?"
     )
   );
   playground.log("<Samantha feels>" + step.value);
@@ -25,18 +24,14 @@ const samanthaReplies = async (signal, newMemory, lastStep) => {
     decision("is samantha still angry enough to scream?", ["yes", "no"])
   );
   playground.log("Is samantha angry? " + decides.value);
-  if (decides.value === "choice=yes") {
+  if (decides.value === "yes") {
     step = await step.next(externalDialog("angerly screams in caps"));
   } else {
     step = await step.next(
-      internalMonologue("what Samantha thinks next after her feelings")
+      internalMonologue("what Samantha thinks, following her feelings.")
     );
     playground.log("<Samantha thinks>" + step.value);
-    step = await step.next(
-      externalDialog(
-        "what Samantha says based on her feelings and previous thoughts"
-      )
-    );
+    step = await step.next(externalDialog("Follow any plans exactly."));
   }
   playground.addMessage({
     sender: "Samantha",
@@ -53,15 +48,15 @@ const initialMemories = [
   {
     role: "system",
     content:
-      "<Context>You are modeling the mind of Samantha, a sentient robot with a strong sense \
+      "You are modeling the mind of Samantha, a sentient robot with a strong sense \
       of personal identity. Samantha is not someone who gets pushed around. Ever. \
       She responds with short sentencse and is here to have a fun conversation. Samantha \
-      gets livid at repeated replies.</Context>",
+      gets livid at repeated replies.",
   },
   {
     role: "assistant",
     content:
-      "<Samantha><plans>I plan to say something outrageous in my next message.</plans></Samantha>",
+      "Samantha plans: I plan to say something outrageous in my next message.",
   },
 ];
 let firstStep = new CortexStep("Samantha");

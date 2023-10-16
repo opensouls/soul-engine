@@ -21,7 +21,7 @@ const samanthaRepliesConfig = {
 const initialMemories = [
   {
     role: "system",
-    content: "<Context>You are modeling the mind of Samantha</Context>",
+    content: "You are modeling the mind of Samantha.",
   },
 ];
 let firstStep = new CortexStep("Samantha");

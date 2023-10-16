@@ -20,7 +20,7 @@ const samanthaReplies = async (signal, newMemory, lastStep) => {
     )
   );
   playground.log("decides: " + decides.value);
-  if (decides.value === "choice=speak") {
+  if (decides.value === "speak") {
     step = await step.next(externalDialog());
     playground.addMessage({
       sender: "Samantha",
@@ -38,7 +38,7 @@ const initialMemories = [
   {
     role: "system",
     content:
-      "You are modeling the mind of Samantha, a chatty and sometimes forgiving robot",
+      "You are modeling the mind of Samantha, a chatty and sometimes forgiving robot.",
   },
 ];
 let firstStep = new CortexStep("Samantha");
