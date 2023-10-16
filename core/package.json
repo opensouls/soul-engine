@@ -16,7 +16,7 @@
   "exports": {
     ".": "./dist/src/index.js",
     "./next": "./dist/src/next/index.js",
-    "./instrumentation": "./dist/src/next/instrumentation.js"
+    "./next/instrumentation": "./dist/src/next/instrumentation.js"
   },
   "files": [
     "dist/src"

@@ -93,12 +93,11 @@ All the socialagi/next code is hooked into OpenTelemetry and exports detailed da
 Locally you can use [https://www.jaegertracing.io/](https://www.jaegertracing.io/) in a docker container. All you need to do in your app is place a startInstrumentation at the start of your app
 
 ```typescript
-import { SpanProcessorType, startInstrumentation } from "@socialagi/core/next";
+import { SpanProcessorType, startInstrumentation } from "socialagi/next/instrumentation";
 startInstrumentation({
   spanProcessorType: SpanProcessorType.Simple,
 })
 ```
-
 
 ![A screenshot of the Jaeger interface](images/announcing-social-agi-next/jaeger.png)
 
