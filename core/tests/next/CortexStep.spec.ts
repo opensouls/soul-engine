@@ -1,4 +1,3 @@
-import { startInstrumentation } from "../../src/next/instrumentation"
 import { CortexStep } from "../../src/next/CortexStep";
 import { ChatMessageRoleEnum } from "../../src/next/languageModels";
 import { decision, instruction, queryMemory, externalDialog, internalMonologue } from "../../src/next/cognitiveFunctions";
@@ -7,7 +6,6 @@ import { z } from "zod";
 import { trace } from "@opentelemetry/api";
 
 describe("CortexStep", () => {
-  startInstrumentation()
 
   const tracer = trace.getTracer(
     "cortexstep-tests"
@@ -82,7 +80,7 @@ describe("CortexStep", () => {
         }
       ]).next(externalDialog())
 
-      expect(resp.memories[resp.memories.length - 1].content).to.eq(resp.value)
+      expect(resp.memories[resp.memories.length - 1].content).to.eq("BogusStringer said: " + resp.value)
 
       expect(resp.value).to.be.an("string")
       expect(resp.value).to.have.length.greaterThan(10)
