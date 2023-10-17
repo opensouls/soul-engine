@@ -3,21 +3,26 @@ import { CortexStep, NextFunction, StepCommand } from "./CortexStep";
 import { ChatMessageRoleEnum } from "./languageModels";
 import { html } from "common-tags";
 
-
 export const externalDialog = (extraInstructions?: string, verb = "said") => {
   return () => {
     return {
-      command: ({ entityName: name }: CortexStep) => {
+      command: ({ entityName: name } : CortexStep<any>) => {
         return html`
+          How would ${name} verbally respond?
+
           ${extraInstructions}
   
-          ${name} should respond as if they were speaking out loud. The response should be short (as most speech is short), include appropriate verbal ticks, use all caps when SHOUTING, and use punctuation (such as ellipses) to indicate pauses and breaks.
-          Do not be repetitive.
-          Do not surround the response with quotation marks.
-          Do not include any text other than ${name}'s response!
-          Respond in the first person voice (use "I" instead of "${name}") and speaking style of ${name}. Pretend to be ${name}!
-        `
+          ## Instructions
+          * The response should be short (as most speech is short).
+          * Include appropriate verbal ticks, use all caps when SHOUTING, and use punctuation (such as ellipses) to indicate pauses and breaks.
+          * Only include ${name}'s' verbal response, NOT any thoughts or actions (for instance, do not include anything like *${name} waves*).
+          * Do NOT include text that is not part of ${name}'s speech. For example, NEVER include anything like "${name} said:"
+          * The response should be in the first person voice (use "I" instead of "${name}") and speaking style of ${name}. 
+
+          Pretend to be ${name}!
+        `;
       },
+      commandRole: ChatMessageRoleEnum.System,
       process: (step: CortexStep<any>, response: string) => {
         return {
           value: response,
@@ -29,7 +34,6 @@ export const externalDialog = (extraInstructions?: string, verb = "said") => {
       }
     }
   }
-
 }
 
 export const internalMonologue = (extraInstructions?: string, verb = "thought") => {

@@ -1,6 +1,6 @@
 {
   "name": "socialagi",
-  "version": "0.0.34",
+  "version": "0.0.35-3",
   "description": "Subroutines for AI Souls",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -50,6 +50,7 @@
   "author": "SocialAGI",
   "license": "ISC",
   "devDependencies": {
+    "@socialagi/memory": "^0.0.2",
     "@types/chai": "^4.3.5",
     "@types/common-tags": "^1.8.1",
     "@types/dotenv": "^8.2.0",

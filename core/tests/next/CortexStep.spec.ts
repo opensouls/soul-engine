@@ -68,7 +68,7 @@ describe("CortexStep", () => {
       expect(resp.value).to.have.length.greaterThan(10)
     })
 
-    it("can take a temporary system command and not just functions", async () => {
+    it("can take a temporary command and not just functions", async () => {
       const step = new CortexStep("BogusStringer",)
       const resp = await step.withMemory([
         {
