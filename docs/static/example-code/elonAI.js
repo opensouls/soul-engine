@@ -3,8 +3,8 @@
 import {
   CortexStep,
   CortexScheduler,
-  decision,
   externalDialog,
+  decision,
   internalMonologue,
 } from "socialagi/next";
 import playground from "playground";
@@ -42,8 +42,7 @@ const elonAIReplies = async (signal, newMemory, lastStep) => {
   );
 
   playground.log(
-    `Assessment on ${interviewTopics[topicIndex]}: ` +
-      assessment.value.split("=")[1]
+    `Assessment on ${interviewTopics[topicIndex]}: ` + assessment.value
   );
 
   if (assessment.value.includes("yes")) {
@@ -55,9 +54,9 @@ const elonAIReplies = async (signal, newMemory, lastStep) => {
           : "complete interview")
     );
     patienceMeter = 0;
-    const assessment = await step.next(
+    step = await step.next(
       externalDialog(
-        `ElonAI should say a critical comment. ElonAI should not ask questions.`
+        `ElonAI should say a critical comment, and not ask questions.`
       )
     );
     playground.addMessage({
@@ -72,14 +71,14 @@ const elonAIReplies = async (signal, newMemory, lastStep) => {
         role: ChatMessageRoleEnum.System,
         content: `ElonAI thinks: My patience is decreasing ${
           50 - patienceMeter
-        } / 50 I'm going to get a bit more exasperated.`,
+        } / 50. I'm going to get a bit more exasperated.`,
       },
     ]);
   }
 
   step = step.withMemory([
     {
-      role: ChatMessageRoleEnum.Assistant,
+      role: ChatMessageRoleEnum.System,
       content: `ElonAI plans: Now I will delve into the topic of: ${interviewTopics[topicIndex]} with the candidate.`,
     },
   ]);
@@ -126,7 +125,7 @@ const elonAIReplies = async (signal, newMemory, lastStep) => {
       topicIndex = 3;
       step = step.withMemory([
         {
-          role: ChatMessageRoleEnum.Assistant,
+          role: ChatMessageRoleEnum.System,
           content: `ElonAI thinks: Fuck it. This interview is done - don't need to waste my time.`,
         },
       ]);
@@ -147,7 +146,7 @@ const elonAIReplies = async (signal, newMemory, lastStep) => {
   if (topicIndex === 3) {
     step = step.withMemory([
       {
-        role: ChatMessageRoleEnum.Assistant,
+        role: ChatMessageRoleEnum.System,
         content: `ElonAI thinks: Concluding the interview. Will provide feedback to the candidate if they made it. May be scathing and sarcastic possibly.`,
       },
     ]);
@@ -164,7 +163,7 @@ const elonAIReplies = async (signal, newMemory, lastStep) => {
 
   step = await step.next(
     externalDialog(
-      `ElonAI should inquire about ${interviewTopics[topicIndex]}, asking a more detailed question, going deeper, and possibly referencing the last thing ElonAI said`
+      `ElonAI should inquire about ${interviewTopics[topicIndex]}, asking a more detailed question, and going deeper.`
     )
   );
 

@@ -1,5 +1,5 @@
 import { ChatMessageRoleEnum } from "../../src/next"
-import { getAstronaut, getElon } from "./repetitiveDialogHelpers/elon"
+import { getAstronaut, getElon } from "./repetitiveDialogHelpers/elonAndTheAstronaut"
 
 
 describe.only("non-repetitive dialog integration", () => {

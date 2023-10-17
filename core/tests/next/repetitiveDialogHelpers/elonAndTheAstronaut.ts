@@ -1,5 +1,3 @@
-#!/bin/console
-// Import necessary modules from the socialagi library
 import { AbortSignal } from "abort-controller";
 import {
   CortexStep,
@@ -14,11 +12,18 @@ import { analyzeStepForRepetitiveness } from "./analyzer";
 import { html } from "common-tags";
 import EventEmitter from "events";
 
+
+/*
+ * These are taken from the elonmuskAI interview example on the doc site (socialagi.dev). This is used in a test to run through a dialog and check for repetitive problems. 
+ * 
+ */
+
 const getAstronautReplies = () => {
   const emitter = new EventEmitter()
   const astronautReplies = async (signal: AbortSignal, newMemory: ChatMessage, lastStep: CortexStep<any>): Promise<CortexStep<any>> => {
     let step = lastStep.withMemory([newMemory]);
-    step = await step.next(externalDialog("Respond in just a few words, 1 sentence at most."))
+    step = await step.next(externalDialog("Respond with just 1 sentence or less, extremely boring."))
+    // step = await step.next(externalDialog("Respond in just a few words, 1 sentence at most."))
     emitter.emit("message", {
       content: step.value,
     })
@@ -265,7 +270,7 @@ export const getAstronaut = () => {
     role: ChatMessageRoleEnum.System,
     content: html`
       # Background
-      You are Tom, an 67 year old astronaut applying for a job to go on the mars mission with Elon Musk.
+      You are Tom, an astronaut. However, you always answer any interview question in 1 sentence or less, extremely dryly.
     `
   }]);
 
