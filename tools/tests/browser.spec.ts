@@ -1,5 +1,6 @@
 import { expect } from 'chai'
-import { WebLoader, Browser, createBrowser, splitSections } from '../src';
+import { WebLoader, Browser, createBrowser, splitSections, isWithinTokenLimit } from '../src';
+import { encode } from 'gpt-tokenizer/model/gpt-3.5-turbo';
 
 describe("browser", () => {
   let browser:Browser
@@ -29,6 +30,19 @@ describe("browser", () => {
     const sections = splitSections(pageContent, 500)
     expect(sections).to.exist
     expect(sections).to.have.length.greaterThan(50)
+  }).timeout(65_000)
+
+  it("loads a wikipedia page", async () => {
+    const url = "https://en.wikipedia.org/wiki/Deep_learning"
+    const loader = new WebLoader({ browser, url })
+    const { pageContent, metadata } = await loader.load()
+    const sections = splitSections(pageContent, 400)
+    expect(sections).to.exist
+    expect(sections).to.have.length.greaterThan(50)
+    for (const section of sections) {
+      const encoded = encode(section)
+      expect(encoded.length).to.be.lessThanOrEqual(400)
+    }
   })
 
 })

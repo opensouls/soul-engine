@@ -10,9 +10,9 @@ export const isWithinTokenLimit = (text: string, maxTokens: number) => {
     return false;
   }
 
-  if (words.length < maxTokens) {
+  if (words.length < maxTokens && text.length < (maxTokens)) {
     return true
   }
 
-  return isWithinTokenLimitGPT3(text, maxTokens);
+  return !!isWithinTokenLimitGPT3(text, maxTokens);
 }
