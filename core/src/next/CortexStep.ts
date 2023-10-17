@@ -59,7 +59,8 @@ interface BrainFunctionAsCommand<LastValueType = string, ParsedArgumentType = st
   description?: string;
   parameters?: z.ZodSchema<ParsedArgumentType>;
   process?: (step: CortexStep<LastValueType>, response: ParsedArgumentType) => Promise<FunctionOutput<ProcessFunctionReturnType>> | FunctionOutput<ProcessFunctionReturnType>;
-  command: StepCommand,
+  command: StepCommand;
+  commandRole?: ChatMessageRoleEnum;
 }
 
 
@@ -68,7 +69,8 @@ interface BrainFunctionWithFunction<LastValueType, ParsedArgumentType, ProcessFu
   description: string;
   parameters: z.ZodSchema<ParsedArgumentType>;
   process?: (step: CortexStep<LastValueType>, response: ParsedArgumentType) => Promise<FunctionOutput<ProcessFunctionReturnType>> | FunctionOutput<ProcessFunctionReturnType>;
-  command?: StepCommand,
+  command?: StepCommand;
+  commandRole?: ChatMessageRoleEnum;
 }
 
 export type BrainFunction<LastValueType, ParsedArgumentType, ProcessFunctionReturnType> = BrainFunctionAsCommand<LastValueType, ParsedArgumentType, ProcessFunctionReturnType> | BrainFunctionWithFunction<LastValueType, ParsedArgumentType, ProcessFunctionReturnType>
@@ -122,7 +124,7 @@ export class CortexStep<LastValueType = undefined> {
       .join("\n");
   }
 
-  private async stepCommandToString(command?: StepCommand):Promise<string|undefined> {
+  private async stepCommandToString(command?: StepCommand): Promise<string | undefined> {
     if (!command) {
       return undefined
     }
@@ -133,12 +135,12 @@ export class CortexStep<LastValueType = undefined> {
     }
   }
 
-  private memoriesWithCommandString = (commandString?: string) => {
+  private memoriesWithCommandString(commandString?: string, commandRole = ChatMessageRoleEnum.System) {
     if (commandString) {
       return [
         ...this.memories,
         {
-          role: ChatMessageRoleEnum.System,
+          role: commandRole,
           content: commandString,
         }
       ]
@@ -165,7 +167,7 @@ export class CortexStep<LastValueType = undefined> {
         span.setAttribute("command", rawFn.command)
       }
 
-      const memories = this.memoriesWithCommandString(rawFn.command)
+      const memories = this.memoriesWithCommandString(rawFn.command, description.commandRole)
 
       const resp = await this.processor.execute<ParsedArgumentType>(
         memories,
@@ -214,7 +216,7 @@ export class CortexStep<LastValueType = undefined> {
         span.setAttribute("command", rawFn.command)
       }
 
-      const memories = this.memoriesWithCommandString(rawFn.command)
+      const memories = this.memoriesWithCommandString(rawFn.command, description.commandRole)
 
       const { response, stream } = await this.processor.experimentalStreamingExecute<ParsedArgumentType>(
         memories,

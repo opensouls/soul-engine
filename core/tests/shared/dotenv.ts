@@ -1,4 +1,6 @@
-import { startInstrumentation } from '../../src/next/instrumentation';
+import { SpanProcessorType, startInstrumentation } from '../../src/next/instrumentation';
 import dotenv from 'dotenv';
 dotenv.config();
-startInstrumentation()
+startInstrumentation({
+  spanProcessorType: SpanProcessorType.Simple,
+})
