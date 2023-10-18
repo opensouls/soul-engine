@@ -1,17 +1,11 @@
 import { trace } from "@opentelemetry/api";
 import { Embedder, Embedding, getDefaultEmbedder } from "./embedding";
-import { createHash } from 'crypto';
+import { v4 as uuidv4 } from "uuid";
 
 const tracer = trace.getTracer(
   'open-souls-memory-stream',
   '0.0.1',
 );
-
-export function hashString(input: string) {
-  const hash = createHash('sha256');
-  hash.update(input);
-  return hash.digest('hex');
-}
 
 export interface Memory {
   id: string;
@@ -77,7 +71,7 @@ export class MemoryStream {
         const embedding = memory.embedding || await this.createEmbedding(memory.content)
         const updatedAt = memory.updatedAt || new Date()
         const createdAt = memory.createdAt || new Date()
-        const id = memory.id || hashString(memory.content + createdAt.toISOString())
+        const id = memory.id || uuidv4()
         const metadata = memory.metadata || {}
         const importance = memory.importance || 50
 
