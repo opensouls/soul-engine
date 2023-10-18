@@ -19,6 +19,7 @@
     "@docusaurus/core": "^2.4.3",
     "@docusaurus/preset-classic": "^2.4.3",
     "@mdx-js/react": "^1.6.22",
+    "@socialagi/memory": "^0.0.3-0",
     "@vercel/analytics": "^1.0.1",
     "abort-controller": "^3.0.0",
     "browserify-zlib": "^0.2.0",

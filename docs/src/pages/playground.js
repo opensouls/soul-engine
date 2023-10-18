@@ -8,6 +8,8 @@ import BrowserOnly from "@docusaurus/BrowserOnly";
 
 import * as socialagi from "socialagi";
 import * as next from "socialagi/next";
+import * as socialagiMemory from "@socialagi/memory";
+import * as commonTags from "common-tags";
 
 import "./playground.css";
 import ApiKeyPopup from "../components/apikeypopup";
@@ -221,6 +223,8 @@ const BrowserPlayground = () => {
     const importMap = {
       socialagi: socialagi,
       "socialagi/next": next,
+      "@socialagi/memory": socialagiMemory,
+      "common-tags": commonTags,
       playground: exposedAPI,
     };
     let processedCode = editorCode;
