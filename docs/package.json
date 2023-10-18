@@ -27,6 +27,7 @@
     "common-tags": "^1.8.2",
     "crypto-browserify": "^3.12.0",
     "docusaurus-plugin-webpack-crypto": "file:plugins/docusaurus-plugin-webpack-crypto",
+    "docusaurus-webpack": "file:plugins/docusaurus-webpack",
     "os-browserify": "^0.3.0",
     "path-browserify": "^1.0.1",
     "prism-react-renderer": "^1.3.5",
