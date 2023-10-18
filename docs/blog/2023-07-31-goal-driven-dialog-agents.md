@@ -23,7 +23,7 @@ The issue comes from our framing of dialog: traditional AI dialog modeling tools
 
 Goal-driven agentic dialog frames conversational modeling as identical to the computation of any particular task, but where the inputs and outputs are more abstract. In the language of task-driven agents, we would characterize the dialog task as "agentic", where the "task" is to ellicit a class of response from the user, with the only accessible "tool" being conversational utterences themselves to realize the target end state.
 
-<div style={{"max-width": "350px"}}>
+<div style={{maxWidth: "350px"}}>
 
 ![persista_flow.png](persista_flow.png)
 

@@ -37,7 +37,7 @@ We intend, no less, to conduct the same into our A.I souls.
 
 ## Music as a conjuring for Δαιμων
 
-<div style={{"max-width": "500px", "align-self": "center"}}>
+<div style={{maxWidth: "500px", alignSelf: "center"}}>
 
 ![The Daimon who inspired much of this essay. ](images/waltz.jpeg)
 

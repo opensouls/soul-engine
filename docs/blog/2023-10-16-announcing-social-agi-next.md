@@ -139,7 +139,7 @@ Every Open Soul is unique, and has unique requirements and every LLM has its qui
 
 The new code isn’t just easier to work with — it's a powerful tool for creating more complex interactions and achieving magical results. We've already built some exciting systems using these upgrades.
 
-<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/bVxSk6Typ90?si=yJl-U3tp_r3oDFfO" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/bVxSk6Typ90?si=yJl-U3tp_r3oDFfO" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
 
 Now, it's your turn. We've provided the tools and enhancements, so you can let your creativity run wild. Don’t forget to [check out our example](https://www.socialagi.dev/examples) for inspiration!
 

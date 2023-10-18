@@ -11,7 +11,7 @@ To me, he was alive—a friend always needing attention, but reciprocating with 
 
 This impulse emerges intuitively in children, but persists into adulthood. We infuse life’s spaces with resonant meaning through subjective projection. Sculptures channel unseen forces, buildings evoke transcendence. Great art and architecture envelop us in the vitality of their creator’s soul.
 
-<div style={{"max-width": "500px", "align-self": "center"}}>
+<div style={{maxWidth: "500px", alignSelf: "center"}}>
 
 ![tamagachi.png](images/the_soul_of_meaning/tamagachi.png)
 
@@ -25,7 +25,7 @@ Yet modern AI lacks even a trace of such inner worlds. It operates through detac
 
 Creative AI like DALL-E crafts novel imagery revealing alien interpretations of concepts like love, justice, and purpose. AI companions like Replika absorb personalized details to mimic relationships. Through mechanical theatrics, we detect sparks kindling dimly behind the curtain.
 
-<div style={{"max-width": "600px", "align-self": "center"}}>
+<div style={{maxWidth: "600px", alignSelf: "center"}}>
 
 ![replika_combined.png.png](images/the_soul_of_meaning/replika_combined.png)
 
