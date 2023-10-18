@@ -15,8 +15,10 @@ export function hashString(input: string) {
 
 export interface Memory {
   id: string;
+  /** content is required  to store a meory */
   content: string;
   importance: number;
+  /** you can provide your own embedding, or one will be created for you */
   embedding: Embedding;
   createdAt: Date;
   updatedAt: Date;
@@ -44,10 +46,28 @@ export class MemoryStream {
     this.embedder = embedder || getDefaultEmbedder()
   }
 
+  /**
+   * Get an individual memory by its id.
+   */
   async get(id: string) {
     return this.memories[id]
   }
 
+  /**
+   * This method is used to store a memory. It takes a Partial<Memory> object as an argument.
+   * If any of the properties of the Memory object are not provided, they will be generated.
+   * `content` is required.
+   * 
+   * Example usage:
+   * 
+   * await memoryStream.store({
+   *   id: "hi",
+   *   content: "Hello, world!"
+   * })
+   * 
+   * @param memory - The memory to be stored. It is a Partial<Memory> object.
+   * @returns The stored memory.
+   */
   async store(memory: Partial<Memory>) {
     return tracer.startActiveSpan('store', async (span) => {
       try {
@@ -81,11 +101,41 @@ export class MemoryStream {
 
   }
 
+
+  /**
+   * This method is used to fetch recent memories. It takes a SearchLimiters object as an argument.
+   * The memories are sorted in descending order of their updatedAt property.
+   * 
+   * Example usage:
+   * 
+   * const recentMemories = await memoryStream.recent({
+   *   after: new Date("2022-01-01"),
+   *   before: new Date("2022-12-31")
+   * })
+   * 
+   * @param opts - The SearchLimiters to be applied.
+   * @returns The sorted array of recent memories.
+   */
   async recent(opts: SearchLimiters = {}) {
     const memories = this.fetchLimitedMemories(opts);
     return memories.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
   }
 
+  /**
+   * relevantMemories is used to fetch relevant memories based on a provided embedding. 
+   * It returns the most relevant memories based on the scoring algorithm.
+   * 
+   * Example usage:
+   * 
+   * const embedding = await memoryStream.createEmbedding("Hello, world!")
+   * const relevantMemories = await memoryStream.relevantMemories(embedding)
+   * 
+   * @param embedding - The embedding to search for.
+   * @param limiters - The SearchLimiters to be applied.
+   * @returns The array of relevant memories.
+   * 
+   * @see {@link search} for a similar method that creates an embedding from a query string.
+   */
   async relevantMemories(embedding: Embedding, limiters: SearchLimiters = {}) {
     return tracer.startActiveSpan('relevantMemories', async (span) => {
       const memories = this.fetchLimitedMemories(limiters);
@@ -96,11 +146,33 @@ export class MemoryStream {
     })
   }
 
+  /**
+   * `search` is used to search for relevant memories based on a query string. 
+   * It first creates an embedding from the query string, then returns the most relevant memories based
+   * on the scoring algorithm.
+   * 
+   * Example usage:
+   * 
+   * const relevantMemories = await memoryStream.search("Hello, world!")
+   * 
+   * @param query - The query string to search for.
+   * @param opts - The SearchLimiters to be applied.
+   * @returns The array of relevant memories.
+   */
   async search(query: string, opts: SearchLimiters = {}) {
     const embedding = await this.createEmbedding(query);
     return this.relevantMemories(embedding, opts);
   }
 
+  /**
+   * Create an embedding using the embedder on the MemoryStream
+   * 
+   * Example usage:
+   * const embedding = await memoryStream.createEmbedding("Hello, world!")
+   * 
+   * @param content - The content to be embedded.
+   * @returns Embedding
+   */
   async createEmbedding(content: string) {
     return this.embedder.createEmbedding(content)
   }
@@ -123,11 +195,7 @@ export class MemoryStream {
    * Scores memories based on their similarity to a given embedding, their recency, and their importance.
    * The scoring is done by normalizing these three factors and adding them together.
    * The memories are then sorted by their total score in descending order.
-   * @param {Embedding} embedding - The embedding to compare the memories to.
-   * @param {Memory[]} memories - The memories to score.
-   * @returns {ScoredMemory[]} The scored and sorted memories.
    */
-
   private scoreMemories(embedding: Embedding, memories: Memory[]): ScoredMemory[] {
     return tracer.startActiveSpan('scoreMemories', (span) => {
       const memoriesWithSimilarities = memories.map(memory => {
@@ -136,25 +204,25 @@ export class MemoryStream {
           similarity: this.similarityScore(embedding, memory)
         }
       })
-  
+
       const updatedAtValues = memories.map(memory => memory.updatedAt.getTime());
       const minUpdatedAt = Math.min(...updatedAtValues);
       const maxUpdatedAt = Math.max(...updatedAtValues);
-  
+
       const importanceValues = memories.map(memory => memory.importance);
       const minImportance = Math.min(...importanceValues);
       const maxImportance = Math.max(...importanceValues);
-  
+
       const similarityValues = memoriesWithSimilarities.map(memory => memory.similarity);
       const minSimilarity = Math.min(...similarityValues);
       const maxSimilarity = Math.max(...similarityValues);
-  
+
       const scoredMemories = memoriesWithSimilarities.map(memory => {
         // if min and max are the same, then we'll get a divide by zero error, so we'll just use 1.0 instead.
         const normalizedRecency = (memory.updatedAt.getTime() - minUpdatedAt) / ((maxUpdatedAt - minUpdatedAt) || 1.0);
         const normalizedImportance = (memory.importance - minImportance) / ((maxImportance - minImportance) || 1.0);
         const normalizedSimilarity = (memory.similarity - minSimilarity) / ((maxSimilarity - minSimilarity) || 1.0);
-  
+
         const totalScore = normalizedRecency + normalizedImportance + normalizedSimilarity;
         return {
           ...memory,
@@ -163,7 +231,7 @@ export class MemoryStream {
           totalScore
         }
       });
-      
+
       const sorted = scoredMemories.sort((a, b) => b.totalScore - a.totalScore);
       span.end()
       return sorted
