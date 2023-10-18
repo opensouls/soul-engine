@@ -2,14 +2,14 @@
 
 This library is a work in progress and currently only supports non-persistent in-memory storage.
 
-`@opensouls/memory` provides a simple way to store and retrieve memories using the `MemoryStream` class and the `Embedder` interface.
+`@socialagi/memory` provides a simple way to store and retrieve memories using the `MemoryStream` class and the `Embedder` interface.
 
 ## MemoryStream
 
 The `MemoryStream` class is used to store and retrieve memories. Here's a basic example of how to use it:
 
 ```typescript
-import { MemoryStream } from "../src/MemoryStream"
+import { MemoryStream } from "@socialagi/memory"
 
 // Create a new instance of MemoryStream
 const memoryStream = new MemoryStream()
@@ -47,16 +47,16 @@ const memory: Memory = {
     location: "New York"
   }
 }
-``` 
+```
 
 ## Embeddings
 
-Embeddings are a way to represent text data in a numerical format that can be processed by machine learning algorithms. In Open Souls Memory, we use the Embedder interface and its implementations to create these embeddings.
+Embeddings are a way to represent text data in a numerical format that can be processed by machine learning algorithms. In `@socialagi/memory`, we use the Embedder interface and its various implementations to create these embeddings.
 
-Here's an example of how to use the Embedder interface:
+Here's an example of how to use the default embedder:
 
 ```typescript
-import { getDefaultEmbedder } from "../src/embedding"
+import { getDefaultEmbedder } from "@socialagi/memory"
 
 // Get the default embedder
 const embedder = getDefaultEmbedder()
@@ -69,12 +69,12 @@ The Embedder interface has a single method, createEmbedding(content: string), wh
 
 We have two implementations of Embedder.
 
-The defaultEmbeddder is a huggingface embedder using the "Supabase/gte-small" model
+The defaultEmbeddder is a `HuggingFaceEmbedder` using the "Supabase/gte-small" model (which performs better )
 
 1. HuggingFaceEmbedder: This uses the Hugging Face Transformers library to create embeddings. It uses a model specified at instantiation (default is "Supabase/gte-small") and creates embeddings asynchronously.
 
 ```typescript
-import { HuggingFaceEmbedder } from "@opensouls/memory"
+import { HuggingFaceEmbedder } from "@socialagi/memory"
 
 // Create a new instance of HuggingFaceEmbedder
 const embedder = new HuggingFaceEmbedder()
@@ -86,8 +86,9 @@ const embedding = await embedder.createEmbedding("Hello, world!")
 2. nullEmbedder: This is a simple implementation that always returns an empty array. It's useful when you only want to store and retrieve recent memories, and don't need to search for memories.
 
 ```typescript
-import { nullEmbedder } from "@opensouls/memory"
+import { nullEmbedder } from "@socialagi/memory"
 
-// Create an embedding
-const embedding = await nullEmbedder.createEmbedding("Hello, world!") 
+
+const stream = new MemoryStream(nullEmbedder)
+
 ```
