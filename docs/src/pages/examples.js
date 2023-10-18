@@ -1,23 +1,8 @@
 import React from "react";
 import Layout from "@theme/Layout";
-import { useHistory } from "@docusaurus/router";
 
 import "./examples.css";
-
-function Card({ title, subtitle, quote, link }) {
-  const history = useHistory();
-
-  return (
-    <button
-      className="card"
-      onClick={() => history.push(`/playground?load=${link}`)}
-    >
-      <h2 className="card-title">{title}</h2>
-      <h3 className="card-subtitle">{subtitle}</h3>
-      <p className="card-quote">{quote}</p>
-    </button>
-  );
-}
+import ExampleCard from "../components/ExampleCard";
 
 const Examples = () => {
   const data = [
@@ -75,7 +60,7 @@ const Examples = () => {
           </p>
         </div>
         {data.map((item, index) => (
-          <Card key={index} {...item} />
+          <ExampleCard key={index} {...item} />
         ))}
       </div>
     </Layout>
