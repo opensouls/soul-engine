@@ -8,7 +8,7 @@ import {
   internalMonologue,
 } from "socialagi/next";
 import playground from "playground";
-import { ChatMessageRoleEnum } from "socialagi";
+import { ChatMessageRoleEnum } from "socialagi/next";
 
 const interviewTopics = [
   "space travel experience",
@@ -210,10 +210,7 @@ The following is an professional job interview with Elon Musk, where he thinks t
   },
 ];
 
-let firstStep = new CortexStep("ElonAI", {
-  llmCallLogger: console.log,
-  stackUpdateLogger: (message) => console.log("Stack updated", message),
-});
+let firstStep = new CortexStep("ElonAI");
 firstStep = firstStep.withMemory(initialContext);
 
 // Manage conversion of event-driven texts to synchronous interaction
