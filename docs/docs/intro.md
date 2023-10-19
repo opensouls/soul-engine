@@ -14,7 +14,7 @@ The library has three main value propositions:
 
 1. _Streamlined Context Management with `new CortexStep(...)`_. [CortexStep](/CortexStep/intro) facilitates the ordered construction of context with LLMs. It works on the principle of treating each interaction as a single step or functional transformation on working memory, offering a predictable and manageable way to guide the thought process of an LLM. This approach results in consistent, easier-to-follow interaction flows.
 1. _Efficient Scheduling of Mental Processes with `new CortexScheduler(...)`_. [CortexScheduler](/CortexScheduler/intro) orchestrates the scheduling and dispatching of mental processes, ensuring a synchronous flow of memory transformations from one event to the next. By turning the event-driven world into a synchronous system, CortexScheduler allows for straightforward debugging, testing, and reasoning, making the cognitive structure of your AI more understandable and predictable.
-2. _Relevant Memory Retrieval with `new MemoryStream()`_ [MemoryStream](/Memory/intro) provides a simple way to store and retrieve relevant memories based on vector embeddings, importance, and recency.
+1. _Relevant Memory Retrieval with `new MemoryStream()`_ [MemoryStream](/Memory/intro) provides a simple way to store and retrieve relevant memories based on vector embeddings, importance, and recency.
 
 ## Getting Started with SocialAGI
 
