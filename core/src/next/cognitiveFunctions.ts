@@ -3,6 +3,15 @@ import { CortexStep, NextFunction, StepCommand } from "./CortexStep";
 import { ChatMessageRoleEnum } from "./languageModels";
 import { html } from "common-tags";
 
+/**
+ * externalDialog is used to create dialog that is spoken by the Open Soul. The opitonal `extraInstructions` parameter is used to provide additional instructions to the Open Soul.
+ * For example, you might add "Keep responses to 1-2 sentences at most." or `${entityName} should say a critical comment, and not ask questions.`
+ * 
+ * @param [extraInstructions] These are instructions that help guide the response of the Open Soul.
+ * @param [verb] - The verb that is used to describe the action of the Open Soul. For example, "said" or "yelloed", defaults to "said"
+ * 
+ * When used in a CortexStep#next command, the typed #value will be a string
+ */
 export const externalDialog = (extraInstructions?: string, verb = "said") => {
   return () => {
     return {
@@ -36,6 +45,15 @@ export const externalDialog = (extraInstructions?: string, verb = "said") => {
   }
 }
 
+/**
+ * internalMonologue is used to create an internal thought process that is thought by the Open Soul. The optional `extraInstructions` parameter is used to provide additional instructions to the Open Soul.
+ * For example, you might add "Keep thoughts to 1-2 sentences at most." or `${entityName} notes the user's response on the topic of climate change.` or "What strongly felt emotions does Samantha have about the last message?"
+ * 
+ * @param [extraInstructions] These are instructions that help guide the response of the Open Soul.
+ * @param [verb] - The verb that is used to describe the action of the Open Soul. For example, "thought" or "pondered", defaults to "thought"
+ * 
+ * When used in a CortexStep#next command, the typed #value will be a string
+ */
 export const internalMonologue = (extraInstructions?: string, verb = "thought") => {
   return () => {
     return {
@@ -62,6 +80,21 @@ export const internalMonologue = (extraInstructions?: string, verb = "thought") 
   }
 }
 
+
+/**
+ * decision is used to pick from a set of choices. The `description` parameter is used to describe the decision to be made and the `choices` parameter provides the set of choices to pick from.
+ * 
+ * Example:
+ * decision("is samantha still angry enough to scream?", ["yes", "no"])
+ * 
+ * Example:
+ * decision("What color should the car be?", ["red", "blue", "green", "yellow"])
+ * 
+ * @param description - This is a description of the decision to be made.
+ * @param choices - These are the choices to pick from.
+ * 
+ * When used in a CortexStep#next command, the typed #value will the value of one of the choices submitted.
+ */
 export const decision = (description: string, choices: EnumLike | string[]) => {
   return () => {
 
@@ -86,6 +119,17 @@ export const decision = (description: string, choices: EnumLike | string[]) => {
   }
 }
 
+
+/**
+ * brainstorm is used to generate new ideas. The `description` parameter is used to describe the brainstorming session.
+ * 
+ * Example:
+ * brainstorm("What are some potential features for our new product?")
+ * 
+ * @param description - This is a description of the idea to think through.
+ * 
+ * When used in a CortexStep#next command, the typed #value will be a string[]
+ */
 export const brainstorm = (description: string) => {
   return () => {
     const params = z.object({
