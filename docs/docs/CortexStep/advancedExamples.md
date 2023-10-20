@@ -97,14 +97,14 @@ async function addDialogLine(text: string) {
     "says",
     `\x1b[34m${says.value}\x1b[0m`
   );
-  const decision = await dialog.next(
+  const decisionStep = await dialog.next(
     decision(
       `Consider the prior dialog and the goal of ${goal}. ${blueprint.name} has the following INTERNAL METACOGNITION: [${intermediateThoughtProcess}]. Should the INTERNAL METACOGNITION change or stay the same?`,
       ["changeThoughtProcess", "keepProcessTheSame"]
     )
   );
-  console.log(blueprint.name, "decides", decision.value);
-  if (decision.value === "changeThoughtProcess") {
+  console.log(blueprint.name, "decides", decisionStep.value);
+  if (decisionStep.value === "changeThoughtProcess") {
     const newProcess = await decision.next(
       brainStormMetaCognition(
         `Previously, ${blueprint.name} used the following INTERNAL METACOGNITION to think to themselves before speaking: [${intermediateThoughtProcess}]. Now, REVISE the INTERNAL METACOGNITION, adding, deleting, or modifying the processes.
