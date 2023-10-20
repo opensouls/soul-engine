@@ -328,10 +328,7 @@ async function withAdvisorDecision(crisisMemory: ChatMessage[]): CortexStep {
     }).join("\n")
   }])
 
-  const recommendation = await cortexStep.next(Action.DECISION, {
-    description: "Advisor makes a recommendation based on the evaluations",
-    choices: strategies,
-  });
+  const recommendation = await cortexStep.next(decision("Advisor makes a recommendation based on the evaluations", strategies));
   return recommendation
 }
 ```
