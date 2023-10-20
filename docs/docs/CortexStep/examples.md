@@ -284,3 +284,54 @@ if (quest.value === "slay dragon") {
 
 console.log(quest.toString());
 ```
+
+One could of course extend this model further with subsequent memories to provide additional context in which the decisions are made.
+
+## Map-reduce ("Tree of thoughts")
+
+Map reduce is a very common pattern for complex data processing. In the LLM world, map-reduce is now often known as "Tree of thoughts." Here is an example that models a complex decision making process that maps an evaluation across several different options before merging them and making a final decision.
+
+```javascript
+async function withAdvisorDecision(crisisMemory: ChatMessage[]): CortexStep {
+  let initialMemory = [
+    {
+      role: "system",
+      content: stripIndent`
+        You are modeling the mind of a \
+        royal advisor who is weighing strategies to handle a crisis
+      `,
+    },
+  ];
+
+  let cortexStep = new CortexStep("Advisor");
+  cortexStep = cortexStep.withMemory(initialMemory);
+  cortexStep = cortexStep.withMemory(crisisMemory);
+
+  const strategies = ["Diplomacy", "Military", "Trade sanctions"];
+
+  const evaluations = await Promise.all(
+    strategies.map(async (strategy) => {
+      const evaluationStep = await cortexStep.next(internalMonologue(`Advisor evaulates the ${strategy} strategy`))
+      const prosCons = await evaluationStep.next(internalMonologue(`Advisor considers the pros and cons of the ${strategy} strategy`))
+      return prosCons;
+    })
+  );
+
+  // Take all the pros and cons, and add them back to the main cortexStep
+  cortexStep = cortexStep.withMemory([{
+    role: "assistant"
+    content: strategies.map((strategyName, i) => {
+      return stripIndent`
+        ## ${strategyName}
+        ${evaluations[i].value}
+      `
+    }).join("\n")
+  }])
+
+  const recommendation = await cortexStep.next(Action.DECISION, {
+    description: "Advisor makes a recommendation based on the evaluations",
+    choices: strategies,
+  });
+  return recommendation
+}
+```
