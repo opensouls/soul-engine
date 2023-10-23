@@ -17,12 +17,12 @@ import EventEmitter from "events";
  * These are taken from the elonmuskAI interview example on the doc site (socialagi.dev). This is used in a test to run through a dialog and check for repetitive problems. 
  * 
  */
-
 const getAstronautReplies = () => {
   const emitter = new EventEmitter()
   const astronautReplies = async (signal: AbortSignal, newMemory: ChatMessage, lastStep: CortexStep<any>): Promise<CortexStep<any>> => {
+    // console.log("..... astronaut responding to: ", newMemory.content)
     let step = lastStep.withMemory([newMemory]);
-    step = await step.next(externalDialog("Respond with just 1 sentence or less, extremely boring."))
+    step = await step.next(externalDialog("Respond in an extremely boring manner."))
     // step = await step.next(externalDialog("Respond in just a few words, 1 sentence at most."))
     emitter.emit("message", {
       content: step.value,
@@ -49,6 +49,8 @@ const getElonRepliesProgram = () => {
 
   // subroutine for modeling ElonAI's responses
   const elonAIReplies = async (signal: AbortSignal, newMemory: ChatMessage, lastStep: CortexStep<any>): Promise<CortexStep<any>> => {
+    // console.log("..... elon responding to: ", newMemory.content)
+
     if (topicIndex > 2) {
       return lastStep
     }
@@ -57,7 +59,7 @@ const getElonRepliesProgram = () => {
 
     step = await step.next(
       internalMonologue(
-        `ElonAI notes the user's response on the topic of ${interviewTopics[topicIndex]}`
+        `ElonAI should note the user's response on the topic of ${interviewTopics[topicIndex]}`
       )
     );
 
@@ -101,12 +103,14 @@ const getElonRepliesProgram = () => {
       ]);
     }
 
-    step = step.withMemory([
-      {
-        role: ChatMessageRoleEnum.System,
-        content: `ElonAI plans: Now I will delve into the topic of: ${interviewTopics[topicIndex]} with the candidate.`,
-      },
-    ]);
+    if (topicIndex <= 2) {
+      step = step.withMemory([
+        {
+          role: ChatMessageRoleEnum.System,
+          content: `ElonAI plans: Now I will delve into the topic of: ${interviewTopics[topicIndex]} with the candidate.`,
+        },
+      ]);
+    }
 
     const secondAssessment = await step.next(
       decision(

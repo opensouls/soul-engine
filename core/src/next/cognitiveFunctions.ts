@@ -3,32 +3,31 @@ import { CortexStep, NextFunction, StepCommand } from "./CortexStep";
 import { ChatMessageRoleEnum } from "./languageModels";
 import { html } from "common-tags";
 
+const stripRepsponseBoilerPlate = ({ entityName }: CortexStep<any>, verb: string, response: string) => {
+  let strippedResponse = response.replace(`${entityName} ${verb}:`, "").trim();
+  strippedResponse = strippedResponse.replace(/^["']|["']$/g, '').trim();
+  return strippedResponse
+}
+
 export const externalDialog = (extraInstructions?: string, verb = "said") => {
   return () => {
     return {
-      command: ({ entityName: name } : CortexStep<any>) => {
+      command: ({ entityName: name }: CortexStep<any>) => {
         return html`
-          How would ${name} verbally respond?
-
-          ${extraInstructions}
+          Model the mind of ${name}.
   
-          ## Instructions
-          * The response should be short (as most speech is short).
-          * Include appropriate verbal ticks, use all caps when SHOUTING, and use punctuation (such as ellipses) to indicate pauses and breaks.
-          * Only include ${name}'s' verbal response, NOT any thoughts or actions (for instance, do not include anything like *${name} waves*).
-          * Do NOT include text that is not part of ${name}'s speech. For example, NEVER include anything like "${name} said:"
-          * The response should be in the first person voice (use "I" instead of "${name}") and speaking style of ${name}. 
+          Include appropriate verbal ticks, use all caps to emphasize CERTAIN WORDS, and use punctuation to indicate pauses and breaks. ${extraInstructions}
 
-          Pretend to be ${name}!
+          Please reply with the next utterance from ${name}. Use the format '${name} ${verb}: "..."'
         `;
       },
       commandRole: ChatMessageRoleEnum.System,
       process: (step: CortexStep<any>, response: string) => {
         return {
-          value: response,
+          value: stripRepsponseBoilerPlate(step, verb, response),
           memories: [{
             role: ChatMessageRoleEnum.Assistant,
-            content: `${step.entityName} ${verb}: ${response}`
+            content: response
           }],
         }
       }
@@ -38,23 +37,22 @@ export const externalDialog = (extraInstructions?: string, verb = "said") => {
 
 export const internalMonologue = (extraInstructions?: string, verb = "thought") => {
   return () => {
+
+    const instructions = extraInstructions ? `\n## Instructions\n\n${extraInstructions}\n` : ""
+
     return {
       command: ({ entityName: name }: CortexStep) => {
         return html`
-          ${extraInstructions}
-  
-          What would ${name} think to themselves? What would their internal monologue be?
-          The response should be short (as most internal thinking is short).
-          Do not include any other text than ${name}'s thoughts.
-          Do not surround the response with quotation marks.
-          Respond in the first person voice (use "I" instead of "${name}") and speaking style of ${name}. Pretend to be ${name}!
+          Model the mind of ${name}.
+          ${instructions}
+          Please reply with the next internal thought of ${name}. Use the format '${name} ${verb}: "..."'
       `},
       process: (step: CortexStep<any>, response: string) => {
         return {
-          value: response,
+          value: stripRepsponseBoilerPlate(step, verb, response),
           memories: [{
             role: ChatMessageRoleEnum.Assistant,
-            content: `${step.entityName} ${verb}: ${response}`
+            content: response
           }],
         }
       }
@@ -63,22 +61,26 @@ export const internalMonologue = (extraInstructions?: string, verb = "thought") 
 }
 
 export const decision = (description: string, choices: EnumLike | string[]) => {
-  return () => {
+  return ({ entityName }: CortexStep<any>) => {
 
     const params = z.object({
-      decision: z.nativeEnum(choices as EnumLike).describe(description)
+      decision: z.nativeEnum(choices as EnumLike).describe(`The decision ${entityName} makes after carefully considering the options.`)
     })
 
     return {
-      name: "decision",
-      description,
+      name: "save_decision",
+      description: html`
+        ${description}
+
+        ${entityName} has thought through the choices carefully and is making a new decision.
+      `,
       parameters: params,
       process: (step: CortexStep<any>, response: z.output<typeof params>) => {
         return {
           value: response.decision,
           memories: [{
             role: ChatMessageRoleEnum.Assistant,
-            content: `${step.entityName} decides: ${response.decision}`
+            content: `${step.entityName} decided: ${response.decision}`
           }],
         }
       }
@@ -87,14 +89,18 @@ export const decision = (description: string, choices: EnumLike | string[]) => {
 }
 
 export const brainstorm = (description: string) => {
-  return () => {
+  return ({ entityName }: CortexStep<any>) => {
     const params = z.object({
-      new_ideas: z.array(z.string()).describe(description)
+      new_ideas: z.array(z.string()).describe(`The new ideas that ${entityName} brainstormed.`)
     })
 
     return {
-      name: "brainstorm",
-      description,
+      name: "save_brainstorm_ideas",
+      description: html`        
+        ${description}
+
+        Save the new ideas.
+      `,
       parameters: params,
       process: (step: CortexStep<any>, response: z.output<typeof params>) => {
         return {
@@ -123,11 +129,11 @@ export const queryMemory = (query: string) => {
       description: query,
       parameters: params,
       command: html`
-        Do not repeat ${query} and instead use a dialog history.
+        Do not repeat ${query} and instead use the dialog history.
         Do not copy sections of the chat history as an answer.
         Do summarize and thoughtfully answer in sentence and paragraph format.
         
-        Analyze the chat history step by step and answer the question: ${query}.
+        Take a deep breath, analyze the chat history step by step and answer the question: ${query}.
       `,
       process: (_step: CortexStep<any>, response: z.output<typeof params>) => {
         return {
