@@ -8,34 +8,11 @@ import {
   decision,
   internalMonologue,
   externalDialog, 
-  z
+  brainstorm
 } from "../src/next";
 import { Blueprints } from "../src";
 
 const blueprint = Blueprints.SAMANTHA;
-
-const brainStormMetaCognition = (description:string) => {
-  return () => {
-    const params = z.object({
-      new_metacognitive_processes: z
-        .array(z.string())
-        .describe(
-          `two or three words to describe an internal thought process.`
-        ),
-    });
-
-    return {
-      name: "determine_new_internal_cognition_processes",
-      description,
-      parameters: params,
-      process: (_step:CortexStep<any>, response: z.infer<typeof params>) => {
-        return {
-          value: response.new_metacognitive_processes,
-        };
-      },
-    };
-  };
-};
 
 const goal = `Making the user happy`;
 const initialMemory = [
@@ -57,7 +34,7 @@ const rl = readline.createInterface({
 
 let dialog = new CortexStep(blueprint.name);
 dialog = dialog.withMemory(initialMemory);
-let intermediateThoughtProcess = ["ponders how she feels", "wonders about intention"];
+let intermediateThoughtProcess = ["pondered how she feels", "wondered about intention"];
 
 async function addDialogLine(text: string) {
   const newUserMemory = [
@@ -70,7 +47,7 @@ async function addDialogLine(text: string) {
 
   let thoughtProcess:CortexStep<any> = dialog;
   for (const process of intermediateThoughtProcess) {
-    thoughtProcess = await thoughtProcess.next(internalMonologue(`Samantha ${process}. The response should be 1 to 2 sentences at most.`, process));
+    thoughtProcess = await thoughtProcess.next(internalMonologue("", process));
     console.log("\n", blueprint.name, process, thoughtProcess.value, "\n");
   }
   const says = await thoughtProcess.next(externalDialog());
@@ -90,16 +67,17 @@ async function addDialogLine(text: string) {
   const decisionStep = await dialog.next(
     decision(
       `Consider the prior dialog and the goal of ${goal}. ${blueprint.name} has the following INTERNAL METACOGNITION: [${intermediateThoughtProcess}]. Should the INTERNAL METACOGNITION change or stay the same?`,
-      ["changeThoughtProcess", "keepProcessTheSame"]
+      ["change thought process", "keep process the same"]
     )
   );
   console.log(blueprint.name, "decides", decisionStep.value);
-  if (decisionStep.value === "changeThoughtProcess") {
+  if (decisionStep.value === "change thought process") {
     const newProcess = await decisionStep.next(
-      brainStormMetaCognition(
+      brainstorm(
         `Previously, ${blueprint.name} used the following INTERNAL METACOGNITION to think to themselves before speaking: [${intermediateThoughtProcess}]. Now, REVISE the INTERNAL METACOGNITION, adding, deleting, or modifying the processes.
 
 For example. Revise [process1, process2] to [process1', process4, process5]. The revised processes must be different than the prior ones.
+Each thought process should be two or three words to describe an internal thought process, these should be phrased in the past tense like "analyzed" "challenged" etc
 
 MAKE SURE the new actions are all INTERNAL thought processes to think through PRIOR to speaking to the user, directed at oneself. Actions like provoking are all more external and don't qualify.
 `.trim(),

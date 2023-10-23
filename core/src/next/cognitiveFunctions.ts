@@ -5,6 +5,7 @@ import { html } from "common-tags";
 
 const stripRepsponseBoilerPlate = ({ entityName }: CortexStep<any>, verb: string, response: string) => {
   let strippedResponse = response.replace(`${entityName} ${verb}:`, "").trim();
+  strippedResponse = strippedResponse.replace(`${entityName}:`, "").trim();
   strippedResponse = strippedResponse.replace(/^["']|["']$/g, '').trim();
   return strippedResponse
 }
@@ -16,7 +17,13 @@ export const externalDialog = (extraInstructions?: string, verb = "said") => {
         return html`
           Model the mind of ${name}.
   
-          Include appropriate verbal ticks, use all caps to emphasize CERTAIN WORDS, and use punctuation to indicate pauses and breaks. ${extraInstructions}
+          ## Instructions
+          * DO NOT include actions (for example, do NOT add non-verbal items like *John Smiles* or *John Nods*, etc).
+          * Include appropriate verbal ticks.
+          * Use punctuation to indicate pauses and breaks in speech.
+          * If necessary, use all caps to SHOUT certain words.
+          
+          ${extraInstructions}
 
           Please reply with the next utterance from ${name}. Use the format '${name} ${verb}: "..."'
         `;
@@ -45,7 +52,7 @@ export const internalMonologue = (extraInstructions?: string, verb = "thought") 
         return html`
           Model the mind of ${name}.
           ${instructions}
-          Please reply with the next internal thought of ${name}. Use the format '${name} ${verb}: "..."'
+          Please reply with the next internal mental thought of ${name}. Use the format '${name} ${verb}: "..."'
       `},
       process: (step: CortexStep<any>, response: string) => {
         return {
@@ -61,20 +68,22 @@ export const internalMonologue = (extraInstructions?: string, verb = "thought") 
 }
 
 export const decision = (description: string, choices: EnumLike | string[]) => {
-  return ({ entityName }: CortexStep<any>) => {
+  return () => {
 
     const params = z.object({
-      decision: z.nativeEnum(choices as EnumLike).describe(`The decision ${entityName} makes after carefully considering the options.`)
+      decision: z.nativeEnum(choices as EnumLike).describe(description)
     })
 
     return {
-      name: "save_decision",
-      description: html`
-        ${description}
-
-        ${entityName} has thought through the choices carefully and is making a new decision.
-      `,
+      name: "decision",
+      description: description,
       parameters: params,
+      command: ({ entityName }: CortexStep<any>) => {
+        return html`
+          Model the mind of ${entityName}.
+          ${entityName} is deciding: ${description}
+        `;
+      },
       process: (step: CortexStep<any>, response: z.output<typeof params>) => {
         return {
           value: response.decision,
@@ -100,6 +109,10 @@ export const brainstorm = (description: string) => {
         ${description}
 
         Save the new ideas.
+      `,
+      command: html`
+        Model the mind of ${entityName}.
+        ${entityName} brainstormed new ideas: ${description}
       `,
       parameters: params,
       process: (step: CortexStep<any>, response: z.output<typeof params>) => {
