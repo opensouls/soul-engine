@@ -76,12 +76,14 @@ const elonAIReplies = async (signal, newMemory, lastStep) => {
     ]);
   }
 
-  step = step.withMemory([
-    {
-      role: ChatMessageRoleEnum.System,
-      content: `ElonAI plans: Now I will delve into the topic of: ${interviewTopics[topicIndex]} with the candidate.`,
-    },
-  ]);
+  if (topicIndex <= 2) {
+    step = step.withMemory([
+      {
+        role: ChatMessageRoleEnum.System,
+        content: `ElonAI plans: Now I will delve into the topic of: ${interviewTopics[topicIndex]} with the candidate.`,
+      },
+    ]);
+  }
 
   const secondAssessment = await step.next(
     decision(
