@@ -1,6 +1,6 @@
 import { CortexStep } from "../../src/next/CortexStep";
 import { ChatMessageRoleEnum } from "../../src/next/languageModels";
-import { decision, instruction, queryMemory, externalDialog, internalMonologue } from "../../src/next/cognitiveFunctions";
+import { decision, instruction, queryMemory, externalDialog, internalMonologue, spokenDialog } from "../../src/next/cognitiveFunctions";
 import { expect } from "chai";
 import { z } from "zod";
 import { trace } from "@opentelemetry/api";
@@ -10,6 +10,18 @@ describe("CortexStep", () => {
   const tracer = trace.getTracer(
     "cortexstep-tests"
   )
+
+  it("creates dialog simulating spoken speech", async () => {
+    const step = new CortexStep("Bogus",)
+    const resp = await step.withMemory([{
+      role: ChatMessageRoleEnum.System,
+      content: "You are modeling the mind of Bogus, a very bad dude.",
+    }]).next(spokenDialog("What does Bogus shout?"))
+
+    console.log("resp", resp.value)
+    expect(resp.value).to.be.an("string")
+    expect(resp.value).to.have.length.greaterThan(10)
+  })
 
   it("creates external dialog", async () => {
     const step = new CortexStep("Bogus",)
@@ -81,7 +93,7 @@ describe("CortexStep", () => {
         }
       ]).next(externalDialog())
 
-      expect(resp.memories[resp.memories.length - 1].content).to.eq("BogusStringer said: " + resp.value)
+      expect(resp.memories[resp.memories.length - 1].content).to.eq(`BogusStringer said: "${resp.value}"`)
 
       expect(resp.value).to.be.an("string")
       expect(resp.value).to.have.length.greaterThan(10)

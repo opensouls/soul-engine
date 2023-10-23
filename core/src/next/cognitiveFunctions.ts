@@ -3,7 +3,6 @@ import { CortexStep, NextFunction, StepCommand } from "./CortexStep";
 import { ChatMessageRoleEnum } from "./languageModels";
 import { html } from "common-tags";
 
-<<<<<<< HEAD
 const stripRepsponseBoilerPlate = ({ entityName }: CortexStep<any>, verb: string, response: string) => {
   let strippedResponse = response.replace(`${entityName} ${verb}:`, "").trim();
   strippedResponse = strippedResponse.replace(`${entityName}:`, "").trim();
@@ -11,9 +10,8 @@ const stripRepsponseBoilerPlate = ({ entityName }: CortexStep<any>, verb: string
   return strippedResponse
 }
 
-=======
 /**
- * externalDialog is used to create dialog that is spoken by the Open Soul. The opitonal `extraInstructions` parameter is used to provide additional instructions to the Open Soul.
+ * externalDialog is used to create dialog that is said by the Open Soul, generally used for textual interactions. The opitonal `extraInstructions` parameter is used to provide additional instructions to the Open Soul.
  * For example, you might add "Keep responses to 1-2 sentences at most." or `${entityName} should say a critical comment, and not ask questions.`
  * 
  * @param [extraInstructions] These are instructions that help guide the response of the Open Soul.
@@ -21,7 +19,6 @@ const stripRepsponseBoilerPlate = ({ entityName }: CortexStep<any>, verb: string
  * 
  * When used in a CortexStep#next command, the typed #value will be a string
  */
->>>>>>> feature/function-docs
 export const externalDialog = (extraInstructions?: string, verb = "said") => {
   return () => {
     return {
@@ -31,10 +28,51 @@ export const externalDialog = (extraInstructions?: string, verb = "said") => {
   
           ## Instructions
           * DO NOT include actions (for example, do NOT add non-verbal items like *John Smiles* or *John Nods*, etc).
-          * Include appropriate verbal ticks.
-          * Use punctuation to indicate pauses and breaks in speech.
-          * If necessary, use all caps to SHOUT certain words.
+          * If necessary, use all CAPS to emphasize certain words.
           
+          ${extraInstructions}
+
+          Please reply with the next utterance from ${name}. Use the format '${name} ${verb}: "..."'
+        `;
+      },
+      commandRole: ChatMessageRoleEnum.System,
+      process: (step: CortexStep<any>, response: string) => {
+        return {
+          value: stripRepsponseBoilerPlate(step, verb, response),
+          memories: [{
+            role: ChatMessageRoleEnum.Assistant,
+            content: response
+          }],
+        }
+      }
+    }
+  }
+}
+
+/**
+ * spokenDialog is used to create dialog that is spoken outloud by the Open Soul. It includes verbal tickets, 
+ * ellipsis, etc to make the dialog more realistic when spoken.
+ * The optional `extraInstructions` parameter is used to provide additional instructions to the Open Soul.
+ * For example, you might add "Speak with a sense of urgency." or `${entityName} should speak in a calm and soothing tone.`
+ * 
+ * @param [extraInstructions] These are instructions that help guide the response of the Open Soul.
+ * @param [verb] - The verb that is used to describe the action of the Open Soul. For example, "said" or "whispered", defaults to "said"
+ * 
+ * When used in a CortexStep#next command, the typed #value will be a string
+ */
+export const spokenDialog = (extraInstructions?: string, verb = "said") => {
+  return () => {
+    return {
+      command: ({ entityName: name }: CortexStep<any>) => {
+        return html`
+          Model the mind of ${name}.
+  
+          ## Instructions
+          * Include appropriate verbal ticks (e.g., uhhh, umm, like, "you know what I mean", etc).
+          * Use punctuation to indicate pauses and breaks in speech (e.g., an ellipsis)
+          * If necessary, use all caps to SHOUT certain words.
+          * DO NOT include actions (for example, do NOT add non-verbal items like *John Smiles* or *John Nods*, etc).
+
           ${extraInstructions}
 
           Please reply with the next utterance from ${name}. Use the format '${name} ${verb}: "..."'
