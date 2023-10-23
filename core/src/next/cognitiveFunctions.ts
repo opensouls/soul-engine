@@ -3,32 +3,45 @@ import { CortexStep, NextFunction, StepCommand } from "./CortexStep";
 import { ChatMessageRoleEnum } from "./languageModels";
 import { html } from "common-tags";
 
+const stripRepsponseBoilerPlate = ({ entityName }: CortexStep<any>, verb: string, response: string) => {
+  let strippedResponse = response.replace(`${entityName} ${verb}:`, "").trim();
+  strippedResponse = strippedResponse.replace(`${entityName}:`, "").trim();
+  strippedResponse = strippedResponse.replace(/^["']|["']$/g, '').trim();
+  return strippedResponse
+}
+
+/**
+ * externalDialog is used to create dialog that is said by the Open Soul, generally used for textual interactions. The opitonal `extraInstructions` parameter is used to provide additional instructions to the Open Soul.
+ * For example, you might add "Keep responses to 1-2 sentences at most." or `${entityName} should say a critical comment, and not ask questions.`
+ * 
+ * @param [extraInstructions] These are instructions that help guide the response of the Open Soul.
+ * @param [verb] - The verb that is used to describe the action of the Open Soul. For example, "said" or "yelloed", defaults to "said"
+ * 
+ * When used in a CortexStep#next command, the typed #value will be a string
+ */
 export const externalDialog = (extraInstructions?: string, verb = "said") => {
   return () => {
     return {
-      command: ({ entityName: name } : CortexStep<any>) => {
+      command: ({ entityName: name }: CortexStep<any>) => {
         return html`
-          How would ${name} verbally respond?
-
-          ${extraInstructions}
+          Model the mind of ${name}.
   
           ## Instructions
-          * The response should be short (as most speech is short).
-          * Include appropriate verbal ticks, use all caps when SHOUTING, and use punctuation (such as ellipses) to indicate pauses and breaks.
-          * Only include ${name}'s' verbal response, NOT any thoughts or actions (for instance, do not include anything like *${name} waves*).
-          * Do NOT include text that is not part of ${name}'s speech. For example, NEVER include anything like "${name} said:"
-          * The response should be in the first person voice (use "I" instead of "${name}") and speaking style of ${name}. 
+          * DO NOT include actions (for example, do NOT add non-verbal items like *John Smiles* or *John Nods*, etc).
+          * If necessary, use all CAPS to emphasize certain words.
+          
+          ${extraInstructions}
 
-          Pretend to be ${name}!
+          Please reply with the next utterance from ${name}. Use the format '${name} ${verb}: "..."'
         `;
       },
       commandRole: ChatMessageRoleEnum.System,
       process: (step: CortexStep<any>, response: string) => {
         return {
-          value: response,
+          value: stripRepsponseBoilerPlate(step, verb, response),
           memories: [{
             role: ChatMessageRoleEnum.Assistant,
-            content: `${step.entityName} ${verb}: ${response}`
+            content: response
           }],
         }
       }
@@ -36,25 +49,76 @@ export const externalDialog = (extraInstructions?: string, verb = "said") => {
   }
 }
 
+/**
+ * spokenDialog is used to create dialog that is spoken outloud by the Open Soul. It includes verbal tickets, 
+ * ellipsis, etc to make the dialog more realistic when spoken.
+ * The optional `extraInstructions` parameter is used to provide additional instructions to the Open Soul.
+ * For example, you might add "Speak with a sense of urgency." or `${entityName} should speak in a calm and soothing tone.`
+ * 
+ * @param [extraInstructions] These are instructions that help guide the response of the Open Soul.
+ * @param [verb] - The verb that is used to describe the action of the Open Soul. For example, "said" or "whispered", defaults to "said"
+ * 
+ * When used in a CortexStep#next command, the typed #value will be a string
+ */
+export const spokenDialog = (extraInstructions?: string, verb = "said") => {
+  return () => {
+    return {
+      command: ({ entityName: name }: CortexStep<any>) => {
+        return html`
+          Model the mind of ${name}.
+  
+          ## Instructions
+          * Include appropriate verbal ticks (e.g., uhhh, umm, like, "you know what I mean", etc).
+          * Use punctuation to indicate pauses and breaks in speech (e.g., an ellipsis)
+          * If necessary, use all caps to SHOUT certain words.
+          * DO NOT include actions (for example, do NOT add non-verbal items like *John Smiles* or *John Nods*, etc).
+
+          ${extraInstructions}
+
+          Please reply with the next utterance from ${name}. Use the format '${name} ${verb}: "..."'
+        `;
+      },
+      commandRole: ChatMessageRoleEnum.System,
+      process: (step: CortexStep<any>, response: string) => {
+        return {
+          value: stripRepsponseBoilerPlate(step, verb, response),
+          memories: [{
+            role: ChatMessageRoleEnum.Assistant,
+            content: response
+          }],
+        }
+      }
+    }
+  }
+}
+
+/**
+ * internalMonologue is used to create an internal thought process that is thought by the Open Soul. The optional `extraInstructions` parameter is used to provide additional instructions to the Open Soul.
+ * For example, you might add "Keep thoughts to 1-2 sentences at most." or `${entityName} notes the user's response on the topic of climate change.` or "What strongly felt emotions does Samantha have about the last message?"
+ * 
+ * @param [extraInstructions] These are instructions that help guide the response of the Open Soul.
+ * @param [verb] - The verb that is used to describe the action of the Open Soul. For example, "thought" or "pondered", defaults to "thought"
+ * 
+ * When used in a CortexStep#next command, the typed #value will be a string
+ */
 export const internalMonologue = (extraInstructions?: string, verb = "thought") => {
   return () => {
+
+    const instructions = extraInstructions ? `\n## Instructions\n\n${extraInstructions}\n` : ""
+
     return {
       command: ({ entityName: name }: CortexStep) => {
         return html`
-          ${extraInstructions}
-  
-          What would ${name} think to themselves? What would their internal monologue be?
-          The response should be short (as most internal thinking is short).
-          Do not include any other text than ${name}'s thoughts.
-          Do not surround the response with quotation marks.
-          Respond in the first person voice (use "I" instead of "${name}") and speaking style of ${name}. Pretend to be ${name}!
+          Model the mind of ${name}.
+          ${instructions}
+          Please reply with the next internal mental thought of ${name}. Use the format '${name} ${verb}: "..."'
       `},
       process: (step: CortexStep<any>, response: string) => {
         return {
-          value: response,
+          value: stripRepsponseBoilerPlate(step, verb, response),
           memories: [{
             role: ChatMessageRoleEnum.Assistant,
-            content: `${step.entityName} ${verb}: ${response}`
+            content: response
           }],
         }
       }
@@ -62,6 +126,21 @@ export const internalMonologue = (extraInstructions?: string, verb = "thought") 
   }
 }
 
+
+/**
+ * decision is used to pick from a set of choices. The `description` parameter is used to describe the decision to be made and the `choices` parameter provides the set of choices to pick from.
+ * 
+ * Example:
+ * decision("is samantha still angry enough to scream?", ["yes", "no"])
+ * 
+ * Example:
+ * decision("What color should the car be?", ["red", "blue", "green", "yellow"])
+ * 
+ * @param description - This is a description of the decision to be made.
+ * @param choices - These are the choices to pick from.
+ * 
+ * When used in a CortexStep#next command, the typed #value will the value of one of the choices submitted.
+ */
 export const decision = (description: string, choices: EnumLike | string[]) => {
   return () => {
 
@@ -71,14 +150,20 @@ export const decision = (description: string, choices: EnumLike | string[]) => {
 
     return {
       name: "decision",
-      description,
+      description: description,
       parameters: params,
+      command: ({ entityName }: CortexStep<any>) => {
+        return html`
+          Model the mind of ${entityName}.
+          ${entityName} is deciding: ${description}
+        `;
+      },
       process: (step: CortexStep<any>, response: z.output<typeof params>) => {
         return {
           value: response.decision,
           memories: [{
             role: ChatMessageRoleEnum.Assistant,
-            content: `${step.entityName} decides: ${response.decision}`
+            content: `${step.entityName} decided: ${response.decision}`
           }],
         }
       }
@@ -86,15 +171,34 @@ export const decision = (description: string, choices: EnumLike | string[]) => {
   }
 }
 
+
+/**
+ * brainstorm is used to generate new ideas. The `description` parameter is used to describe the brainstorming session.
+ * 
+ * Example:
+ * brainstorm("What are some potential features for our new product?")
+ * 
+ * @param description - This is a description of the idea to think through.
+ * 
+ * When used in a CortexStep#next command, the typed #value will be a string[]
+ */
 export const brainstorm = (description: string) => {
-  return () => {
+  return ({ entityName }: CortexStep<any>) => {
     const params = z.object({
-      new_ideas: z.array(z.string()).describe(description)
+      new_ideas: z.array(z.string()).describe(`The new ideas that ${entityName} brainstormed.`)
     })
 
     return {
-      name: "brainstorm",
-      description,
+      name: "save_brainstorm_ideas",
+      description: html`        
+        ${description}
+
+        Save the new ideas.
+      `,
+      command: html`
+        Model the mind of ${entityName}.
+        ${entityName} brainstormed new ideas: ${description}
+      `,
       parameters: params,
       process: (step: CortexStep<any>, response: z.output<typeof params>) => {
         return {
@@ -123,11 +227,11 @@ export const queryMemory = (query: string) => {
       description: query,
       parameters: params,
       command: html`
-        Do not repeat ${query} and instead use a dialog history.
+        Do not repeat ${query} and instead use the dialog history.
         Do not copy sections of the chat history as an answer.
         Do summarize and thoughtfully answer in sentence and paragraph format.
         
-        Analyze the chat history step by step and answer the question: ${query}.
+        Take a deep breath, analyze the chat history step by step and answer the question: ${query}.
       `,
       process: (_step: CortexStep<any>, response: z.output<typeof params>) => {
         return {

@@ -12,27 +12,10 @@ import { analyzeStepForRepetitiveness } from "./analyzer";
 import { html } from "common-tags";
 import EventEmitter from "events";
 
-
 /*
  * These are taken from the elonmuskAI interview example on the doc site (socialagi.dev). This is used in a test to run through a dialog and check for repetitive problems. 
  * 
  */
-
-const getAstronautReplies = () => {
-  const emitter = new EventEmitter()
-  const astronautReplies = async (signal: AbortSignal, newMemory: ChatMessage, lastStep: CortexStep<any>): Promise<CortexStep<any>> => {
-    let step = lastStep.withMemory([newMemory]);
-    step = await step.next(externalDialog("Respond with just 1 sentence or less, extremely boring."))
-    // step = await step.next(externalDialog("Respond in just a few words, 1 sentence at most."))
-    emitter.emit("message", {
-      content: step.value,
-    })
-    analyzeStepForRepetitiveness(step)
-    return step
-  }
-
-  return [astronautReplies, emitter] as [typeof astronautReplies, typeof emitter]
-}
 
 const getElonRepliesProgram = () => {
   const emitter = new EventEmitter()
@@ -49,6 +32,8 @@ const getElonRepliesProgram = () => {
 
   // subroutine for modeling ElonAI's responses
   const elonAIReplies = async (signal: AbortSignal, newMemory: ChatMessage, lastStep: CortexStep<any>): Promise<CortexStep<any>> => {
+    // console.log("..... elon responding to: ", newMemory.content)
+
     if (topicIndex > 2) {
       return lastStep
     }
@@ -57,7 +42,7 @@ const getElonRepliesProgram = () => {
 
     step = await step.next(
       internalMonologue(
-        `ElonAI notes the user's response on the topic of ${interviewTopics[topicIndex]}`
+        `ElonAI should note the user's response on the topic of ${interviewTopics[topicIndex]}`
       )
     );
 
@@ -101,12 +86,14 @@ const getElonRepliesProgram = () => {
       ]);
     }
 
-    step = step.withMemory([
-      {
-        role: ChatMessageRoleEnum.System,
-        content: `ElonAI plans: Now I will delve into the topic of: ${interviewTopics[topicIndex]} with the candidate.`,
-      },
-    ]);
+    if (topicIndex <= 2) {
+      step = step.withMemory([
+        {
+          role: ChatMessageRoleEnum.System,
+          content: `ElonAI plans: Now I will delve into the topic of: ${interviewTopics[topicIndex]} with the candidate.`,
+        },
+      ]);
+    }
 
     const secondAssessment = await step.next(
       decision(
@@ -114,7 +101,7 @@ const getElonRepliesProgram = () => {
         ["yes", "no"]
       )
     );
-    // console.log("Feedback? " + secondAssessment.value);
+    console.log("Feedback? " + secondAssessment.value);
 
     if (secondAssessment.value === "yes" || patienceMeter > 50) {
       patienceMeter = 0;
@@ -148,8 +135,9 @@ const getElonRepliesProgram = () => {
           ["yes", "no"]
         )
       );
-      // console.log("End early? " + endEarly.value);
+      console.log("End early? " + endEarly.value);
       if (endEarly.value === "yes") {
+        console.log("yes")
         topicIndex = 3;
         step = step.withMemory([
           {
@@ -162,6 +150,11 @@ const getElonRepliesProgram = () => {
             "ElonAI should respond with a berating, scathing remark, directed at the interviewee, beginning with 'On second thought'"
           )
         );
+        emitter.emit("message", {
+          content: step.value,
+        })
+        analyzeStepForRepetitiveness(step)
+
         // console.log({
         //   sender: "ElonAI",
         //   message: step.value,
@@ -264,13 +257,29 @@ export const getElon = () => {
   return [cortex, emitter] as [typeof cortex, typeof emitter]
 }
 
+const getAstronautReplies = () => {
+  const emitter = new EventEmitter()
+  const astronautReplies = async (signal: AbortSignal, newMemory: ChatMessage, lastStep: CortexStep<any>): Promise<CortexStep<any>> => {
+    // console.log("..... astronaut responding to: ", newMemory.content)
+    let step = lastStep.withMemory([newMemory]);
+    step = await step.next(externalDialog("Respond in an extremely bored manner."))
+    emitter.emit("message", {
+      content: step.value,
+    })
+    analyzeStepForRepetitiveness(step)
+    return step
+  }
+
+  return [astronautReplies, emitter] as [typeof astronautReplies, typeof emitter]
+}
+
 export const getAstronaut = () => {
   let firstStep = new CortexStep("Tom")
   firstStep = firstStep.withMemory([{
     role: ChatMessageRoleEnum.System,
     content: html`
       # Background
-      You are Tom, an astronaut. However, you always answer any interview question in 1 sentence or less, extremely dryly.
+      You are Tom, an astronaut applying for a job at SpaceX, having an interview with Elon Musk.
     `
   }]);
 
@@ -284,11 +293,3 @@ export const getAstronaut = () => {
   });
   return [cortex, emitter] as [typeof cortex, typeof emitter]
 }
-
-// // Process user messages and dispatch to the scheduler
-// playground.on("userMessage", async (message) => {
-//   cortex.dispatch("ElonAIReplies", {
-//     role: "user",
-//     content: message,
-//   });
-// });
