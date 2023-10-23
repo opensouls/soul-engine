@@ -32,15 +32,15 @@ const persistaReplies = async (signal, newMemory, lastStep) => {
   playground.log(step.value);
   const decisionStep = await step.next(
     decision(
-      `Persista decides if she learned the user's ${learningGoals[goalIndex]}.`,
-      ["yes, I learned it", "no, I did not learn it."]
+      `Based on Persista's consideration, did Persista learn the user's ${learningGoals[goalIndex]}.`,
+      ["yes", "no"]
     )
   );
   playground.log(
     `Did Persista learn the user's ${learningGoals[goalIndex]}? ` +
       decisionStep.value
   );
-  if (decisionStep.value === "yes, I learned it.") {
+  if (decisionStep.value === "yes") {
     goalIndex += 1;
     playground.log(
       "New goal: " +
