@@ -70,7 +70,7 @@ async function addDialogLine(text: string) {
 
   let thoughtProcess:CortexStep<any> = dialog;
   for (const process of intermediateThoughtProcess) {
-    thoughtProcess = await thoughtProcess.next(internalMonologue(`Samantha ${process}. The response should be 1 to 2 sentences at most.`, process));
+    thoughtProcess = await thoughtProcess.next(internalMonologue(`${blueprint.name} ${process}. The response should be 1 to 2 sentences at most.`, process));
     console.log("\n", blueprint.name, process, thoughtProcess.value, "\n");
   }
   const says = await thoughtProcess.next(externalDialog());
