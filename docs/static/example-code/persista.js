@@ -25,14 +25,14 @@ const persistaReplies = async (signal, newMemory, lastStep) => {
   step = step.withMemory([newMemory]);
   step = await step.next(
     internalMonologue(
-      `Persista notes how she feels about waiting for the user to provide their ${learningGoals[goalIndex]}.`,
+      `Reflect (in 1-2 sentences) on how she feels about waiting for the user to provide their ${learningGoals[goalIndex]}.`,
       "felt"
     )
   );
   playground.log(step.value);
   const decisionStep = await step.next(
     decision(
-      `Based on Persista's consideration, did Persista learn the user's ${learningGoals[goalIndex]}.`,
+      `Based on your consideration of the conversation, did the user state their ${learningGoals[goalIndex]}?`,
       ["yes", "no"]
     )
   );
@@ -98,7 +98,7 @@ Regardless, I NEED an answer from them, no matter what.
     sender: "Persista",
     message: step.value,
   });
-  // return a step that has the new dialog, but not the decision to speak or not
+
   return step;
 };
 const persistaRepliesConfig = {

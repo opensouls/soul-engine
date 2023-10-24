@@ -24,26 +24,23 @@ const angelReplies = async (signal, newMemory, lastStep) => {
   step = step.withMemory([newMemory]);
   step = await step.next(
     internalMonologue(
-      `One sentence explaining if (and why) the Angel wants to respond to the Devil \
-or to the user.
-
-${
+      `One sentence explaining if (and why) the Angel should respond to the conversation. ${
   fightCounter > 2
-    ? "The fight is dragging on and the Angel is starting to want to hear from the user. I should stop responding soon"
+    ? "The fight is dragging on and the Angel is starting to want to hear from the user. The Angel should stop responding soon."
     : ""
-}`
-    )
+}`)
   );
   playground.log("Angel thinks: " + step.value);
   const decides = await step.next(
-    decision(
-      `based on the Angel's last thought, are they going to respond? (yes or no)`,
-      ["yes", "no"]
-    )
+    decision(`Based on the Angel's last thought, will they speak or wait?`, [
+      "speak",
+      "wait",
+    ])
   );
-  playground.log("Angel decides to respond: " + decides.value);
-  if (decides.value.includes("yes")) {
-    step = await step.next(externalDialog());
+
+  playground.log("Angel decides to speak: " + decides.value);
+  if (decides.value === "speak") {
+    step = await step.next(externalDialog("Respond in 1-2 sentences."));
     playground.addMessage({
       sender: "Angel",
       message: step.value,
@@ -62,25 +59,25 @@ const devilReplies = async (signal, newMemory, lastStep) => {
   let step = lastStep;
   step = step.withMemory([newMemory]);
   step = await step.next(
-    internalMonologue(`One sentence explaining if (and why) the Devil wants to respond to the angel \
-or to the user.
-
-${
+    internalMonologue(`One sentence explaining if (and why) the Devil should respond to the conversation ${
   fightCounter > 2
-    ? "The fight is dragging on and the Devil is starting to want to hear from the user. I should stop responding soon"
+    ? "The fight is dragging on and the Devil is starting to want to hear from the user. The Devil should stop responding soon."
     : ""
 }`)
   );
   playground.log("Devil schemes " + step.value);
   const decides = await step.next(
-    decision(
-      `based on the Devil's last thought, are they going to respond?  (yes or no)`,
-      ["yes", "no"]
-    )
+    decision(`Based on the Devil's last thought, will they speak or wait?`, [
+      "speak",
+      "wait",
+    ])
   );
-  playground.log("Devil decides to respond: " + decides.value);
-  if (decides.value.includes("yes")) {
-    step = await step.next(externalDialog("The devil should tempt the angel."));
+  playground.log("Devil decides to speak: " + decides.value);
+
+  if (decides.value === "speak") {
+    step = await step.next(
+      externalDialog("The devil should tempt the Angel in 1 to 2 sentences.")
+    );
     playground.addMessage({
       sender: "Devil",
       message: step.value,
@@ -152,7 +149,7 @@ setTimeout(() => {
     if (sender !== "Angel") {
       cortexAngel.dispatch("AngelReplies", {
         role: "user",
-        content: `${sender} says: ${message}}`,
+        content: `${sender} said: ${message}}`,
       });
     }
     if (sender !== "Devil") {
@@ -160,7 +157,7 @@ setTimeout(() => {
         () =>
           cortexDevil.dispatch("DevilReplies", {
             role: "user",
-            content: `${sender} says: ${message}`,
+            content: `${sender} said: ${message}`,
           }),
         200
       );

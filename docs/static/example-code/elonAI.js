@@ -29,7 +29,7 @@ const elonAIReplies = async (signal, newMemory, lastStep) => {
 
   step = await step.next(
     internalMonologue(
-      `ElonAI notes the user's response on the topic of ${interviewTopics[topicIndex]}`
+      `ElonAI considers how he feels about the user's response on the topic of ${interviewTopics[topicIndex]}`
     )
   );
   playground.log(step.value);
@@ -56,31 +56,31 @@ const elonAIReplies = async (signal, newMemory, lastStep) => {
     patienceMeter = 0;
     step = await step.next(
       externalDialog(
-        `ElonAI should say a critical comment, and not ask questions.`
+        `ElonAI should make an arrogant and critical comment, but not ask any questions of the candidate.`
       )
     );
     playground.addMessage({
       sender: "ElonAI",
-      message: assessment.value,
+      message: step.value,
     });
+
+    if (topicIndex <= 2) {
+      step = step.withMemory([
+        {
+          role: ChatMessageRoleEnum.System,
+          content: `ElonAI plans: Now I will delve into the topic of: ${interviewTopics[topicIndex]} with the candidate.`,
+        },
+      ]);
+    }
   } else {
     patienceMeter += 10;
     playground.log(`Patience decreased to ${patienceMeter}`);
     step = step.withMemory([
       {
         role: ChatMessageRoleEnum.System,
-        content: `ElonAI thinks: My patience is decreasing ${
+        content: `ElonAI thought: My patience is decreasing. Patience is at ${
           50 - patienceMeter
         } / 50. I'm going to get a bit more exasperated.`,
-      },
-    ]);
-  }
-
-  if (topicIndex <= 2) {
-    step = step.withMemory([
-      {
-        role: ChatMessageRoleEnum.System,
-        content: `ElonAI plans: Now I will delve into the topic of: ${interviewTopics[topicIndex]} with the candidate.`,
       },
     ]);
   }
@@ -128,7 +128,7 @@ const elonAIReplies = async (signal, newMemory, lastStep) => {
       step = step.withMemory([
         {
           role: ChatMessageRoleEnum.System,
-          content: `ElonAI thinks: Fuck it. This interview is done - don't need to waste my time.`,
+          content: `ElonAI thought: Fuck it. This interview is done - don't need to waste my time.`,
         },
       ]);
       step = await step.next(
@@ -149,7 +149,7 @@ const elonAIReplies = async (signal, newMemory, lastStep) => {
     step = step.withMemory([
       {
         role: ChatMessageRoleEnum.System,
-        content: `ElonAI thinks: Concluding the interview. Will provide feedback to the candidate if they made it. May be scathing and sarcastic possibly.`,
+        content: `ElonAI thought: Concluding the interview. Will provide feedback to the candidate if they made it. May be scathing and sarcastic possibly.`,
       },
     ]);
     step = await step.next(
