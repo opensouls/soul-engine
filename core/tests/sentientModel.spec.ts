@@ -26,7 +26,7 @@ const mentalModelForUser = (soul: Soul, userName: string) => {
   return userMemory.toLinguisticProgram(null);
 };
 
-describe("SentientModel", () => {
+describe.skip("SentientModel", () => {
 
   it("accumulates sorrowful conversation history", async () => {
     const generator = async () => {

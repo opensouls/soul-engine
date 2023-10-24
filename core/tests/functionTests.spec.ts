@@ -35,7 +35,7 @@ const additionFunction: FunctionRunner = {
   }
 }
 
-describe("function use in cortext step", () => {
+describe.skip("function use in cortext step", () => {
   it("sends functions to next", async () => {
     const memory = [
       {

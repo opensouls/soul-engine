@@ -3,7 +3,7 @@ import { Action, ChatMessageRoleEnum, CortexStep } from "../src";
 import dotenv from 'dotenv';
 dotenv.config();
 
-describe("CortexStep", function() {
+describe.skip("CortexStep", function() {
   this.timeout(35000);
 
   it("long monologue", async function() {

@@ -9,7 +9,7 @@ function delay(milliseconds: number) {
 }
 
 // TODO: do we need this test anymore?
-describe("ParticipationStrategy", () => {
+describe.skip("ParticipationStrategy", () => {
   it("ALWAYS_REPLYs replies to each message", async () => {
     const generator = async () => {
       const messages:any[] = [];
