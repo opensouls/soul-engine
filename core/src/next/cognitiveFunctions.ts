@@ -6,7 +6,7 @@ import { html } from "common-tags";
 const stripResponseBoilerPlate = ({ entityName }: CortexStep<any>, _verb: string, response: string) => {
   // sometimes the LLM will respond with something like "Bogus said with a sinister smile: "I'm going to eat you!" (adding more words)
   // so we just strip any of those
-  let strippedResponse = response.replace(new RegExp(`${entityName} .*?:`), "").trim();
+  let strippedResponse = response.replace(new RegExp(`${entityName} .*?:`, "i"), "").trim();
   // sometimes the LLM will ignore the verb and just respond with: Bogus: "..."
   strippedResponse = strippedResponse.replace(`${entityName}:`, "").trim();
   // get rid of the quotes
