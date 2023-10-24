@@ -152,12 +152,6 @@ export const decision = (description: string, choices: EnumLike | string[]) => {
       name: "decision",
       description: description,
       parameters: params,
-      command: ({ entityName }: CortexStep<any>) => {
-        return html`
-          Model the mind of ${entityName}.
-          ${entityName} is deciding: ${description}
-        `;
-      },
       process: (step: CortexStep<any>, response: z.output<typeof params>) => {
         return {
           value: response.decision,
