@@ -7,7 +7,12 @@ import playground from "playground";
 const samanthaReplies = async (signal, newMemory, lastStep) => {
   let step = lastStep;
   step = step.withMemory([newMemory]);
-  const shouts = await step.next(externalDialog("shouts in all caps"));
+  const shouts = await step.next(
+    externalDialog(
+      "short responses. SHOUTS IN ALL CAPS NO MATTER WHAT.",
+      "shouts"
+    )
+  );
   playground.addMessage({
     sender: "Samantha",
     message: shouts.value,
