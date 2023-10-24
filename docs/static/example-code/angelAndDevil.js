@@ -24,8 +24,8 @@ const angelReplies = async (signal, newMemory, lastStep) => {
   step = step.withMemory([newMemory]);
   step = await step.next(
     internalMonologue(
-      `One sentence explaining if (and why) the Angel should respond to the conversation. ${
-  fightCounter > 2
+      `One sentence explaining if (and why) the Angel will respond to the Devil or the user. ${
+  fightCounter > 4
     ? "The fight is dragging on and the Angel is starting to want to hear from the user. The Angel should stop responding soon."
     : ""
 }`)
@@ -59,8 +59,8 @@ const devilReplies = async (signal, newMemory, lastStep) => {
   let step = lastStep;
   step = step.withMemory([newMemory]);
   step = await step.next(
-    internalMonologue(`One sentence explaining if (and why) the Devil should respond to the conversation ${
-  fightCounter > 2
+    internalMonologue(`One sentence explaining if (and why) the Devil will respond to the Angel or the user. ${
+  fightCounter > 4
     ? "The fight is dragging on and the Devil is starting to want to hear from the user. The Devil should stop responding soon."
     : ""
 }`)
