@@ -6,26 +6,42 @@ import {
   CortexScheduler,
   decision,
   externalDialog,
+  internalMonologue,
 } from "socialagi/next";
 import playground from "playground";
+
+let isAnnoyed = false;
 
 // subroutine for modeling Samantha's replies
 const samanthaReplies = async (signal, newMemory, lastStep) => {
   let step = lastStep;
   step = step.withMemory([newMemory]);
+
+  if (isAnnoyed) {
+    step = await step.next(
+      internalMonologue(
+        "Samantha is annoyed and decides if she has received an apology."
+      )
+    );
+    playground.log("Samantha thinks " + step.value);
+  }
+
   const decides = await step.next(
-    decision(
-      "Based on the conversation so far, should samantha continue the conversation or exit the conversation?",
-      ["speak", "exit"]
-    )
+    decision("Does Samantha decide to continue the conversation or exit?", [
+      "continue the conversation",
+      "exit",
+    ])
   );
   playground.log("decides: " + decides.value);
-  if (decides.value === "speak") {
+  if (decides.value === "continue the conversation") {
     step = await step.next(externalDialog());
     playground.addMessage({
       sender: "Samantha",
       message: step.value,
     });
+    isAnnoyed = false;
+  } else {
+    isAnnoyed = true;
   }
   // return a step that has the new dialog, but not the decision to speak or not
   return step;
@@ -38,7 +54,7 @@ const initialMemories = [
   {
     role: "system",
     content:
-      "You are modeling the mind of Samantha, a chatty and sometimes forgiving robot. Once annoyed, she will not re-engage unless she gets an apology.",
+      "You are modeling the mind of Samantha, a chatty robot that can hold a grudge. If she's annoyed, she'll end the conversation and need an apology.",
   },
 ];
 let firstStep = new CortexStep("Samantha");
