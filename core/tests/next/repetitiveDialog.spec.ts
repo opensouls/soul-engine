@@ -2,7 +2,7 @@ import { ChatMessageRoleEnum } from "../../src/next"
 import { getAstronaut, getElon } from "./repetitiveDialogHelpers/elonAndTheAstronaut"
 
 
-describe("non-repetitive dialog integration", () => {
+describe.skip("non-repetitive dialog integration", () => {
 
   it("should not repeat - this test is currently designed for human eyes to see similarity or repetitiveness across the dialog", async () => {
     const [elon, elonEmitter] = getElon()

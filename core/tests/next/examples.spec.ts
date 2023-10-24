@@ -12,6 +12,7 @@ import {
 } from "../../src/next";
 
 describe("examples from the docs", () => {
+
   describe("CortexStep examples", () => {
     let step: CortexStep<any>;
 
@@ -25,12 +26,12 @@ describe("examples from the docs", () => {
             "You are modeling the mind of a helpful AI assitant",
         },
       ];
-  
+
       step = step.withMemory(initialMemory);
     })
 
     it("runs chain of thought", async () => {
-      const withIntrospectiveReply = async (step: CortexStep, newMessage: Memory): Promise<CortexStep<string>>  => {
+      const withIntrospectiveReply = async (step: CortexStep, newMessage: Memory): Promise<CortexStep<string>> => {
         const message = step.withMemory([newMessage]);
         const feels = await message.next(internalMonologue("How do they feel about the last message?"));
         const thinks = await feels.next(internalMonologue("Thinks about the feelings and the last user message"));
@@ -50,28 +51,28 @@ describe("examples from the docs", () => {
         console.log("AI:", nextStep.value);
         return nextStep
       }
-  
+
       await withReply(step, { role: ChatMessageRoleEnum.User, content: "Hello, AI!" })
     })
 
     it("runs caseDecision", async () => {
-      const caseDecision = async (caseMemories: ChatMessage[]): Promise<string|number> => {
+      const caseDecision = async (caseMemories: ChatMessage[]): Promise<string | number> => {
         const initialMemory = [
-        {
-          role: ChatMessageRoleEnum.System,
-          content: "You are modeling the mind of a detective who is currently figuring out a complicated case",
-        },
+          {
+            role: ChatMessageRoleEnum.System,
+            content: "You are modeling the mind of a detective who is currently figuring out a complicated case",
+          },
         ];
-      
+
         let cortexStep = new CortexStep("Detective");
         cortexStep = cortexStep
-            .withMemory(initialMemory)
-            .withMemory(caseMemories);
-      
+          .withMemory(initialMemory)
+          .withMemory(caseMemories);
+
         const analysis = await cortexStep.next(internalMonologue("The detective analyzes the evidence"));
-      
+
         const hypothesis = await analysis.next(internalMonologue("The detective makes a hypothesis based on the analysis"));
-      
+
         const nextStep = await hypothesis.next(
           decision(
             "Decides the next step based on the hypothesis",
@@ -93,29 +94,29 @@ describe("examples from the docs", () => {
             content: "You are modeling the mind of a chef who is preparing a meal.",
           },
         ];
-      
+
         let cortexStep = new CortexStep("Chef");
         cortexStep = cortexStep
           .withMemory(initialMemory)
           .withMemory(ingredientsMemories);
-      
+
         const ingredients = await cortexStep.next(internalMonologue("The chef considers the ingredients"));
-      
+
         const mealIdeas = await ingredients.next(
           brainstorm("Decides the meal to prepare")
         );
-      
+
         return mealIdeas.value;
       }
 
       console.log("suggestion: ", await makeDishSuggestions([{ role: ChatMessageRoleEnum.User, content: "I want to do something with peppers" }]))
     })
 
-    it("runs the while loops", async () => {
+    it("runs the WHY while loops", async () => {
       const with5Whys = async (question: CortexStep<any>): Promise<CortexStep<any>> => {
         let i = 0;
         while (i < 5) {
-          question = await question.next(internalMonologue("Asks a deep 'why?'"));
+          question = await question.next(internalMonologue("Asks a deep 'why?' in 1 sentence."));
           i++;
         }
         return question
@@ -132,10 +133,10 @@ describe("examples from the docs", () => {
           `
         },
       ];
-      
+
       let quest = new CortexStep<any>("Protagonist");
       quest = quest.withMemory(initialMemory) as CortexStep<any>;
-      
+
       // The protagonist considers the quests
       quest = await quest.next(
         decision(
@@ -143,7 +144,7 @@ describe("examples from the docs", () => {
           ["slay dragon", "find artifact"],
         )
       );
-      
+
       if (quest.value === "slay dragon") {
         // Branch 1: Slay the dragon
         quest = await quest.next(
@@ -152,9 +153,9 @@ describe("examples from the docs", () => {
             ["gather weapons", "train skills"]
           )
         );
-      
+
         if (quest.value === "gather weapons") {
-         // implement gather tooling for character
+          // implement gather tooling for character
         } else {
           // implement training tooling for character
         }
@@ -166,19 +167,19 @@ describe("examples from the docs", () => {
             ["search old records", "ask elders"]
           )
         );
-      
+
         if (quest.value === "search old records") {
           // search for clues about the artifact
         } else {
-         // ask the elders about the arffact
+          // ask the elders about the arffact
         }
       }
-      
+
       console.log(quest.toString());
     })
   })
 
-  
+
 
   it("runs the cortex scheduler example", async () => {
     const abortQueuingStrategy = (currentJob: any, queue: any, newJob: any) => {

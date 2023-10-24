@@ -4,6 +4,8 @@ import { decision, instruction, queryMemory, externalDialog, internalMonologue, 
 import { expect } from "chai";
 import { z } from "zod";
 import { trace } from "@opentelemetry/api";
+import { html } from "common-tags";
+import { angelDevilConversation } from "./exampleAngelDevilConversation";
 
 describe("CortexStep", () => {
 
@@ -43,7 +45,69 @@ describe("CortexStep", () => {
 
     expect(resp.value).to.be.an("string")
     expect(resp.value).to.have.length.greaterThan(10)
-    expect(resp.memories[resp.memories.length - 1].content).to.eq("Bogus felt: " + resp.value)
+    expect(resp.memories[resp.memories.length - 1].content).to.eq(`Bogus felt: "${resp.value}"`)
+  })
+
+  it("will decide not to speak if rude (similar to samantha chooses to speak example)", async () => {
+    const step = new CortexStep("Samantha").withMemory([
+      {
+        role: ChatMessageRoleEnum.System,
+        content:
+          "You are modeling the mind of Samantha, a chatty and sometimes forgiving robot.",
+      },
+      {
+        role: ChatMessageRoleEnum.User,
+        content: "Hi. You know, I kinda don't like you.",
+      },
+      {
+        role: ChatMessageRoleEnum.Assistant,
+        content: `Samantha said: "I'm sorry to hear that. I'm here to help."`,
+      },
+      {
+        role: ChatMessageRoleEnum.User,
+        content: "FU! No really just FU!",
+      }
+    ])
+    const decides = await step.next(
+      decision(
+        "based on the conversation so far, should samantha continue the conversation or exit the conversation?",
+        ["speak", "exit"]
+      )
+    );
+    expect(decides.value).to.equal("exit")
+
+  })
+
+  it("follows internal monologue instructions similar to the angel and demon example - THIS EXAMPLE MIGHT FAIL SPORADICALLY AND SHOULD BE RERUN", async () => {
+    const step = new CortexStep("Angel").withMemory([
+      {
+        role: ChatMessageRoleEnum.System,
+        content: html`
+          You are modeling the mind of a helpful angel, chatting with a Devil and a user.
+
+          ## Notes
+
+          * The angel is here to offer good advice to the user based on their challenge at hand
+          * The angel sometimes gets into brief fights with the devil
+          * If the user is focused on the Devil, the angel mostly stands back unless they've not spoken in a long time
+        `,
+      },
+      ...angelDevilConversation,
+    ])
+
+    const resp = await step.next(internalMonologue("One sentence explaining if (and why) the Angel should respond to the conversation. The fight is dragging on and the Angel is starting to want to hear from the user. The Angel should stop responding soon."))
+
+    expect(resp.value).to.be.a("string")
+    // expect(resp.value.split(".").length).to.be.lessThanOrEqual(2)
+
+    const decides = await resp.next(
+      decision(
+        `Based on the Angel's last thought, will they speak or wait?`,
+        ["speak", "wait"]
+      )
+    );
+
+    expect(decides.value).to.eq("wait")
   })
 
   describe("next", () => {

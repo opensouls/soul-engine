@@ -42,7 +42,7 @@ const getElonRepliesProgram = () => {
 
     step = await step.next(
       internalMonologue(
-        `ElonAI should note the user's response on the topic of ${interviewTopics[topicIndex]}`
+        `ElonAI considers how he feels about the user's response on the topic of ${interviewTopics[topicIndex]}`
       )
     );
 
@@ -53,9 +53,9 @@ const getElonRepliesProgram = () => {
       )
     );
 
-    // console.log(
-    //   `Assessment on ${interviewTopics[topicIndex]}: ` + assessment.value
-    // );
+    console.log(
+      `Assessment on ${interviewTopics[topicIndex]}: ` + assessment.value
+    );
 
     if (assessment.value == "yes") {
       topicIndex += 1;
@@ -70,6 +70,15 @@ const getElonRepliesProgram = () => {
       })
       analyzeStepForRepetitiveness(step)
 
+      if (topicIndex <= 2) {
+        step = step.withMemory([
+          {
+            role: ChatMessageRoleEnum.System,
+            content: `ElonAI planned: Now I will delve into the topic of: ${interviewTopics[topicIndex]} with the candidate.`,
+          },
+        ]);
+      }
+
       // console.log({
       //   sender: "ElonAI",
       //   message: assessment.value,
@@ -80,17 +89,8 @@ const getElonRepliesProgram = () => {
       step = step.withMemory([
         {
           role: ChatMessageRoleEnum.System,
-          content: `ElonAI thinks: My patience is decreasing ${50 - patienceMeter
+          content: `ElonAI planned: My patience is decreasing. Patience is at a ${50 - patienceMeter
             } / 50. I'm going to get a bit more exasperated.`,
-        },
-      ]);
-    }
-
-    if (topicIndex <= 2) {
-      step = step.withMemory([
-        {
-          role: ChatMessageRoleEnum.System,
-          content: `ElonAI plans: Now I will delve into the topic of: ${interviewTopics[topicIndex]} with the candidate.`,
         },
       ]);
     }
@@ -142,7 +142,7 @@ const getElonRepliesProgram = () => {
         step = step.withMemory([
           {
             role: ChatMessageRoleEnum.System,
-            content: `ElonAI thinks: Fuck it. This interview is done - don't need to waste my time.`,
+            content: `ElonAI thought: Fuck it. This interview is done - don't need to waste my time.`,
           },
         ]);
         step = await step.next(
@@ -168,7 +168,7 @@ const getElonRepliesProgram = () => {
       step = step.withMemory([
         {
           role: ChatMessageRoleEnum.System,
-          content: `ElonAI thinks: Concluding the interview. Will provide feedback to the candidate if they made it. May be scathing and sarcastic possibly.`,
+          content: `ElonAI thought: Concluding the interview. Will provide feedback to the candidate if they made it. May be scathing and sarcastic possibly.`,
         },
       ]);
       step = await step.next(

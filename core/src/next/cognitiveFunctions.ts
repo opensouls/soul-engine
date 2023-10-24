@@ -104,14 +104,20 @@ export const spokenDialog = (extraInstructions?: string, verb = "said") => {
 export const internalMonologue = (extraInstructions?: string, verb = "thought") => {
   return () => {
 
-    const instructions = extraInstructions ? `\n## Instructions\n\n${extraInstructions}\n` : ""
-
     return {
       command: ({ entityName: name }: CortexStep) => {
         return html`
           Model the mind of ${name}.
-          ${instructions}
-          Please reply with the next internal mental thought of ${name}. Use the format '${name} ${verb}: "..."'
+          
+          ## Description
+          ${extraInstructions}
+
+          ## Rules
+          * Internal monologue thoughts should match the speaking style of ${name}.
+          * Only respond with the format '${name} ${verb}: "..."', no additonal commentary or text.
+          * Follow the Description when creating the internal thought!
+
+          Please reply with the next internal monologue thought of ${name}. Use the format '${name} ${verb}: "..."'
       `},
       process: (step: CortexStep<any>, response: string) => {
         return {

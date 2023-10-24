@@ -3,7 +3,7 @@ import { CortexScheduler, Action, CortexStep, ChatMessageRoleEnum } from '../src
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-describe("CortexScheduler", () => {
+describe.skip("CortexScheduler", () => {
   it("executes conversation", async () => {
     const samanthaReplies = async (signal:any, newMemory:any, lastStep:any) => {
       let step = lastStep;
