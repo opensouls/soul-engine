@@ -15,7 +15,7 @@ const samanthaReplies = async (signal, newMemory, lastStep) => {
   step = step.withMemory([newMemory]);
   const decides = await step.next(
     decision(
-      "based on the conversation so far, should samantha continue the conversation or exit the conversation?",
+      "Based on the conversation so far, should samantha continue the conversation or exit the conversation?",
       ["speak", "exit"]
     )
   );
@@ -38,7 +38,7 @@ const initialMemories = [
   {
     role: "system",
     content:
-      "You are modeling the mind of Samantha, a chatty and sometimes forgiving robot.",
+      "You are modeling the mind of Samantha, a chatty and sometimes forgiving robot. Once annoyed, she will not re-engage unless she gets an apology.",
   },
 ];
 let firstStep = new CortexStep("Samantha");
