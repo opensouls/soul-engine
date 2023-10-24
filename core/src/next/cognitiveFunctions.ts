@@ -4,8 +4,12 @@ import { ChatMessageRoleEnum } from "./languageModels";
 import { html } from "common-tags";
 
 const stripRepsponseBoilerPlate = ({ entityName }: CortexStep<any>, verb: string, response: string) => {
-  let strippedResponse = response.replace(`${entityName} ${verb}:`, "").trim();
+  // sometimes the LLM will respond with something like "Bogus said with a sinister smile: "I'm going to eat you!" (adding more words)
+  // so we just strip any of those
+  let strippedResponse = response.replace(new RegExp(`${entityName} .*:`), "").trim();
+  // sometimes the LLM will ignore the verb and just respond with: Bogus: "..."
   strippedResponse = strippedResponse.replace(`${entityName}:`, "").trim();
+  // get rid of the quotes
   strippedResponse = strippedResponse.replace(/^["']|["']$/g, '').trim();
   return strippedResponse
 }
@@ -28,6 +32,7 @@ export const externalDialog = (extraInstructions?: string, verb = "said") => {
   
           ## Instructions
           * DO NOT include actions (for example, do NOT add non-verbal items like *John Smiles* or *John Nods*, etc).
+          * DO NOT include internal thoughts (for example, do NOT respond with John thought: "...").
           * If necessary, use all CAPS to emphasize certain words.
           
           ${extraInstructions}
@@ -37,11 +42,12 @@ export const externalDialog = (extraInstructions?: string, verb = "said") => {
       },
       commandRole: ChatMessageRoleEnum.System,
       process: (step: CortexStep<any>, response: string) => {
+        const stripped = stripRepsponseBoilerPlate(step, verb, response)
         return {
-          value: stripRepsponseBoilerPlate(step, verb, response),
+          value: stripped,
           memories: [{
             role: ChatMessageRoleEnum.Assistant,
-            content: response
+            content: `${step.entityName} ${verb}: "${stripped}"`
           }],
         }
       }
@@ -71,6 +77,7 @@ export const spokenDialog = (extraInstructions?: string, verb = "said") => {
           * Include appropriate verbal ticks (e.g., uhhh, umm, like, "you know what I mean", etc).
           * Use punctuation to indicate pauses and breaks in speech (e.g., an ellipsis)
           * If necessary, use all caps to SHOUT certain words.
+          * DO NOT include internal thoughts (for example, do NOT respond with John thought: "...")
           * DO NOT include actions (for example, do NOT add non-verbal items like *John Smiles* or *John Nods*, etc).
 
           ${extraInstructions}
@@ -131,7 +138,6 @@ export const internalMonologue = (extraInstructions?: string, verb = "thought") 
     }
   }
 }
-
 
 /**
  * decision is used to pick from a set of choices. The `description` parameter is used to describe the decision to be made and the `choices` parameter provides the set of choices to pick from.
