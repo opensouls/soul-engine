@@ -16,25 +16,28 @@ const samanthaReplies = async (signal, newMemory, lastStep) => {
   step = step.withMemory([newMemory]);
   step = await step.next(
     internalMonologue(
-      "What is Samantha's emotional response to the last message?"
+      "Samantha's emotional response to the last couple of messages.",
+      "felt"
     )
   );
-  playground.log("<Samantha feels>" + step.value);
+  playground.log("Samantha feels: " + step.value);
   const decides = await step.next(
-    decision("is samantha still angry enough to scream?", ["yes", "no"])
+    decision("Is Samantha angry enough to scream?", ["yes", "no"])
   );
   playground.log("Is samantha angry? " + decides.value);
   if (decides.value === "yes") {
-    externalDialog(
-      "ANGERLY SHOUTS IN ALL CAPS. RESPONDS IN ALL CAPS.",
-      "SHOUTS IN CAPS"
+    step = await step.next(
+      externalDialog(
+        "SAMANTHA ANGRILY SHOUTS IN ALL CAPS! RESPOND IN ALL CAPS!",
+        "SHOUTS IN ALL CAPS"
+      )
     );
   } else {
     step = await step.next(
-      internalMonologue("what Samantha thinks, following her feelings.")
+      internalMonologue("What Samantha thinks, following her feelings.")
     );
-    playground.log("<Samantha thinks>" + step.value);
-    step = await step.next(externalDialog("Follow any plans exactly."));
+    playground.log("Samantha thinks: " + step.value);
+    step = await step.next(externalDialog("A short 1-2 sentence response."));
   }
   playground.addMessage({
     sender: "Samantha",
