@@ -3,10 +3,10 @@ import { CortexStep, NextFunction, StepCommand } from "./CortexStep";
 import { ChatMessageRoleEnum } from "./languageModels";
 import { html } from "common-tags";
 
-const stripRepsponseBoilerPlate = ({ entityName }: CortexStep<any>, verb: string, response: string) => {
+const stripResponseBoilerPlate = ({ entityName }: CortexStep<any>, _verb: string, response: string) => {
   // sometimes the LLM will respond with something like "Bogus said with a sinister smile: "I'm going to eat you!" (adding more words)
   // so we just strip any of those
-  let strippedResponse = response.replace(new RegExp(`${entityName} .*:`), "").trim();
+  let strippedResponse = response.replace(new RegExp(`${entityName} .*?:`), "").trim();
   // sometimes the LLM will ignore the verb and just respond with: Bogus: "..."
   strippedResponse = strippedResponse.replace(`${entityName}:`, "").trim();
   // get rid of the quotes
@@ -42,7 +42,7 @@ export const externalDialog = (extraInstructions?: string, verb = "said") => {
       },
       commandRole: ChatMessageRoleEnum.System,
       process: (step: CortexStep<any>, response: string) => {
-        const stripped = stripRepsponseBoilerPlate(step, verb, response)
+        const stripped = stripResponseBoilerPlate(step, verb, response)
         return {
           value: stripped,
           memories: [{
@@ -88,7 +88,7 @@ export const spokenDialog = (extraInstructions?: string, verb = "said") => {
       commandRole: ChatMessageRoleEnum.System,
       process: (step: CortexStep<any>, response: string) => {
         return {
-          value: stripRepsponseBoilerPlate(step, verb, response),
+          value: stripResponseBoilerPlate(step, verb, response),
           memories: [{
             role: ChatMessageRoleEnum.Assistant,
             content: response
@@ -128,7 +128,7 @@ export const internalMonologue = (extraInstructions?: string, verb = "thought") 
       `},
       process: (step: CortexStep<any>, response: string) => {
         return {
-          value: stripRepsponseBoilerPlate(step, verb, response),
+          value: stripResponseBoilerPlate(step, verb, response),
           memories: [{
             role: ChatMessageRoleEnum.Assistant,
             content: response
