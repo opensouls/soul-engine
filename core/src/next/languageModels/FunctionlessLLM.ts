@@ -22,7 +22,7 @@ const tracer = trace.getTracer(
   '0.0.1',
 );
 
-type Config = ConstructorParameters<typeof OpenAI>[0] & { compressSystemMessages?: boolean };
+type Config = ConstructorParameters<typeof OpenAI>[0] & { singleSystemMessage?: boolean };
 
 type ChatCompletionParams =
   Partial<CompletionCreateParamsNonStreaming>
@@ -81,15 +81,15 @@ export class FunctionlessLLM
   defaultCompletionParams: DefaultCompletionParams;
   defaultRequestOptions: RequestOptions;
 
-  private compressSystemMessages = false
+  private singleSystemMessage = false
 
   constructor(
     openAIConfig: Config = {},
     defaultCompletionParams: ChatCompletionParams = {},
     defaultRequestOptions: RequestOptions = {}
   ) {
-    const { compressSystemMessages, ...restConfig } = openAIConfig;
-    this.compressSystemMessages = !!compressSystemMessages
+    const { singleSystemMessage, ...restConfig } = openAIConfig;
+    this.singleSystemMessage = !!singleSystemMessage
     this.client = new OpenAI(restConfig);
     this.defaultCompletionParams = {
       model: Model.GPT_3_5_turbo,
@@ -263,7 +263,7 @@ export class FunctionlessLLM
   
       const { error, parsed } = this.validateFunctioncall(functionCall, retMessage, functions);
       if (error) {
-        console.warn("LLM returned invalid JSON, will retry")
+        console.warn("LLM returned invalid JSON, will retry", error, parsed, content)
         return this.execute([
           ...messages,
           userMessageFromFunctionCall,
@@ -385,25 +385,26 @@ export class FunctionlessLLM
     })
   }
 
+  /**
+   * swaps all but the first system message to user messages for OSS models that only support a single system message.
+   */
   private compressSystemMessagesIfNeeded(messages: ChatMessage[]): ChatMessage[] {
-    if (!this.compressSystemMessages) {
+    if (!this.singleSystemMessage) {
       return messages
     }
-    let systemMessage = ""
-    const returnedMessages:ChatMessage[] = []
+    let firstSystemMessage = false
     messages.forEach((message) => {
       if (message.role === ChatMessageRoleEnum.System) {
-        systemMessage += message.content + "\n"
+        if (firstSystemMessage) {
+          firstSystemMessage = true
+          return
+        }
+        message.role = ChatMessageRoleEnum.User
+        // systemMessage += message.content + "\n"
         return
       }
-      returnedMessages.push(message)
+      // returnedMessages.push(message)
     })
-    return [
-      {
-        role: ChatMessageRoleEnum.System,
-        content: systemMessage
-      },
-      ...returnedMessages
-    ]
+    return messages
   }
 }
