@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { CompletionCreateParamsStreaming, CompletionCreateParamsNonStreaming } from "openai/resources/chat/completions"
+import { CompletionCreateParamsStreaming, CompletionCreateParamsNonStreaming, ChatCompletionMessageParam } from "openai/resources/chat/completions"
 import {
   ChatCompletionStreamer,
   ChatMessage,
@@ -50,6 +50,7 @@ export class OpenAIStreamingChat implements ChatCompletionStreamer {
     {
       ...this.defaultParams,
       ...opts,
+      messages: opts.messages as ChatCompletionMessageParam[],
       stream: true,
     }
     const stream = await this.client.chat.completions.create(params);
@@ -96,7 +97,7 @@ export class OpenAILanguageProgramProcessor
       ...this.defaultParams,
       ...restRequestParams,
       function_call: functionCall,
-      messages: messages,
+      messages: messages as ChatCompletionMessageParam[],
       functions: (functions.length > 0 ? functions : undefined),
       stream :false,
     }

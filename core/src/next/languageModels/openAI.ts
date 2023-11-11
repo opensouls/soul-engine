@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import { RequestOptions } from "openai/core"
-import { ChatCompletionMessage, CompletionCreateParamsNonStreaming } from "openai/resources/chat/completions"
+import { ChatCompletionMessage, ChatCompletionMessageParam, CompletionCreateParamsNonStreaming } from "openai/resources/chat/completions"
 import { SpanStatusCode, trace } from '@opentelemetry/api';
 import {
   ChatMessage,
@@ -168,7 +168,7 @@ export class OpenAILanguageProgramProcessor
           ...this.defaultCompletionParams,
           ...restRequestParams,
           function_call: functionCall,
-          messages: messages,
+          messages: messages as ChatCompletionMessageParam[],
         }
         if (functions.length > 0) {
           params.functions = functions.map((fn) => {
@@ -325,7 +325,7 @@ export class OpenAILanguageProgramProcessor
           ...this.defaultCompletionParams,
           ...restRequestParams,
           function_call: functionCall,
-          messages: messages,
+          messages: messages as ChatCompletionMessageParam[],
         }
         if (functions.length > 0) {
           params.functions = functions.map((fn) => {
