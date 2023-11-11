@@ -23,9 +23,11 @@ const tracer = trace.getTracer(
 
 export enum Model {
   GPT_4 = "gpt-4",
+  GPT_4_PREVIEW = "gpt-4-1106-preview",
   GPT_3_5_turbo = "gpt-3.5-turbo",
   GPT_3_5_turbo_0613 = "gpt-3.5-turbo-0613",
   GPT_3_5_turbo_16k = "gpt-3.5-turbo-16k",
+  GPT_3_5_turbo_preview = "gpt-3.5-turbo-1106",
 }
 
 type Config = ConstructorParameters<typeof OpenAI>[0];
