@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import { RequestOptions } from "openai/core"
-import { ChatCompletionMessage, CompletionCreateParamsNonStreaming } from "openai/resources/chat/completions"
+import { ChatCompletionMessage, ChatCompletionMessageParam, CompletionCreateParamsNonStreaming } from "openai/resources/chat/completions"
 import { SpanStatusCode, trace } from '@opentelemetry/api';
 import {
   ChatMessage,
@@ -201,7 +201,7 @@ export class FunctionlessLLM
       const params = {
         ...this.defaultCompletionParams,
         ...restRequestParams,
-        messages: messages,
+        messages: messages as ChatCompletionMessageParam[],
       }
   
       const fn = functions.find((fn) => fn.name === functionCall.name)
@@ -388,9 +388,9 @@ export class FunctionlessLLM
   /**
    * swaps all but the first system message to user messages for OSS models that only support a single system message.
    */
-  private compressSystemMessagesIfNeeded(messages: ChatMessage[]): ChatMessage[] {
+  private compressSystemMessagesIfNeeded(messages: (ChatMessage | ChatCompletionMessageParam)[]): ChatCompletionMessageParam[] {
     if (!this.singleSystemMessage) {
-      return messages
+      return messages as ChatCompletionMessageParam[]
     }
     let firstSystemMessage = false
     messages.forEach((message) => {
@@ -405,6 +405,6 @@ export class FunctionlessLLM
       }
       // returnedMessages.push(message)
     })
-    return messages
+    return messages as ChatCompletionMessageParam[]
   }
 }

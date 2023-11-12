@@ -59,7 +59,7 @@ describe.skip("FunctionlessLLM", () => {
   }).timeout(65_000)
 
 
-  it.only('does a long bogus monologue', async () => {
+  it('does a long bogus monologue', async () => {
     try {
       const memory = [
         {
