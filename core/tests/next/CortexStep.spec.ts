@@ -266,6 +266,7 @@ describe("CortexStep", () => {
           },
         ];
         const monologue = new CortexStep("Bogus", {
+          // uncomment one of these to try different models (including OpenAI API compatible local models)
           // processor: new FunctionlessLLM({ baseURL: "http://localhost:1234/v1", singleSystemMessage: true })
           // processor: new OpenAILanguageProgramProcessor({}, { model: "gpt-3.5-turbo-1106"})
           // processor: new OpenAILanguageProgramProcessor({}, { model: "gpt-4-1106-preview"})
