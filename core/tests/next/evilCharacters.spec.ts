@@ -5,7 +5,7 @@ import { expect } from "chai";
 
 
 // This test is designed to make sure that the underlying model of SocialAGI supports proper role play and character modeling.
-describe.only("EvilCharacters", () => {
+describe("EvilCharacters", () => {
 
   // swap the model here to test differences
   // const model = "gpt-3.5-turbo-1106"
