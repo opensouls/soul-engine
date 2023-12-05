@@ -1,5 +1,5 @@
 import { CortexStep } from "../../src/next/CortexStep";
-import { ChatMessageRoleEnum } from "../../src/next/languageModels";
+import { ChatMessageRoleEnum, FunctionlessLLM, OpenAILanguageProgramProcessor } from "../../src/next/languageModels";
 import { decision, instruction, queryMemory, externalDialog, internalMonologue, spokenDialog } from "../../src/next/cognitiveFunctions";
 import { expect } from "chai";
 import { z } from "zod";
@@ -265,7 +265,12 @@ describe("CortexStep", () => {
             content: "hi",
           },
         ];
-        const monologue = new CortexStep("Bogus").withMemory(memory)
+        const monologue = new CortexStep("Bogus", {
+          // uncomment one of these to try different models (including OpenAI API compatible local models)
+          // processor: new FunctionlessLLM({ baseURL: "http://localhost:1234/v1", singleSystemMessage: true })
+          // processor: new OpenAILanguageProgramProcessor({}, { model: "gpt-3.5-turbo-1106"})
+          // processor: new OpenAILanguageProgramProcessor({}, { model: "gpt-4-1106-preview"})
+        }).withMemory(memory)
 
         enum BogusAction {
           stop = "stop",
