@@ -325,7 +325,19 @@ export class CortexStep<LastValueType = undefined> {
   }
 
   /**
-   * This function is used to execute the next step in the process.
+   * compute is very similar to #next, but returns only a value, and NOT a new CortexStep with new memories. 
+   * Nothing is modified on this CortexStep.
+   */
+  async compute<ParsedArgumentType, ProcessFunctionReturnType = undefined>(
+    functionFactory: NextFunction<LastValueType, ParsedArgumentType, ProcessFunctionReturnType>,
+    opts: NextOptions = {}
+  ): Promise<ProcessFunctionReturnType extends undefined ? ParsedArgumentType : ProcessFunctionReturnType> {
+    const step = await this.next(functionFactory, opts)
+    return step.value as any
+  }
+
+  /**
+   * next is used to execute CognitiveFunctions on this CortexStep.
    * @param functionFactory - A factory function that returns a cognitive function.
    * @param opts - An optional parameter that can be used to pass per request options and tags
    * @returns - Returns a Promise that resolves to a CortexStep object.
