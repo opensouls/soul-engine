@@ -52,7 +52,6 @@ const { questions } = response.value
 
 ```
 
-Note: Always reassign the result of the `next` call to your `CortexStep` instance, as each step returns a new instance, consistent with functional programming principles.
 
 ## Important Points
 

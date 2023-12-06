@@ -44,9 +44,17 @@ The class adheres to the principles of functional programming. Each method in `C
    step = await step.next(internalMonologue("thinks, understanding the user's message"));
    ```
 
-## Predefined Actions
+4. **Get only values with `compute()`**
 
-While `CortexStep` allows for the creation of [custom actions](actions), it comes with several predefined cognitive functions:
+   The `compute()` method works just like `next()` but does not provide a new CortexStep and instead just returns the value from the CognitiveFunction
+
+   ```javascript
+   const yesOrNo = await step.compute(decision("Is Bogus cold?", ["yes", "no"]));
+   ```
+
+## Predefined CognitiveFunctions
+
+While `CortexStep` allows for the creation of [custom cognitive functions](actions), it comes with several predefined cognitive functions:
 
 1. `internalMonologue`: Simulates the AI's internal thought process.
 
