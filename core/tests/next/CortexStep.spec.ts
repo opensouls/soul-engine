@@ -7,7 +7,7 @@ import { trace } from "@opentelemetry/api";
 import { html } from "common-tags";
 import { angelDevilConversation } from "./exampleAngelDevilConversation";
 
-describe.only("CortexStep", () => {
+describe("CortexStep", () => {
 
   const tracer = trace.getTracer(
     "cortexstep-tests"
