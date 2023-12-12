@@ -1,5 +1,5 @@
 import { CortexStep } from "../../src/next/CortexStep";
-import { ChatMessageRoleEnum, FunctionlessLLM, OpenAILanguageProgramProcessor } from "../../src/next/languageModels";
+import { ChatMessageRoleEnum } from "../../src/next/languageModels";
 import { decision, instruction, queryMemory, externalDialog, internalMonologue, spokenDialog } from "../../src/next/cognitiveFunctions";
 import { expect } from "chai";
 import { z } from "zod";
@@ -248,6 +248,17 @@ describe("CortexStep", () => {
     }])
     const resp = await step.next(queryMemory("What is the name I'm looking for? Answer in a single word"))
     expect(resp.value.answer).to.equal("Jonathan")
+  })
+
+  it('returns a value when using compute', async () => {
+    const step = new CortexStep("Bogus").withMemory([{
+      role: ChatMessageRoleEnum.System,
+      content: "You are modeling the mind of Bogus, a very bad dude.",
+    }])
+
+    const val = await step.compute(decision("Are you bogus?", ["yes", "no"]))
+
+    expect(val).to.equal("yes")
   })
 
   it('does a long bogus monologue', async () => {

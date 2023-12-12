@@ -71,6 +71,13 @@ const resp = await step.next(queryMemory("What is the name I'm looking for? Answ
 
 ```
 
+If you only need the *value* of a CognitiveFunction and not a new step to continue thinking than you can use the `#compute` function on CortexStep which will only return the value.
+
+```typescript
+  const val = await step.compute(decision("Is the sky blue?", ["yes", "no"]))
+  // val will equal "yes" or "now"
+```
+
 ### Other Language Models
 
 CortexSteps can handle other language processors that implement `LanguageModelProgramExecutor` interface. The package also includes a `FuncionlessLLM` executor that lets you call any OpenAI API compatible API even if does not support function calls or multiple system messages.
