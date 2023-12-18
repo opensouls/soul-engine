@@ -224,7 +224,6 @@ export const brainstorm = (description: string) => {
 
 export const queryMemory = (query: string) => {
   return () => {
-    // Define a Zod schema for the expected structure
     const params = z.object({
       answer: z.string().describe(`The answer to: ${query}`)
     });
@@ -232,7 +231,7 @@ export const queryMemory = (query: string) => {
     return {
       name: "query_memory",
       description: query,
-      parameters: params, // This should now be a Zod schema
+      parameters: params,
       command: html`
         Do not repeat ${query} and instead use the dialog history.
         Do not copy sections of the chat history as an answer.
