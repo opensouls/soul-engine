@@ -39,3 +39,25 @@ As this example illustrates, CortexStep operates on the principles of functional
 Compared to other tools like LangChain, which offer broader flexibility but also bring in complexity, CortexStep provides a more opinionated approach. It boasts a minimalistic API that ensures a clean abstraction layer over the language model, making the development process more straightforward.
 
 CortexStep excels at managing context, a crucial aspect when dealing with LLMs. It streamlines the creation of sophisticated behaviors with language models, making it easier to develop AI-powered conversations and tasks while avoiding common pitfalls.
+
+## Streaming
+
+Streaming is fully supported:
+
+```typescript
+const step = new CortexStep("EntityName");
+const { stream, nextStep } = await step.next(cognitiveFunction, { stream: true });
+
+let streamed = ""
+
+// stream is an AsyncIterable<string>
+for await (const chunk of stream) {
+  expect(chunk).to.be.a("string")
+  expect(chunk).to.exist
+  streamed += chunk
+}
+// nextStep is a Promise<CortexStep> that resolves when the stream is complete.
+const resp = await nextStep
+```
+
+Process functions from cogntivie functions (see below) run _after_ the stream is complete.

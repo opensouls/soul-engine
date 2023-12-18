@@ -45,7 +45,7 @@ Streaming is fully supported:
 
 ```typescript
 const step = new CortexStep("EntityName");
-const { stream, nextStep } = await step.next(cognitiveFunction, { stream: true });
+const { stream, nextStep } = await step.next(externalDialog("Say hello to the user!"), { stream: true });
 
 let streamed = ""
 
