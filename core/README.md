@@ -41,6 +41,26 @@ const step = new CortexStep("EntityName");
 const nextStep = await step.next(cognitiveFunction);
 ```
 
+Streaming is fully supported:
+
+```typescript
+const step = new CortexStep("EntityName");
+const { stream, nextStep } = await step.next(cognitiveFunction, { stream: true });
+
+let streamed = ""
+
+// stream is an AsyncIterable<string>
+for await (const chunk of stream) {
+  expect(chunk).to.be.a("string")
+  expect(chunk).to.exist
+  streamed += chunk
+}
+// nextStep is a Promise<CortexStep> that resolves when the stream is complete.
+const resp = await nextStep
+```
+
+Process functions from cogntivie functions (see below) run _after_ the stream is complete.
+
 ### Cognitive Functions
 
 Cognitive functions are used to generate responses. They are based on OpenAI's function calling model and use Zod to provide strongly typed output and text formatting. The project includes several built in cognitive functions:
