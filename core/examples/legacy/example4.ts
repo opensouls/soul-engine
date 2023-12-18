@@ -1,8 +1,6 @@
 import * as readline from "readline";
-import { Blueprints } from "../src";
+import { Blueprints, Action, CortexStep, ChatMessageRoleEnum } from "../../src/legacy";
 import dotenv from "dotenv";
-import { Action, CortexStep } from "../dist/cortexStep";
-import { ChatMessageRoleEnum } from "../dist";
 
 dotenv.config();
 

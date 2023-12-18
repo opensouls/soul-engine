@@ -1,16 +1,15 @@
+import {
+  AbortSignal,
+} from "abort-controller";
 import { expect } from "chai";
-import { CortexScheduler, Action, CortexStep, ChatMessageRoleEnum } from '../src';
-import * as dotenv from 'dotenv';
-dotenv.config();
+import { CortexScheduler, CortexStep, ChatMessageRoleEnum, ChatMessage, externalDialog, Job } from '../src';
 
-describe.skip("CortexScheduler", () => {
+describe("CortexScheduler", () => {
   it("executes conversation", async () => {
-    const samanthaReplies = async (signal:any, newMemory:any, lastStep:any) => {
+    const samanthaReplies = async (signal:AbortSignal, newMemory:ChatMessage, lastStep:CortexStep<any>) => {
       let step = lastStep;
       step = step.withMemory([newMemory]);
-      const shouts = await step.next(Action.EXTERNAL_DIALOG, {
-        action: "shouts in all caps",
-      });
+      const shouts = await step.next(externalDialog("SHOUT IN ALL CAPS!"));
       if (signal.aborted) {
         return step;
       } else {
@@ -18,7 +17,7 @@ describe.skip("CortexScheduler", () => {
         return shouts;
       }
     };
-    const abortQueuingStrategy = (currentJob:any, queue:any, newJob:any) => {
+    const abortQueuingStrategy = (currentJob:Job|null, queue:Job[], newJob:Job) => {
       currentJob?.abortController?.abort();
       return [newJob];
     };

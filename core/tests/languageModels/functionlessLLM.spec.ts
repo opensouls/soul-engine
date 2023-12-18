@@ -1,7 +1,6 @@
 import { expect } from "chai";
-import { ChatMessageRoleEnum } from "../../../src";
-import { CortexStep, decision, externalDialog, internalMonologue, queryMemory, z } from "../../../src/next";
-import { FunctionlessLLM } from "../../../src/next/languageModels/FunctionlessLLM";
+import { CortexStep, ChatMessageRoleEnum, decision, externalDialog, internalMonologue, queryMemory, z } from "../../src";
+import { FunctionlessLLM } from "../../src/languageModels/FunctionlessLLM";
 
 // this is set to skip because it requires a locally running LLM server.
 describe.skip("FunctionlessLLM", () => {

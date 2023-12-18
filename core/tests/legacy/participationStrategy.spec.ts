@@ -1,6 +1,6 @@
 import { expect } from "chai";
-import { Blueprints, Model, OpenAILanguageProgramProcessor, Soul } from "../src"
-import { ConsumeOnlyParticipationStrategy, AlwaysReplyParticipationStrategy, GroupParticipationStrategy } from "../src/programs/participationStrategies"
+import { Blueprints, Model, OpenAILanguageProgramProcessor, Soul } from "../../src/legacy"
+import { ConsumeOnlyParticipationStrategy, AlwaysReplyParticipationStrategy, GroupParticipationStrategy } from "../../src/legacy/programs/participationStrategies"
 
 function delay(milliseconds: number) {
   return new Promise((resolve) => {

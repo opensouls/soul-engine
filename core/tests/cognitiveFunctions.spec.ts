@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { CortexStep, externalDialog } from "../../src/next";
+import { CortexStep, externalDialog } from "../src";
 
 describe("cognitiveFunctions", () => {
   it("correctly strips boilerplate from LLM response when there's a verb", async () => {

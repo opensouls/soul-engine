@@ -1,4 +1,4 @@
-import { ChatMessageRoleEnum, CortexStep } from "../../../src/next";
+import { ChatMessageRoleEnum, CortexStep } from "../../src";
 import { getDefaultEmbedder, Embedding } from "@socialagi/memory"
 
 const similarityScore = (targetEmbedding: Embedding, otherEmbedding: Embedding): number => {

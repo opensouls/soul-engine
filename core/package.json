@@ -1,22 +1,20 @@
 {
   "name": "socialagi",
-  "version": "0.0.39-3",
+  "version": "0.1.0",
   "description": "Subroutines for AI Souls",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "scripts": {
     "build": "rm -rf dist && tsc",
     "test": "mocha",
-    "prepublishOnly": "npm run build",
-    "test-example": "ts-node examples/example.ts",
-    "test-example2": "ts-node examples/example2.ts",
-    "test-example3": "ts-node examples/example3.ts",
-    "test-example4": "ts-node examples/example4.ts"
+    "prepublishOnly": "npm run build"
   },
   "exports": {
     ".": "./dist/src/index.js",
-    "./next": "./dist/src/next/index.js",
-    "./next/instrumentation": "./dist/src/next/instrumentation.js"
+    "./instrumentation": "./dist/src/instrumentation.js",
+    "./legacy": "./dist/src/legacy/index.js",
+    "./next" :"./dist/src/index.js",
+    "./next/instrumentation": "./dist/src/instrumentation.js"
   },
   "files": [
     "dist/src"
@@ -45,7 +43,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/Methexis-Inc/SocialAGI.git"
+    "url": "https://github.com/opensouls/SocialAGI.git"
   },
   "author": "SocialAGI",
   "license": "ISC",

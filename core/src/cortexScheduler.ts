@@ -6,13 +6,13 @@ import {
   AbortController as NodeAbortController,
   AbortSignal,
 } from "abort-controller";
-import { CortexStep } from "./cortexStep";
+import { CortexStep } from "./CortexStep";
 import { ChatMessage } from "./languageModels";
 import { Mutex } from "async-mutex";
 
 const AbortController = globalThis.AbortController || NodeAbortController;
 
-interface Job {
+export interface Job {
   process: MentalProcess;
   newMemory: ChatMessage;
   abortController: AbortController;

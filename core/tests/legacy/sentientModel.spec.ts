@@ -1,10 +1,10 @@
-import { getTag } from "../src/languageModels"
-import { Blueprints } from "../src/blueprint"
-import { Soul } from "../src/soul"
-import { isAbstractTrue, AbstractSample } from "../src/testing"
-import { PeopleMemory } from "../src/programs/PeopleMemory/PeopleMemory"
+import { getTag } from "../../src/legacy/languageModels"
+import { Blueprints } from "../../src/legacy/blueprint"
+import { Soul } from "../../src/legacy/soul"
+import { isAbstractTrue, AbstractSample } from "../../src/legacy/testing"
+import { PeopleMemory } from "../../src/legacy/programs/PeopleMemory/PeopleMemory"
 import { expect } from "chai"
-import { AlwaysReplyParticipationStrategy } from "../src"
+import { AlwaysReplyParticipationStrategy } from "../../src/legacy"
 
 function delay(milliseconds: number) {
   return new Promise((resolve) => {

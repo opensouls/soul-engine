@@ -1,8 +1,8 @@
-import { Action, ChatMessageRoleEnum, CortexStep } from "../src";
+import { Action, ChatMessageRoleEnum, CortexStep } from "../../src/legacy";
 import dotenv from 'dotenv';
-import { FunctionRunner, FunctionRunnerResponse } from "../src/languageModels/functions";
+import { FunctionRunner, FunctionRunnerResponse } from "../../src/legacy/languageModels/functions";
 import { expect } from "chai";
-import { devLog } from "../src/utils";
+import { devLog } from "../../src/legacy/utils";
 dotenv.config();
 
 const additionFunction: FunctionRunner = {

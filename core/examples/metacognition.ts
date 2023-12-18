@@ -9,8 +9,8 @@ import {
   internalMonologue,
   externalDialog, 
   brainstorm
-} from "../src/next";
-import { Blueprints } from "../src";
+} from "../src";
+import { Blueprints } from "../src/legacy";
 
 const blueprint = Blueprints.SAMANTHA;
 

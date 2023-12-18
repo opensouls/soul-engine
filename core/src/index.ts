@@ -1,15 +1,7 @@
-import { Soul } from "./soul";
-export { Soul };
-
-import { Blueprint, Blueprints, ThoughtFramework } from "./blueprint";
-export { Blueprint, Blueprints, ThoughtFramework };
-
-import { AbstractSample, isAbstractTrue } from "./testing";
-export { AbstractSample, isAbstractTrue };
-
-export * from "./languageModels";
-export * from "./languageModels/openAI";
-export * from "./programs";
-export * from "./cortexStep";
-export * from "./integrations";
-export * from "./cortexScheduler";
+export * from './CortexStep';
+export * from './cortexScheduler'
+export * from './languageModels';
+export * from './cognitiveFunctions';
+// Note, it's important that users use *this* z when creating cognitive functions as 
+// if they do not, then they will get infinite type loops that will crash the compiler
+export { z } from "zod"

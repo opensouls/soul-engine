@@ -1,5 +1,5 @@
 import * as readline from "readline";
-import { Blueprints, Soul } from "../src";
+import { Blueprints, Soul } from "../../src/legacy";
 import dotenv from "dotenv";
 
 dotenv.config();

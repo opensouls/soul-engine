@@ -7,7 +7,7 @@ import {
   internalMonologue,
   ChatMessageRoleEnum,
   ChatMessage,
-} from "../../../src/next";
+} from "../../src";
 import { analyzeStepForRepetitiveness } from "./analyzer";
 import { html } from "common-tags";
 import EventEmitter from "events";

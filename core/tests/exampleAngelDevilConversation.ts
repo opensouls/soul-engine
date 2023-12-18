@@ -1,4 +1,4 @@
-import { ChatMessageRoleEnum } from "../../src/next";
+import { ChatMessageRoleEnum } from "../src";
 
 export const angelDevilConversation = [
   {

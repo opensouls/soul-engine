@@ -1,6 +1,6 @@
 import { html } from "common-tags";
-import { ChatMessageRoleEnum } from "../../src";
-import { CortexStep, FunctionlessLLM, OpenAILanguageProgramProcessor, brainstorm, externalDialog, internalMonologue } from "../../src/next";
+import { ChatMessageRoleEnum } from "../src/legacy";
+import { CortexStep, FunctionlessLLM, OpenAILanguageProgramProcessor, brainstorm, externalDialog, internalMonologue } from "../src";
 import { expect } from "chai";
 
 

@@ -1,5 +1,5 @@
 import { expect } from "chai"
-import { ChatMessageRoleEnum, OpenAILanguageProgramProcessor } from "../../../src/next/languageModels"
+import { ChatMessageRoleEnum, OpenAILanguageProgramProcessor } from "../../src/languageModels"
 
 
 describe("OpenAI Language Model", () => {

@@ -9,7 +9,7 @@ import {
   Memory,
   internalMonologue,
   brainstorm,
-} from "../../src/next";
+} from "../src";
 
 describe("examples from the docs", () => {
 
