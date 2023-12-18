@@ -1,7 +1,7 @@
 #!/bin/playground
 // Import a few important pieces from the socialagi library
 // check out https://www.socialagi.dev/ for further detail
-import { CortexStep, CortexScheduler, externalDialog } from "socialagi/next";
+import { CortexStep, CortexScheduler, externalDialog } from "socialagi";
 import playground from "playground";
 
 const samanthaReplies = async (signal, newMemory, lastStep) => {

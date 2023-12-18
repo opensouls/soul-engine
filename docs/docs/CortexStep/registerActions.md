@@ -12,7 +12,7 @@ The CortexStep class in the SocialAGI library, meant for modelling an AI's inter
 Cogntiive functions use 
 
 ```typescript
-import { CortexStep, NextFunction, StepCommand, z } from "socialagi/next";
+import { CortexStep, NextFunction, StepCommand, z } from "socialagi";
 import { html } from "common-tags";
 
 export const existingKnowledge = (goal: string) => {
@@ -65,7 +65,7 @@ Through cognitive functions, you can extend CortexStep's capabilities and create
 Sometimes you want to shape how the soul's memory is changed by the cogntive function and you can do this with the process function. We will modify the above cognitive function:
 
 ```typescript
-import { CortexStep, NextFunction, StepCommand, z } from "socialagi/next";
+import { CortexStep, NextFunction, StepCommand, z } from "socialagi";
 import { html } from "common-tags";
 
 export const existingKnowledge = (goal: string) => {

@@ -7,7 +7,7 @@ import { useHistory } from "react-router-dom";
 import BrowserOnly from "@docusaurus/BrowserOnly";
 
 import * as socialagi from "socialagi";
-import * as next from "socialagi/next";
+import * as legacy from "socialagi/legacy";
 import * as socialagiMemory from "@socialagi/memory";
 import * as commonTags from "common-tags";
 
@@ -222,7 +222,7 @@ const BrowserPlayground = () => {
 
     const importMap = {
       socialagi: socialagi,
-      "socialagi/next": next,
+      "socialagi/legacy": legacy,
       "@socialagi/memory": socialagiMemory,
       "common-tags": commonTags,
       playground: exposedAPI,

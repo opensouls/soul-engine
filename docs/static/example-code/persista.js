@@ -8,7 +8,7 @@ import {
   decision,
   externalDialog,
   internalMonologue,
-} from "socialagi/next";
+} from "socialagi";
 import playground from "playground";
 
 const learningGoals = ["name", "favorite color", "favorite musician"];

@@ -8,7 +8,7 @@ import {
   CortexStep,
   externalDialog,
   z,
-} from "socialagi/next";
+} from "socialagi";
 import playground from "playground";
 
 const storageQuestion = () => {

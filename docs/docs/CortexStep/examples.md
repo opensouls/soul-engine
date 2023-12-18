@@ -14,7 +14,7 @@ Let's dive right in!
 Using CortexStep can be thought of as building up a set of memories, and then performing functional, append-only manipulations on those memories. Here is a simple example that initializes a `CortexStep` with memories of being a helpful AI assitant.
 
 ```javascript
-import { brainstorm, CortexStep, ChatMessageRoleEnum, externalDialog, internalMonologue, Memory } from "socialagi/next";
+import { brainstorm, CortexStep, ChatMessageRoleEnum, externalDialog, internalMonologue, Memory } from "socialagi";
 
 let step = new CortexStep("A Helpful Assistant");
 const initialMemory = [

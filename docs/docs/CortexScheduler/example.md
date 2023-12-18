@@ -8,7 +8,7 @@ sidebar_position: 3
 Let's review a simple example of using the **CortexScheduler** to help orchestrate calls to a discord bot. Here, we register the "SamanthaReplies" mental process with the scheduler, along with a memory initialization.
 
 ```javascript
-import { CortexStep, CortexScheduler } from "socialagi/next";
+import { CortexStep, CortexScheduler } from "socialagi";
 
 const samanthaReplies = async (signal, newMemory, lastStep) => {
   let step = lastStep;

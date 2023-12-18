@@ -26,10 +26,7 @@ $ npm install socialagi
 
 :::info
 
-These docs describe importing the "socialagi/next" export which is a recent addition to our codebase
-```typescript
-import { CortexStep } from "socialagi/next"
-```
+We recently updated our codebase to a new version of socialagi. Older code is preserved in the export `socialagi/legacy`
 
 :::
 

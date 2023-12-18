@@ -7,7 +7,7 @@ import {
   decision,
   externalDialog,
   internalMonologue,
-} from "socialagi/next";
+} from "socialagi";
 import playground from "playground";
 
 // subroutine for modeling Samantha's replies

@@ -6,9 +6,9 @@ import {
   externalDialog,
   decision,
   internalMonologue,
-} from "socialagi/next";
+} from "socialagi";
 import playground from "playground";
-import { ChatMessageRoleEnum } from "socialagi/next";
+import { ChatMessageRoleEnum } from "socialagi";
 
 const interviewTopics = [
   "space travel experience",

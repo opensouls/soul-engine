@@ -10,7 +10,7 @@ import {
   externalDialog,
   internalMonologue,
   z,
-} from "socialagi/next";
+} from "socialagi";
 import { Blueprints } from "socialagi";
 import playground from "playground";
 

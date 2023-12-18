@@ -6,7 +6,7 @@ import {
   CortexScheduler,
   externalDialog,
   internalMonologue,
-} from "socialagi/next";
+} from "socialagi";
 import playground from "playground";
 import { ChatMessageRoleEnum } from "socialagi";
 

@@ -6,7 +6,7 @@ import {
   externalDialog,
   internalMonologue,
   decision,
-} from "socialagi/next";
+} from "socialagi";
 import playground from "playground";
 
 function delay(ms) {

@@ -11,6 +11,15 @@ authors:
 tags: [AI Souls, release, programming, development, howto, announcement]
 ---
 
+:::info
+
+Note that we have recently updated "/next" to be the root export and it is no longer necessary to add "/next" to your import. Older code is available at "socialagi/legacy".
+```typescript
+import { CortexStep } from "socialagi"
+```
+
+:::
+
 # Announcing socialagi/next
 
 We've just implemented some major improvements to SocialAGI. These updates allow better control over your Open Soul’s cognition, and a much improved developer experience. They're all bundled up in the `socialagi/next` import. This is our new playground, the place where we'll build and roll out new features, and make further improvements.
