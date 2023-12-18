@@ -20,7 +20,7 @@ import {
   decision,
   internalMonologue,
   externalDialog, 
-} from "../src/next";
+} from "../src";
 import { Blueprints } from "../src";
 
 const blueprint = Blueprints.SAMANTHA;

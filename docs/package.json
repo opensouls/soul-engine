@@ -35,7 +35,7 @@
     "react-ace": "^10.1.0",
     "react-dom": "^17.0.2",
     "react-icons": "^4.10.1",
-    "socialagi": "^0.0.38",
+    "socialagi": "^0.1.1-0",
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",
     "url": "^0.11.3",
