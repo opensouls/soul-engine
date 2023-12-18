@@ -1,5 +1,5 @@
 import { EnumLike, z } from "zod"
-import { BrainFunction, CortexStep, NextFunction, StepCommand } from "./CortexStep";
+import { CortexStep, NextFunction, StepCommand } from "./CortexStep";
 import { ChatMessageRoleEnum } from "./languageModels";
 import { html } from "common-tags";
 
