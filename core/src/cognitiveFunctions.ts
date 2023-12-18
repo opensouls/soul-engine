@@ -188,7 +188,7 @@ export const decision = (description: string, choices: EnumLike | string[]) => {
  * 
  * When used in a CortexStep#next command, the typed #value will be a string[]
  */
-export const brainstorm = (description: string):NextFunction<string[], { new_ideas: string[] }, string[]> => {
+export const brainstorm = (description: string) => {
   return ({ entityName }: CortexStep<any>) => {
     const params = z.object({
       new_ideas: z.array(z.string()).describe(`The new ideas that ${entityName} brainstormed.`)
@@ -222,8 +222,8 @@ export const brainstorm = (description: string):NextFunction<string[], { new_ide
   }
 }
 
-export const queryMemory = (query: string): NextFunction<string, { answer: string }, string> => {
-  const func = ():BrainFunction<string, { answer: string }, string > => {
+export const queryMemory = (query: string) => {
+  return () => {
     // Define a Zod schema for the expected structure
     const params = z.object({
       answer: z.string().describe(`The answer to: ${query}`)
@@ -254,8 +254,6 @@ export const queryMemory = (query: string): NextFunction<string, { answer: strin
       }
     };
   }
-
-  return func
 }
 
 /**
@@ -263,7 +261,7 @@ export const queryMemory = (query: string): NextFunction<string, { answer: strin
  * Instead, these instructions are inserted directly into the dialog. 
  * However, they are removed when the answer is returned.
  */
-export const instruction = (command: StepCommand): NextFunction<unknown, string, string> => {
+export const instruction = (command: StepCommand): NextFunction<string, string> => {
   return () => {
     return {
       command,
