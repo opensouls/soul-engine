@@ -10,9 +10,11 @@ import {
   FunctionSpecification,
   LanguageModelProgramExecutor,
   LanguageModelProgramExecutorExecuteOptions,
+  RequestOptionsStreaming,
 } from "./index";
 import { zodToSchema } from "./zodToSchema";
 import { html } from "common-tags";
+import { ReusableStream } from "./reusableStream";
 
 const MAX_RETRIES = 3;
 
@@ -152,17 +154,17 @@ export class OpenAILanguageProgramProcessor
     }
   }
 
-  experimentalStreamingExecute<FunctionCallReturnType = undefined>(
+  private streamingExecute<FunctionCallReturnType = undefined>(
     messages: ChatMessage[],
     completionParams: LanguageModelProgramExecutorExecuteOptions = {},
     functions: FunctionSpecification[] = [],
-    requestOptions: RequestOptions = {},
+    requestOptions: RequestOptionsStreaming = { stream: true },
     retryError: RetryInformation | undefined = undefined
   ): Promise<{
       response: Promise<ExecutorResponse<FunctionCallReturnType>>,
       stream: AsyncIterable<string>,
     }> {
-    return tracer.startActiveSpan('experimentalStreamingExecute', async (span) => {
+    return tracer.startActiveSpan('streamingExecute', async (span) => {
       try {
         const { functionCall, ...restRequestParams } = completionParams;
 
@@ -220,10 +222,7 @@ export class OpenAILanguageProgramProcessor
           }
         );
 
-        let isStreamFinished = false;
-        const buffer: any[] = [];
-
-        const generateContent = async function*() {
+        const _generateContent = async function*() {
           for await (const res of stream) {
             if (res.choices && res.choices.length > 0) {
               const message = res.choices[0].delta;
@@ -232,31 +231,24 @@ export class OpenAILanguageProgramProcessor
                   content: message.content,
                   functionCall: message.function_call
                 };
-                buffer.push(data);
-                yield data;
+                yield data
               }
             }
           }
-          isStreamFinished = true;
         }
 
-        const generateFromBuffer = async function*() {
-          let index = 0;
-          while (!isStreamFinished || index < buffer.length) {
-            if (index < buffer.length) {
-              yield buffer[index].content || buffer[index].functionCall?.arguments || "";
-              index++;
-            } else {
-              // Wait a bit before checking again
-              await new Promise(resolve => setTimeout(resolve, 10));
-            }
+        const reusableStream = new ReusableStream(_generateContent())
+
+        const streamToText = async function*() {
+          for await (const res of reusableStream.stream()) {
+            yield res.content || res.functionCall?.arguments || "";
           }
         }
 
         const respFunction = async () => {
           let returnedFunctionallArguments = ""
           let content = ""
-          for await (const res of generateContent()) {
+          for await (const res of reusableStream.stream()) {
             if (res.functionCall) {
               returnedFunctionallArguments += res.functionCall.arguments
             } else {
@@ -299,7 +291,7 @@ export class OpenAILanguageProgramProcessor
 
         return {
           response: respFunction(),
-          stream: generateFromBuffer()
+          stream: streamToText(),
         };
      
       } catch (err: any) {
@@ -318,7 +310,12 @@ export class OpenAILanguageProgramProcessor
     functions: FunctionSpecification[] = [],
     requestOptions: RequestOptions = {},
     retryError: RetryInformation | undefined = undefined
-  ): Promise<ExecutorResponse> {
+  ): Promise<any> {
+
+    if (requestOptions.stream) {
+      return this.streamingExecute<FunctionCallReturnType>(messages, completionParams, functions, { ...requestOptions, stream: true }, retryError)
+    }
+
     return tracer.startActiveSpan('execute', async (span) => {
       try {
         const { functionCall, ...restRequestParams } = completionParams;

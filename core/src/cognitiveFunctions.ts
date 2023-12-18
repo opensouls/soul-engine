@@ -1,5 +1,5 @@
 import { EnumLike, z } from "zod"
-import { CortexStep, NextFunction, StepCommand } from "./CortexStep";
+import { BrainFunction, CortexStep, NextFunction, StepCommand } from "./CortexStep";
 import { ChatMessageRoleEnum } from "./languageModels";
 import { html } from "common-tags";
 
@@ -188,7 +188,7 @@ export const decision = (description: string, choices: EnumLike | string[]) => {
  * 
  * When used in a CortexStep#next command, the typed #value will be a string[]
  */
-export const brainstorm = (description: string) => {
+export const brainstorm = (description: string):NextFunction<string[], { new_ideas: string[] }, string[]> => {
   return ({ entityName }: CortexStep<any>) => {
     const params = z.object({
       new_ideas: z.array(z.string()).describe(`The new ideas that ${entityName} brainstormed.`)
@@ -222,16 +222,17 @@ export const brainstorm = (description: string) => {
   }
 }
 
-export const queryMemory = (query: string) => {
-  return () => {
+export const queryMemory = (query: string): NextFunction<string, { answer: string }, string> => {
+  const func = ():BrainFunction<string, { answer: string }, string > => {
+    // Define a Zod schema for the expected structure
     const params = z.object({
       answer: z.string().describe(`The answer to: ${query}`)
-    })
+    });
 
     return {
       name: "query_memory",
       description: query,
-      parameters: params,
+      parameters: params, // This should now be a Zod schema
       command: html`
         Do not repeat ${query} and instead use the dialog history.
         Do not copy sections of the chat history as an answer.
@@ -239,7 +240,8 @@ export const queryMemory = (query: string) => {
         
         Take a deep breath, analyze the chat history step by step and answer the question: ${query}.
       `,
-      process: (_step: CortexStep<any>, response: z.output<typeof params>) => {
+      process: (_step: CortexStep<any>, response: z.infer<typeof params>) => {
+        // Use the inferred type from the Zod schema
         return {
           value: response.answer,
           memories: [{
@@ -252,6 +254,8 @@ export const queryMemory = (query: string) => {
       }
     };
   }
+
+  return func
 }
 
 /**
