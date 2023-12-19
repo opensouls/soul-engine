@@ -52,22 +52,13 @@ We are solving problems all the way across the AI souls stack, including:
 
 ## 📖 Repo structure
 
-The repository has three main components
-
 ```
 /core
 /docs
-
-/integrations
-  /discord_bots
-  /telegram
-/example-webapp
 ```
 
 - [`/core`](./core) contains the library [`socialagi` NPM package source](https://www.npmjs.com/package/socialagi)
 - [`/docs`](./docs) contains the documentation website for the project, running at [socialagi.dev](http://socialagi.dev)
-- (slightly outdated) [`/example-webapp`](https://github.com/opensouls/socialagi-ex-webapp) contains an example integration of the socialagi library in a chat website 
-- (slightly outdated) [`/integrations`](./integrations) contains examples of the library in action. Right now contains several stand-alone discord and telegram bot repos
 
 ## 🚀 Getting started
 
