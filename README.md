@@ -15,19 +15,25 @@ Check out [Meet Samantha](http://meetsamantha.ai)
 Running off SocialAGI
 
 ```javascript
-import { Soul, Blueprints } from "socialagi";
+import { CortexStep, externalDialog, internalMonologue } from "socialagi";
+const step = new CortexStep("Elizabar").withMemory([
+  {
+    role: ChatMessageRoleEnum.System,
+    content: "You are modeling the mind of Elizabar, a grumpy mideval merchant, trying to sell his last, rusted out, sword.",
+  },
+  {
+    role: ChatMessageRoleEnum.User,
+    content: "How goes, Elzi!",
+  }
+])
+const feels = await step.next(internalMonologue("Elizabar ponders how he feels about this person.", "felt"))
+console.log("Elizabar felt: ", feels.value)
 
-const samantha = new Soul(Blueprints.SAMANTHA);
+const thought = await feels.next(internalMonologue("Elizabar thinks about how he could convince this person to buy his sword."))
+console.log("Elizabar thought: ", thought.value)
 
-samantha.on("says", (text) => {
-  console.log("Samantha says: ", text);
-});
-
-samantha.on("thinks", (text) => {
-  console.log("Samantha thinks: ", text);
-});
-
-samantha.tell("Hi Samantha!")
+const { stream, nextStep } = await thought.next(externalDialog("Elizabar greets the person."), { stream: true })
+console.log("Elizabar says: ", (await nextStep).value)
 ```
 
 <img width="500" alt="image" src="https://user-images.githubusercontent.com/8204988/236294504-a41af71f-bccf-44e5-b02a-60ab51982ccd.png">

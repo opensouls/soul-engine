@@ -247,6 +247,29 @@ describe("CortexStep", () => {
     const resp = await step.next(queryMemory("What is the name I'm looking for? Answer in a single word"))
     expect(resp.value.answer).to.equal("Jonathan")
   })
+  
+  it.only("runs the main readme example", async () => {
+    const step = new CortexStep("Elizabar").withMemory([
+      {
+        role: ChatMessageRoleEnum.System,
+        content: "You are modeling the mind of Elizabar, a grumpy mideval merchant, trying to sell his last, rusted out, sword.",
+      },
+      {
+        role: ChatMessageRoleEnum.User,
+        content: "How goes, Elzi!",
+      }
+    ])
+    const feels = await step.next(internalMonologue("Elizabar ponders how he feels about this person.", "felt"))
+    console.log("Elizabar felt: ", feels.value)
+    
+    const thought = await feels.next(internalMonologue("Elizabar thinks about how he could convince this person to buy his sword."))
+    console.log("Elizabar thought: ", thought.value)
+    
+    const { stream, nextStep } = await thought.next(externalDialog("Elizabar greets the person."), { stream: true })
+    console.log("Elizabar says: ", (await nextStep).value)
+    expect((await nextStep).value).to.be.a("string")
+    expect(stream).to.be.an.instanceOf("AsyncIterable")
+  })
 
   it('returns a value when using compute', async () => {
     const step = new CortexStep("Bogus").withMemory([{
