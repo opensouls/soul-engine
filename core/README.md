@@ -59,7 +59,7 @@ for await (const chunk of stream) {
 const resp = await nextStep
 ```
 
-Process functions from cogntivie functions (see below) run _after_ the stream is complete.
+Process functions from cognitive functions (see below) run _after_ the stream is complete.
 
 ### Cognitive Functions
 
