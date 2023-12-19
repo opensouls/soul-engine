@@ -12,10 +12,10 @@
 
 Check out [Meet Samantha](http://meetsamantha.ai)
 
-Running off SocialAGI
+## Example
 
 ```javascript
-import { CortexStep, externalDialog, internalMonologue } from "socialagi";
+import { ChatMessageRoleEnum, CortexStep, externalDialog, internalMonologue } from "socialagi";
 const step = new CortexStep("Elizabar").withMemory([
   {
     role: ChatMessageRoleEnum.System,
@@ -27,13 +27,15 @@ const step = new CortexStep("Elizabar").withMemory([
   }
 ])
 const feels = await step.next(internalMonologue("Elizabar ponders how he feels about this person.", "felt"))
-console.log("Elizabar felt: ", feels.value)
+// Elizabar felt:  Who is this person addressing me so casually? No respect for my name, not even a formal greeting. They must be one of those clueless young folk. Well, I suppose I'll tolerate their presence for now, but they better not waste my time.
 
 const thought = await feels.next(internalMonologue("Elizabar thinks about how he could convince this person to buy his sword."))
 console.log("Elizabar thought: ", thought.value)
+// Elizabar thought:  This person seems eager to engage, but can they truly appreciate the value of what I possess? Selling this rusted old sword will not be an easy task. I must carefully craft my words to make it appear as if I'm doing them a tremendous favor by allowing them the opportunity to purchase it. Yes, that should pique their interest.
 
 const { stream, nextStep } = await thought.next(externalDialog("Elizabar greets the person."), { stream: true })
 console.log("Elizabar says: ", (await nextStep).value)
+// Elizabar says:  Hmph, greetings to you, traveler. What brings you to this humble stall? Are you in search of a weapon? If so, you just might be in luck, for I have here the finest sword you'll find in all the land.
 ```
 
 <img width="500" alt="image" src="https://user-images.githubusercontent.com/8204988/236294504-a41af71f-bccf-44e5-b02a-60ab51982ccd.png">
@@ -53,22 +55,23 @@ We are solving problems all the way across the AI souls stack, including:
 The repository has three main components
 
 ```
-/example-webapp
 /core
+/docs
+
 /integrations
   /discord_bots
   /telegram
-/docs
+/example-webapp
 ```
 
-- [`/example-webapp`](https://github.com/opensouls/socialagi-ex-webapp) contains an example integration of the socialagi library in a chat website 
 - [`/core`](./core) contains the library [`socialagi` NPM package source](https://www.npmjs.com/package/socialagi)
-- [`/integrations`](./integrations) contains examples of the library in action. Right now contains several stand-alone discord and telegram bot repos
 - [`/docs`](./docs) contains the documentation website for the project, running at [socialagi.dev](http://socialagi.dev)
+- (slightly outdated) [`/example-webapp`](https://github.com/opensouls/socialagi-ex-webapp) contains an example integration of the socialagi library in a chat website 
+- (slightly outdated) [`/integrations`](./integrations) contains examples of the library in action. Right now contains several stand-alone discord and telegram bot repos
 
 ## 🚀 Getting started
 
-The easiest way to get started developing with `socialagi` is to check out the [`/example-webapp`](https://github.com/opensouls/socialagi-ex-webapp) or explore the [documentation](http://socialagi.dev).
+The easiest way to get started developing with `socialagi` is to explore the [documentation](http://socialagi.dev).
 
 ## 🧠 Documentation
 

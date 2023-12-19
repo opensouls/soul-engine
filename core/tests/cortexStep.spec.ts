@@ -173,13 +173,14 @@ describe("CortexStep", () => {
 
     let streamed = ""
 
+    const resp = await nextStep
+    expect(resp.value).to.be.an("string")
+
     for await (const chunk of stream) {
       expect(chunk).to.be.a("string")
       expect(chunk).to.exist
       streamed += chunk
     }
-
-    const resp = await nextStep
     expect(resp.memories[resp.memories.length - 1].content).to.eq(resp.value)
     expect(resp.value).to.be.an("string")
     expect(resp.value).to.eq(streamed)
@@ -248,7 +249,7 @@ describe("CortexStep", () => {
     expect(resp.value.answer).to.equal("Jonathan")
   })
   
-  it.only("runs the main readme example", async () => {
+  it("runs the main readme example", async () => {
     const step = new CortexStep("Elizabar").withMemory([
       {
         role: ChatMessageRoleEnum.System,
@@ -267,8 +268,11 @@ describe("CortexStep", () => {
     
     const { stream, nextStep } = await thought.next(externalDialog("Elizabar greets the person."), { stream: true })
     console.log("Elizabar says: ", (await nextStep).value)
+    for await (const chunk of stream) {
+      expect(chunk).to.be.a("string")
+      expect(chunk).to.exist
+    }
     expect((await nextStep).value).to.be.a("string")
-    expect(stream).to.be.an.instanceOf("AsyncIterable")
   })
 
   it('returns a value when using compute', async () => {
