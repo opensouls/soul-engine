@@ -55,5 +55,4 @@ export const startInstrumentation = ({ url, headers, spanExporter:userExporter, 
   });
   started = true
   sdk.start();
-  console.log("instrumentation started")
 }

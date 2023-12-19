@@ -283,23 +283,19 @@ export class CortexStep<LastValueType = undefined> {
             span.end()
             // we return as any here even though it's frowned upon
             // because we have checked the fnSpecs.process ourselves.
-            return [
-              new CortexStep<ProcessFunctionReturnType>(this.entityName, {
-                parents: [...this.parents, this.id],
-                memories: [...this.memories, ...(processed.memories || [])],
-                lastValue: processed.value,
-                tags: { ...this.tags },
-                processor: this.processor,
-              }) as any,
-              stream,
-            ]
+            return new CortexStep<ProcessFunctionReturnType>(this.entityName, {
+              parents: [...this.parents, this.id],
+              memories: [...this.memories, ...(processed.memories || [])],
+              lastValue: processed.value,
+              tags: { ...this.tags },
+              processor: this.processor,
+            }) as any
           }
 
           const newMemory: Memory = {
             role: ChatMessageRoleEnum.Assistant,
             content: typeof parsed === 'string' ? parsed : JSON.stringify(parsed),
           }
-
           // see note above for why we return as any here.
           span.end()
           return new CortexStep<ParsedArgumentType>(this.entityName, {
@@ -336,7 +332,7 @@ export class CortexStep<LastValueType = undefined> {
     functionFactory: NextFunction<ParsedArgumentType, ProcessFunctionReturnType>,
     opts: NextOptions = {}
   ): Promise<ProcessFunctionReturnType extends undefined ? ParsedArgumentType : ProcessFunctionReturnType> {
-    const step = await this.next<ParsedArgumentType, ProcessFunctionReturnType>(functionFactory, {...opts, stream: false })
+    const step = await this.next<ParsedArgumentType, ProcessFunctionReturnType>(functionFactory, { ...opts, stream: false })
     return step.value as ProcessFunctionReturnType extends undefined ? ParsedArgumentType : ProcessFunctionReturnType
   }
 

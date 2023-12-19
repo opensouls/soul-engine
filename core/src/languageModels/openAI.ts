@@ -260,6 +260,7 @@ export class OpenAILanguageProgramProcessor
 
           if (functionCall && returnedFunctionallArguments) {
             if (typeof functionCall === "string") {
+              console.error("string function call is unsupported")
               throw new Error('string function call is unsupported')
             }
             parsedFnCall = {
@@ -279,6 +280,7 @@ export class OpenAILanguageProgramProcessor
             role: ChatMessageRoleEnum.Assistant,
           }, functions);
           if (error) {
+            console.error("error in execute", error)
             throw new Error('error in execute')
           }
   

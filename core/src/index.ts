@@ -1,4 +1,4 @@
-export * from './CortexStep';
+export * from './cortexStep';
 export * from './cortexScheduler'
 export * from './languageModels';
 export * from './cognitiveFunctions';

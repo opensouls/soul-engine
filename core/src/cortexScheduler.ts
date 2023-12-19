@@ -6,7 +6,7 @@ import {
   AbortController as NodeAbortController,
   AbortSignal,
 } from "abort-controller";
-import { CortexStep } from "./CortexStep";
+import { CortexStep } from "./cortexStep";
 import { ChatMessage } from "./languageModels";
 import { Mutex } from "async-mutex";
 
