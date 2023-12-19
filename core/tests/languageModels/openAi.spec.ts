@@ -7,7 +7,7 @@ describe("OpenAI Language Model", () => {
   it("streams responses", async () => {
     const processor = new OpenAILanguageProgramProcessor()
 
-    const { response: nextPromise, stream } = await processor.experimentalStreamingExecute(
+    const { response: nextPromise, stream } = await processor.execute(
       [
         {
         role: ChatMessageRoleEnum.System,
@@ -17,7 +17,10 @@ describe("OpenAI Language Model", () => {
           role: ChatMessageRoleEnum.User,
           content: "What paragagraph long response would bogus say now?"
         }
-      ]
+      ],
+      {},
+      [],
+      { stream: true }
     )
 
     let streamed = ""

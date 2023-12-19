@@ -226,7 +226,7 @@ export const queryMemory = (query: string) => {
   return () => {
     const params = z.object({
       answer: z.string().describe(`The answer to: ${query}`)
-    })
+    });
 
     return {
       name: "query_memory",
@@ -239,7 +239,8 @@ export const queryMemory = (query: string) => {
         
         Take a deep breath, analyze the chat history step by step and answer the question: ${query}.
       `,
-      process: (_step: CortexStep<any>, response: z.output<typeof params>) => {
+      process: (_step: CortexStep<any>, response: z.infer<typeof params>) => {
+        // Use the inferred type from the Zod schema
         return {
           value: response.answer,
           memories: [{
@@ -259,7 +260,7 @@ export const queryMemory = (query: string) => {
  * Instead, these instructions are inserted directly into the dialog. 
  * However, they are removed when the answer is returned.
  */
-export const instruction = (command: StepCommand): NextFunction<unknown, string, string> => {
+export const instruction = (command: StepCommand): NextFunction<string, string> => {
   return () => {
     return {
       command,

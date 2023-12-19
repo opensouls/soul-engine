@@ -162,29 +162,6 @@ export class FunctionlessLLM
     }
   }
 
-  experimentalStreamingExecute<FunctionCallReturnType = undefined>(
-    _messages: ChatMessage[],
-    _completionParams: LanguageModelProgramExecutorExecuteOptions = {},
-    _functions: FunctionSpecification[] = [],
-    _requestOptions: RequestOptions = {},
-    _retryError: RetryInformation | undefined = undefined
-  ): Promise<{
-    response: Promise<ExecutorResponse<FunctionCallReturnType>>,
-    stream: AsyncIterable<string>,
-  }> {
-    return tracer.startActiveSpan('experimentalStreamingExecute', async (span) => {
-      try {
-        throw new Error("at this time, streaming is not supported in the OSS models")
-      } catch (err: any) {
-        span.recordException(err);
-        console.error('error in execute', err);
-        throw err;
-      } finally {
-        span.end();
-      }
-    })
-  }
-
   async executeAlternativeFunctionPath<FunctionCallReturnType = undefined>(
     messages: ChatMessage[],
     completionParams: LanguageModelProgramExecutorExecuteOptions = {},
@@ -293,7 +270,11 @@ export class FunctionlessLLM
     functions: FunctionSpecification[] = [],
     requestOptions: RequestOptions = {},
     retryError: RetryInformation | undefined = undefined
-  ): Promise<ExecutorResponse> {
+  ): Promise<any> {
+    if (requestOptions.stream) {
+      throw new Error("streaming is not currently supported")
+    }
+
     return tracer.startActiveSpan('execute', async (span) => {
       try {
         const { functionCall, ...restRequestParams } = completionParams;

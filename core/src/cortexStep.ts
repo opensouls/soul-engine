@@ -1,7 +1,7 @@
 import { SpanStatusCode, trace } from "@opentelemetry/api";
 import { v4 as uuidv4 } from 'uuid';
 import { z } from "zod";
-import { ChatMessageRoleEnum, FunctionCall, LanguageModelProgramExecutor, FunctionSpecification, RequestOptions, LanguageModelProgramExecutorExecuteOptions, ExecutorResponse } from "./languageModels";
+import { ChatMessageRoleEnum, FunctionCall, LanguageModelProgramExecutor, FunctionSpecification, RequestOptions } from "./languageModels";
 import { OpenAILanguageProgramProcessor } from "./languageModels/openAI"
 
 const tracer = trace.getTracer(
@@ -12,19 +12,25 @@ const tracer = trace.getTracer(
 export interface NextOptions {
   requestOptions?: RequestOptions
   tags?: Record<string, string>
+  stream?: boolean
+}
+
+interface NextOptionsNonStreaming extends NextOptions {
+  stream?: false
+}
+
+interface NextOptionsStreaming extends NextOptions {
+  stream: true
 }
 
 export type NextFunction<
-  LasValueType,
   ParsedArgumentType,
   ProcessFunctionReturnType
-> = (step: CortexStep<LasValueType>) =>
+> = (step: CortexStep<any>) =>
     Promise<BrainFunction<
-      LasValueType,
       ParsedArgumentType,
       ProcessFunctionReturnType>
     > | BrainFunction<
-      LasValueType,
       ParsedArgumentType,
       ProcessFunctionReturnType
     >;
@@ -54,26 +60,25 @@ interface FunctionOutput<ProcessFunctionReturnType> {
 export type StepCommandFunction = (step: CortexStep<any>) => Promise<string> | string
 export type StepCommand = string | StepCommandFunction
 
-interface BrainFunctionAsCommand<LastValueType = string, ParsedArgumentType = string, ProcessFunctionReturnType = string> {
+interface BrainFunctionAsCommand<ParsedArgumentType = string, ProcessFunctionReturnType = string> {
   name?: string;
   description?: string;
   parameters?: z.ZodSchema<ParsedArgumentType>;
-  process?: (step: CortexStep<LastValueType>, response: ParsedArgumentType) => Promise<FunctionOutput<ProcessFunctionReturnType>> | FunctionOutput<ProcessFunctionReturnType>;
+  process?: (step: CortexStep<any>, response: ParsedArgumentType) => Promise<FunctionOutput<ProcessFunctionReturnType>> | FunctionOutput<ProcessFunctionReturnType>;
   command: StepCommand;
   commandRole?: ChatMessageRoleEnum;
 }
 
-
-interface BrainFunctionWithFunction<LastValueType, ParsedArgumentType, ProcessFunctionReturnType> {
+interface BrainFunctionWithFunction<ParsedArgumentType, ProcessFunctionReturnType> {
   name: string;
   description: string;
   parameters: z.ZodSchema<ParsedArgumentType>;
-  process?: (step: CortexStep<LastValueType>, response: ParsedArgumentType) => Promise<FunctionOutput<ProcessFunctionReturnType>> | FunctionOutput<ProcessFunctionReturnType>;
+  process?: (step: CortexStep<any>, response: ParsedArgumentType) => Promise<FunctionOutput<ProcessFunctionReturnType>> | FunctionOutput<ProcessFunctionReturnType>;
   command?: StepCommand;
   commandRole?: ChatMessageRoleEnum;
 }
 
-export type BrainFunction<LastValueType, ParsedArgumentType, ProcessFunctionReturnType> = BrainFunctionAsCommand<LastValueType, ParsedArgumentType, ProcessFunctionReturnType> | BrainFunctionWithFunction<LastValueType, ParsedArgumentType, ProcessFunctionReturnType>
+export type BrainFunction<ParsedArgumentType, ProcessFunctionReturnType> = BrainFunctionAsCommand<ParsedArgumentType, ProcessFunctionReturnType> | BrainFunctionWithFunction<ParsedArgumentType, ProcessFunctionReturnType>
 
 export class CortexStep<LastValueType = undefined> {
   id: string
@@ -148,7 +153,7 @@ export class CortexStep<LastValueType = undefined> {
     return this.memories
   }
 
-  private async executeNextCommand<ParsedArgumentType>(description: BrainFunction<LastValueType, ParsedArgumentType, any>, opts: NextOptions): Promise<ParsedArgumentType> {
+  private async executeNextCommand<ParsedArgumentType>(description: BrainFunction<ParsedArgumentType, any>, opts: NextOptions): Promise<ParsedArgumentType> {
     return tracer.startActiveSpan('execute-next-command', async (span) => {
       const rawFn = {
         specification: {
@@ -175,7 +180,10 @@ export class CortexStep<LastValueType = undefined> {
           functionCall: rawFn.specification.name ? { name: rawFn.specification.name } : undefined,
         },
         (rawFn.specification.name ? [rawFn.specification as FunctionSpecification] : []),
-        opts.requestOptions || {},
+        {
+          ...(opts.requestOptions || {}),
+          stream: false,
+        }
       );
 
       const parsed = resp.parsedArguments
@@ -188,17 +196,13 @@ export class CortexStep<LastValueType = undefined> {
   }
 
   private async executeStreamingNext<ParsedArgumentType>(
-    description: BrainFunction<LastValueType, ParsedArgumentType, any>,
+    description: BrainFunction<ParsedArgumentType, any>,
     opts: NextOptions
   ): Promise<{
     parsed: Promise<ParsedArgumentType>
     stream: AsyncIterable<string>
   }> {
     return tracer.startActiveSpan('execute-next-command', async (span) => {
-      if (!this.processor.experimentalStreamingExecute) {
-        throw new Error('Streaming is not supported by this language model')
-      }
-
       const rawFn = {
         specification: {
           name: description.name,
@@ -218,13 +222,16 @@ export class CortexStep<LastValueType = undefined> {
 
       const memories = this.memoriesWithCommandString(rawFn.command, description.commandRole)
 
-      const { response, stream } = await this.processor.experimentalStreamingExecute<ParsedArgumentType>(
+      const { response, stream } = await this.processor.execute<ParsedArgumentType>(
         memories,
         {
           functionCall: rawFn.specification.name ? { name: rawFn.specification.name } : undefined,
         },
         (rawFn.specification.name ? [rawFn.specification as FunctionSpecification] : []),
-        opts.requestOptions || {},
+        {
+          ...(opts.requestOptions || {}),
+          stream: true,
+        }
       );
 
       const parsed = async () => {
@@ -246,8 +253,8 @@ export class CortexStep<LastValueType = undefined> {
    * this is an experimental function that allows you to stream the output of a next function
    * and then get the next step after the streaming is finished.
   */
-  async experimentalStreamingNext<ParsedArgumentType, ProcessFunctionReturnType = undefined>(
-    functionFactory: NextFunction<LastValueType, ParsedArgumentType, ProcessFunctionReturnType>,
+  private async streamingNext<ParsedArgumentType, ProcessFunctionReturnType>(
+    functionFactory: NextFunction<ParsedArgumentType, ProcessFunctionReturnType>,
     opts: NextOptions = {}
   ): Promise<{
     nextStep: Promise<ProcessFunctionReturnType extends undefined ? CortexStep<ParsedArgumentType> : CortexStep<ProcessFunctionReturnType>>,
@@ -255,9 +262,6 @@ export class CortexStep<LastValueType = undefined> {
   }> {
     return tracer.startActiveSpan('streaming-next', async (span) => {
       try {
-        if (!this.processor.experimentalStreamingExecute) {
-          throw new Error('Streaming is not supported by this language model')
-        }
         span.setAttributes({
           "entity-name": this.entityName,
           "step-id": this.id,
@@ -329,11 +333,11 @@ export class CortexStep<LastValueType = undefined> {
    * Nothing is modified on this CortexStep.
    */
   async compute<ParsedArgumentType, ProcessFunctionReturnType = undefined>(
-    functionFactory: NextFunction<LastValueType, ParsedArgumentType, ProcessFunctionReturnType>,
+    functionFactory: NextFunction<ParsedArgumentType, ProcessFunctionReturnType>,
     opts: NextOptions = {}
   ): Promise<ProcessFunctionReturnType extends undefined ? ParsedArgumentType : ProcessFunctionReturnType> {
-    const step = await this.next(functionFactory, opts)
-    return step.value as any
+    const step = await this.next<ParsedArgumentType, ProcessFunctionReturnType>(functionFactory, {...opts, stream: false })
+    return step.value as ProcessFunctionReturnType extends undefined ? ParsedArgumentType : ProcessFunctionReturnType
   }
 
   /**
@@ -343,7 +347,32 @@ export class CortexStep<LastValueType = undefined> {
    * @returns - Returns a Promise that resolves to a CortexStep object.
    */
   async next<ParsedArgumentType, ProcessFunctionReturnType = undefined>(
-    functionFactory: NextFunction<LastValueType, ParsedArgumentType, ProcessFunctionReturnType>,
+    functionFactory: NextFunction<ParsedArgumentType, ProcessFunctionReturnType>,
+    opts?: NextOptionsNonStreaming
+  ): Promise<ProcessFunctionReturnType extends undefined ? CortexStep<ParsedArgumentType> : CortexStep<ProcessFunctionReturnType>>
+
+  async next<ParsedArgumentType, ProcessFunctionReturnType = undefined>(
+    functionFactory: NextFunction<ParsedArgumentType, ProcessFunctionReturnType>,
+    opts?: NextOptionsStreaming
+  ): Promise<{
+    nextStep: Promise<ProcessFunctionReturnType extends undefined ? CortexStep<ParsedArgumentType> : CortexStep<ProcessFunctionReturnType>>,
+    stream: AsyncIterable<string>,
+  }>
+
+  async next<ParsedArgumentType, ProcessFunctionReturnType = undefined>(
+    functionFactory: NextFunction<ParsedArgumentType, ProcessFunctionReturnType>,
+    opts?: NextOptions
+  ): Promise<any> {
+    if (opts?.stream) {
+      return this.streamingNext<ParsedArgumentType, ProcessFunctionReturnType>(functionFactory, opts)
+    } else {
+      return this.nonStreamingNext<ParsedArgumentType, ProcessFunctionReturnType>(functionFactory, opts)
+    }
+  }
+
+
+  private async nonStreamingNext<ParsedArgumentType, ProcessFunctionReturnType = undefined>(
+    functionFactory: NextFunction<ParsedArgumentType, ProcessFunctionReturnType>,
     opts: NextOptions = {}
   ): Promise<ProcessFunctionReturnType extends undefined ? CortexStep<ParsedArgumentType> : CortexStep<ProcessFunctionReturnType>> {
     return tracer.startActiveSpan('next', async (span) => {
@@ -402,4 +431,5 @@ export class CortexStep<LastValueType = undefined> {
     })
 
   }
+
 }

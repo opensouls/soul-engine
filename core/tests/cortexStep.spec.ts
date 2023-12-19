@@ -162,14 +162,14 @@ describe("CortexStep", () => {
     })
   })
 
-  it("EXPERIMENTALLY streams next steps", async () => {
+  it("streams next steps", async () => {
     const step = new CortexStep("BogusStreamer",)
     const { nextStep, stream } = await step.withMemory([
       {
         role: ChatMessageRoleEnum.System,
         content: "You are modeling the mind of Bogus, a very bad dude.",
       }
-    ]).experimentalStreamingNext(instruction("What one paragraph response would bogus have now?"))
+    ]).next(instruction("What one paragraph response would bogus have now?"), { stream: true})
 
     let streamed = ""
 

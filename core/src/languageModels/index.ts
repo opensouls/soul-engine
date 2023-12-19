@@ -19,6 +19,21 @@ export type Headers = Record<string, string | null | undefined>;
 export interface RequestOptions {
   signal?: AbortSignal | null;
   headers?: Headers;
+  stream?: boolean
+}
+  
+export interface RequestOptionsStreaming extends RequestOptions {
+  stream: true;
+}
+
+export interface RequestOptionsNonStreaming extends RequestOptions {
+  stream?: false;
+}
+
+export type NonStreamingExecuteResponse<FunctionCallReturnType = undefined> = ExecutorResponse<FunctionCallReturnType>
+export type StreamingExecuteResponse<FunctionCallReturnType = undefined> =  {
+  response: Promise<ExecutorResponse<FunctionCallReturnType>>,
+  stream: AsyncIterable<string>,
 }
 
 /**
@@ -29,23 +44,15 @@ export interface LanguageModelProgramExecutor {
     records: ChatMessage[],
     chatCompletionParams?: LanguageModelProgramExecutorExecuteOptions,
     functions?: FunctionSpecification[],
-    requestOptions?: RequestOptions,
-  ): Promise<ExecutorResponse<FunctionCallReturnType>>;
-
-  /**
-   * This an experimental interface that does not yet support functions and is optional to support
-   * for any custom executors.
-   *
-  */
-  experimentalStreamingExecute?<FunctionCallReturnType = undefined>(
-    messages: ChatMessage[],
-    completionParams?: LanguageModelProgramExecutorExecuteOptions,
+    requestOptions?: RequestOptionsNonStreaming,
+  ): Promise<NonStreamingExecuteResponse<FunctionCallReturnType>>;
+  
+  execute<FunctionCallReturnType = undefined>(
+    records: ChatMessage[],
+    chatCompletionParams?: LanguageModelProgramExecutorExecuteOptions,
     functions?: FunctionSpecification[],
-    requestOptions?: RequestOptions,
-  ): Promise<{
-    response: Promise<ExecutorResponse<FunctionCallReturnType>>,
-    stream: AsyncIterable<string>,
-  }>
+    requestOptions?: RequestOptionsStreaming,
+  ): Promise<StreamingExecuteResponse<FunctionCallReturnType>>;
 }
 
 /**
