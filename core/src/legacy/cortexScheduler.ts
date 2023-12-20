@@ -12,7 +12,7 @@ import { Mutex } from "async-mutex";
 
 const AbortController = globalThis.AbortController || NodeAbortController;
 
-export interface Job {
+interface Job {
   process: MentalProcess;
   newMemory: ChatMessage;
   abortController: AbortController;

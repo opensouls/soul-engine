@@ -10,29 +10,19 @@ import {
   FunctionSpecification,
   LanguageModelProgramExecutor,
   LanguageModelProgramExecutorExecuteOptions,
-  RequestOptionsStreaming,
 } from "./index";
-import { zodToSchema } from "./zodToSchema";
 import { html } from "common-tags";
-import { ReusableStream } from "./reusableStream";
+import zodToJsonSchema from "zod-to-json-schema";
+import { Model } from "./openAI";
 
-const MAX_RETRIES = 3;
+const MAX_RETRIES = 10;
 
 const tracer = trace.getTracer(
   'open-souls-openai',
   '0.0.1',
 );
 
-export enum Model {
-  GPT_4 = "gpt-4",
-  GPT_4_preview = "gpt-4-1106-preview",
-  GPT_3_5_turbo = "gpt-3.5-turbo",
-  GPT_3_5_turbo_0613 = "gpt-3.5-turbo-0613",
-  GPT_3_5_turbo_16k = "gpt-3.5-turbo-16k",
-  GPT_3_5_turbo_preview = "gpt-3.5-turbo-1106",
-}
-
-type Config = ConstructorParameters<typeof OpenAI>[0];
+type Config = ConstructorParameters<typeof OpenAI>[0] & { singleSystemMessage?: boolean };
 
 type ChatCompletionParams =
   Partial<CompletionCreateParamsNonStreaming>
@@ -64,25 +54,43 @@ interface RetryInformation {
   retryCount: number
 }
 
+function extractJSON(str?: string | null) {
+  if (!str) return null;
 
-export class OpenAILanguageProgramProcessor
+  const jsonStart = str.indexOf('{');
+  if (jsonStart === -1) return null;
+  
+  for (let i = jsonStart; i < str.length; i++) {
+      if (str[i] === '}') {
+          const potentialJson = str.slice(jsonStart, i + 1);
+          try {
+              JSON.parse(potentialJson);
+              return potentialJson;
+          } catch (e) {
+              // Not valid JSON
+          }
+      }
+  }
+
+  return null;
+}
+
+export class FunctionlessLLM
   implements LanguageModelProgramExecutor {
   client: OpenAI;
   defaultCompletionParams: DefaultCompletionParams;
   defaultRequestOptions: RequestOptions;
+
+  private singleSystemMessage = false
 
   constructor(
     openAIConfig: Config = {},
     defaultCompletionParams: ChatCompletionParams = {},
     defaultRequestOptions: RequestOptions = {}
   ) {
-    const defaultConfig = {
-      dangerouslyAllowBrowser: !!process.env.DANGEROUSLY_ALLOW_OPENAI_BROWSER
-    }
-    this.client = new OpenAI({
-      ...defaultConfig,
-      ...openAIConfig,
-    });
+    const { singleSystemMessage, ...restConfig } = openAIConfig;
+    this.singleSystemMessage = !!singleSystemMessage
+    this.client = new OpenAI(restConfig);
     this.defaultCompletionParams = {
       model: Model.GPT_3_5_turbo,
       ...defaultCompletionParams,
@@ -154,156 +162,106 @@ export class OpenAILanguageProgramProcessor
     }
   }
 
-  private streamingExecute<FunctionCallReturnType = undefined>(
+  async executeAlternativeFunctionPath<FunctionCallReturnType = undefined>(
     messages: ChatMessage[],
     completionParams: LanguageModelProgramExecutorExecuteOptions = {},
     functions: FunctionSpecification[] = [],
-    requestOptions: RequestOptionsStreaming = { stream: true },
+    requestOptions: RequestOptions = {},
     retryError: RetryInformation | undefined = undefined
-  ): Promise<{
-      response: Promise<ExecutorResponse<FunctionCallReturnType>>,
-      stream: AsyncIterable<string>,
-    }> {
-    return tracer.startActiveSpan('streamingExecute', async (span) => {
-      try {
-        const { functionCall, ...restRequestParams } = completionParams;
-
-        const params = {
-          ...this.defaultCompletionParams,
-          ...restRequestParams,
-          function_call: functionCall,
-          messages: messages as ChatCompletionMessageParam[],
-        }
-        if (functions.length > 0) {
-          params.functions = functions.map((fn) => {
-            return {
-              ...fn,
-              parameters: zodToSchema(fn.parameters),
-            };
-          });
-        }
-
-        if (retryError) {
-          if (retryError.retryCount >= MAX_RETRIES) {
-            throw new Error(`Exceeded max retries of ${MAX_RETRIES} for error: ${JSON.stringify(retryError.error)}`);
-          }
-          span.setAttributes({
-            "retry-attempt": retryError.retryCount + 1,
-            "retry-error": JSON.stringify(retryError.error),
-            "retry-function-call": JSON.stringify(retryError.functionCall),
-          })
-
-          params.messages = [
-            ...params.messages,
-            {
-              role: ChatMessageRoleEnum.Assistant,
-              content: "",
-              function_call: retryError.functionCall,
-            },
-            {
-              role: ChatMessageRoleEnum.User,
-              content: html`
-                Function call resulted in error: ${JSON.stringify(retryError.error)}
-              `
-            }
-          ]
-        }
-
-        span.setAttributes({
-          "params": JSON.stringify(params),
-          "request-options": JSON.stringify(requestOptions || {}),
-        });
-
-        const stream = await this.client.chat.completions.create(
-          { ...params, stream: true },
-          {
-            ...this.defaultRequestOptions,
-            ...requestOptions,
-          }
-        );
-
-        const _generateContent = async function*() {
-          for await (const res of stream) {
-            if (res.choices && res.choices.length > 0) {
-              const message = res.choices[0].delta;
-              if (message) {
-                const data = {
-                  content: message.content,
-                  functionCall: message.function_call
-                };
-                yield data
-              }
-            }
-          }
-        }
-
-        const reusableStream = new ReusableStream(_generateContent())
-
-        const streamToText = async function*() {
-          for await (const res of reusableStream.stream()) {
-            yield res.content || res.functionCall?.arguments || "";
-          }
-        }
-
-        const respFunction = async () => {
-          let returnedFunctionallArguments = ""
-          let content = ""
-          for await (const res of reusableStream.stream()) {
-            if (res.functionCall) {
-              returnedFunctionallArguments += res.functionCall.arguments
-            } else {
-              content += res.content || ""
-            }
-          }
-
-          let parsedFnCall: {name: string, arguments: string} | undefined = undefined
-
-          if (functionCall && returnedFunctionallArguments) {
-            if (typeof functionCall === "string") {
-              console.error("string function call is unsupported")
-              throw new Error('string function call is unsupported')
-            }
-            parsedFnCall = {
-              ...functionCall,
-              arguments: returnedFunctionallArguments
-            }
-          }
-
-          span.setAttributes({
-            "completion-content": content,
-            "completion-function-call": JSON.stringify(returnedFunctionallArguments || "{}"),
-          })
-  
-          const { error, parsed } = this.validateFunctioncall(functionCall, {
-            content: content,
-            function_call: parsedFnCall,
-            role: ChatMessageRoleEnum.Assistant,
-          }, functions);
-          if (error) {
-            console.error("error in execute", error)
-            throw new Error('error in execute')
-          }
-  
-          return {
-            content: content,
-            functionCall: parsedFnCall as (FunctionCall | undefined),
-            parsedArguments: parsed as FunctionCallReturnType
-          };
-        }
-
-        return {
-          response: respFunction(),
-          stream: streamToText(),
-        };
-     
-      } catch (err: any) {
-        span.recordException(err);
-        console.error('error in execute', err);
-        throw err;
-      } finally {
-        span.end();
+  ): Promise<ExecutorResponse> {
+    return tracer.startActiveSpan('alternative-function-path', async (span) => {
+      const { functionCall, ...restRequestParams } = completionParams;
+      if (!functionCall || functionCall === "auto" || functionCall === "none") {
+        throw new Error("this path is only for actual function calls")
       }
+  
+      const params = {
+        ...this.defaultCompletionParams,
+        ...restRequestParams,
+        messages: messages as ChatCompletionMessageParam[],
+      }
+  
+      const fn = functions.find((fn) => fn.name === functionCall.name)
+      if (!fn) {
+        throw new Error("missing function")
+      }
+  
+      // construct a message out of the function call instead
+      const userMessageFromFunctionCall: ChatMessage = {
+        role: ChatMessageRoleEnum.User,
+        content: html`  
+          I want to call a function called "${functionCall.name}". The function is described as: "${fn.description}". The function takes a single JSON argument.
+
+          Please think carefully about the argument I should call the function with and answer using only JSON that matches the following JSON Schema:
+  
+          ${JSON.stringify(zodToJsonSchema(fn.parameters), null, 2)}
+  
+          Remember, the above is a *schema* for the answer, not the answer itself.
+  
+          Only return properly conforming JSON and no other example code or commentary. You only speak JSON.
+        `
+      }
+  
+      if (!retryError) {
+        params.messages = this.compressSystemMessagesIfNeeded([
+          ...params.messages, 
+          {
+            role: ChatMessageRoleEnum.System,
+            content: "You accept input in any format, but you only respond in JSON. Please conform your JSON responses to the provided schema."
+          },
+          userMessageFromFunctionCall
+        ])
+      }
+
+
+      span.setAttributes({
+        "params": JSON.stringify(params),
+        "request-options": JSON.stringify(requestOptions || {}),
+      });
+
+  
+      const res = await this.client.chat.completions.create(
+        { ...params, stream: false },
+        {
+          ...this.defaultRequestOptions,
+          ...requestOptions,
+        }
+      );
+  
+      const content = res.choices[0].message.content
+      const retMessage:ChatCompletionMessage = {
+        role: ChatMessageRoleEnum.Assistant,
+        content: "",
+        function_call: {
+          name: functionCall.name,
+          arguments: extractJSON(content) || ""
+        }
+      }
+  
+      const { error, parsed } = this.validateFunctioncall(functionCall, retMessage, functions);
+      if (error) {
+        console.warn("LLM returned invalid JSON, will retry", error, parsed, content)
+        return this.execute([
+          ...messages,
+          userMessageFromFunctionCall,
+          {
+            role: ChatMessageRoleEnum.Assistant,
+            content: content || "",
+          },
+        ], completionParams, functions, requestOptions, {
+          error: error,
+          retryCount: retryError?.retryCount ? retryError.retryCount + 1 : 1,
+          functionCall: res?.choices[0]?.message?.function_call,
+        });
+      }
+  
+      return {
+        content: res?.choices[0]?.message?.content,
+        functionCall: retMessage.function_call,
+        parsedArguments: parsed as FunctionCallReturnType
+      };
     })
+  
   }
 
   async execute<FunctionCallReturnType = undefined>(
@@ -313,9 +271,8 @@ export class OpenAILanguageProgramProcessor
     requestOptions: RequestOptions = {},
     retryError: RetryInformation | undefined = undefined
   ): Promise<any> {
-
     if (requestOptions.stream) {
-      return this.streamingExecute<FunctionCallReturnType>(messages, completionParams, functions, { ...requestOptions, stream: true }, retryError)
+      throw new Error("streaming is not currently supported")
     }
 
     return tracer.startActiveSpan('execute', async (span) => {
@@ -326,15 +283,7 @@ export class OpenAILanguageProgramProcessor
           ...this.defaultCompletionParams,
           ...restRequestParams,
           function_call: functionCall,
-          messages: messages as ChatCompletionMessageParam[],
-        }
-        if (functions.length > 0) {
-          params.functions = functions.map((fn) => {
-            return {
-              ...fn,
-              parameters: zodToSchema(fn.parameters),
-            };
-          });
+          messages: messages,
         }
 
         if (retryError) {
@@ -350,17 +299,19 @@ export class OpenAILanguageProgramProcessor
           params.messages = [
             ...params.messages,
             {
-              role: ChatMessageRoleEnum.Assistant,
-              content: "",
-              function_call: retryError.functionCall,
-            },
-            {
               role: ChatMessageRoleEnum.User,
               content: html`
-                Function call resulted in error: ${JSON.stringify(retryError.error)}
+                Your response contained an error. Maybe it wasn't correctly formatted JSON? The error was:
+                ${JSON.stringify(retryError.error, null, 2)}
+
+                Please correct your response and make sure to answer with conforming JSON. Remember, you only answer in correctly formated JSON.
               `
             }
           ]
+        }
+
+        if (functions.length > 0) {
+          return this.executeAlternativeFunctionPath(params.messages, completionParams, functions, requestOptions)
         }
 
         span.setAttributes({
@@ -369,7 +320,7 @@ export class OpenAILanguageProgramProcessor
         });
 
         const res = await this.client.chat.completions.create(
-          { ...params, stream: false },
+          { ...params, messages: this.compressSystemMessagesIfNeeded(params.messages), stream: false },
           {
             ...this.defaultRequestOptions,
             ...requestOptions,
@@ -412,8 +363,29 @@ export class OpenAILanguageProgramProcessor
       } finally {
         span.end();
       }
-
     })
+  }
 
+  /**
+   * swaps all but the first system message to user messages for OSS models that only support a single system message.
+   */
+  private compressSystemMessagesIfNeeded(messages: (ChatMessage | ChatCompletionMessageParam)[]): ChatCompletionMessageParam[] {
+    if (!this.singleSystemMessage) {
+      return messages as ChatCompletionMessageParam[]
+    }
+    let firstSystemMessage = false
+    messages.forEach((message) => {
+      if (message.role === ChatMessageRoleEnum.System) {
+        if (firstSystemMessage) {
+          firstSystemMessage = true
+          return
+        }
+        message.role = ChatMessageRoleEnum.User
+        // systemMessage += message.content + "\n"
+        return
+      }
+      // returnedMessages.push(message)
+    })
+    return messages as ChatCompletionMessageParam[]
   }
 }

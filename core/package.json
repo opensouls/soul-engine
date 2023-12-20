@@ -1,22 +1,20 @@
 {
   "name": "socialagi",
-  "version": "0.0.38",
+  "version": "0.1.1-1",
   "description": "Subroutines for AI Souls",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "scripts": {
     "build": "rm -rf dist && tsc",
     "test": "mocha",
-    "prepublishOnly": "npm run build",
-    "test-example": "ts-node examples/example.ts",
-    "test-example2": "ts-node examples/example2.ts",
-    "test-example3": "ts-node examples/example3.ts",
-    "test-example4": "ts-node examples/example4.ts"
+    "prepublishOnly": "npm run build"
   },
   "exports": {
     ".": "./dist/src/index.js",
-    "./next": "./dist/src/next/index.js",
-    "./next/instrumentation": "./dist/src/next/instrumentation.js"
+    "./instrumentation": "./dist/src/instrumentation.js",
+    "./legacy": "./dist/src/legacy/index.js",
+    "./next": "./dist/src/index.js",
+    "./next/instrumentation": "./dist/src/instrumentation.js"
   },
   "files": [
     "dist/src"
@@ -45,7 +43,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/Methexis-Inc/SocialAGI.git"
+    "url": "https://github.com/opensouls/SocialAGI.git"
   },
   "author": "SocialAGI",
   "license": "ISC",
@@ -77,14 +75,14 @@
     "abort-controller": "^3.0.0",
     "async-mutex": "^0.4.0",
     "common-tags": "^1.8.2",
-    "next": "^13.4.8",
     "openai": "^4.17.4",
-    "react": "^18.2.0",
     "uuidv4": "^6.2.13",
     "zod": "^3.22.4",
     "zod-to-json-schema": "^3.21.4"
   },
   "optionalDependencies": {
-    "@opentelemetry/sdk-node": "^0.43.0"
+    "@opentelemetry/sdk-node": "^0.43.0",
+    "next": "*",
+    "react": "*"
   }
 }
