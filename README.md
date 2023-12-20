@@ -6,13 +6,9 @@
 
 ## 🤔 What is this?
 
-**SocialAGI** offers developers clean, simple, and extensible abstractions for directing the cognitive processes of large language models (LLMs), critical for the creation of AI Souls. AI Souls will comprise thousands of linguistic instructions (formerly known as 'prompts'): our focus is on streamlining the management this complexity, freeing you to create more effective and engaging AI experiences.
+**SocialAGI** offers developers clean, simple, and extensible abstractions for directing the cognitive processes of large language models (LLMs), steamlining the creation of more effective and engaging AI souls.
 
-## 💡 Hosted example
-
-Check out [Meet Samantha](http://meetsamantha.ai)
-
-## Example
+## 💡 Simple Example
 
 ```javascript
 import { ChatMessageRoleEnum, CortexStep, externalDialog, internalMonologue } from "socialagi";
@@ -38,11 +34,9 @@ console.log("Elizabar says: ", (await nextStep).value)
 // Elizabar says:  Hmph, greetings to you, traveler. What brings you to this humble stall? Are you in search of a weapon? If so, you just might be in luck, for I have here the finest sword you'll find in all the land.
 ```
 
-<img width="500" alt="image" src="https://user-images.githubusercontent.com/8204988/236294504-a41af71f-bccf-44e5-b02a-60ab51982ccd.png">
-
 ## 💫 AI Souls
 
-SocialAGI aims to simplify the developer experience as much as possible in creating agentic and embodied chatbots called AI Souls. Unlike traditional chatbots, digital souls have personality, drive, ego, and will.
+**SocialAGI** aims to simplify the developer experience as much as possible in creating agentic and embodied chatbots called AI Souls, comprising thousands of linguistic instructions (managed by SocialAGI). Unlike traditional chatbots, these SocialAGI instructions will give digital souls personality, drive, ego, and will.
 
 We are solving problems all the way across the AI souls stack, including:
 - How do I create the most lifelike AI entity?
@@ -52,13 +46,9 @@ We are solving problems all the way across the AI souls stack, including:
 
 ## 📖 Repo structure
 
-```
-/core
-/docs
-```
-
 - [`/core`](./core) contains the library [`socialagi` NPM package source](https://www.npmjs.com/package/socialagi)
 - [`/docs`](./docs) contains the documentation website for the project, running at [socialagi.dev](http://socialagi.dev)
+- [`/memory`](./memory) contains the library [`@socialagi/memory` NPM package source](https://www.npmjs.com/package/@socialagi/memory)
 
 ## 🚀 Getting started
 
