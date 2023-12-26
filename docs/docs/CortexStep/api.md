@@ -43,9 +43,9 @@ The class adheres to the principles of functional programming. Each method in `C
    const yesOrNo = await step.compute(decision("Is Bogus cold?", ["yes", "no"]));
    ```
 
-5. **Resetting Memory with `resetMemory()`**
+5. **Resetting Memory with `withUpdatedMemory()`**
 
-   The `resetMemory()` method allows the AI to reset its memories based on a function that processes the existing memories. It returns a new `CortexStep` instance with the updated memories.
+   The `withUpdatedMemory()` method allows the AI to reset its memories based on a function that processes the existing memories. It returns a new `CortexStep` instance with the updated memories.
 
    ```javascript
    step = await step.resetMemory(memories => memories.filter(m => m.role !== "user"));
