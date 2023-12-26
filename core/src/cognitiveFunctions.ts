@@ -41,9 +41,7 @@ export const externalDialog = (extraInstructions?: string, verb = "said") => {
       stripStreamPrefix: ({ entityName }: CortexStep<any>) => {
         return new RegExp(`^${entityName}.*?:\\s*["']*`, "i")
       },
-      stripStreamSuffix: () => {
-        return /["']$/
-      },
+      stripStreamSuffix: /["']$/,
       commandRole: ChatMessageRoleEnum.System,
       process: (step: CortexStep<any>, response: string) => {
         const stripped = stripResponseBoilerPlate(step, verb, response)
@@ -92,9 +90,7 @@ export const spokenDialog = (extraInstructions?: string, verb = "said") => {
       stripStreamPrefix: ({ entityName }: CortexStep<any>) => {
         return new RegExp(`^${entityName}.*?:\\s*["']*`, "i")
       },
-      stripStreamSuffix: () => {
-        return /["']$/
-      },
+      stripStreamSuffix: /["']$/,
       commandRole: ChatMessageRoleEnum.System,
       process: (step: CortexStep<any>, response: string) => {
         return {
@@ -139,9 +135,7 @@ export const internalMonologue = (extraInstructions?: string, verb = "thought") 
       stripStreamPrefix: ({ entityName }: CortexStep<any>) => {
         return new RegExp(`^${entityName}.*?:\\s*["']*`, "i")
       },
-      stripStreamSuffix: () => {
-        return /["']$/
-      },
+      stripStreamSuffix: /["']$/,
       process: (step: CortexStep<any>, response: string) => {
         return {
           value: stripResponseBoilerPlate(step, verb, response),
