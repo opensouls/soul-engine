@@ -43,6 +43,15 @@ The class adheres to the principles of functional programming. Each method in `C
    const yesOrNo = await step.compute(decision("Is Bogus cold?", ["yes", "no"]));
    ```
 
+5. **Resetting Memory with `resetMemory()`**
+
+   The `resetMemory()` method allows the AI to reset its memories based on a function that processes the existing memories. It returns a new `CortexStep` instance with the updated memories.
+
+   ```javascript
+   step = await step.resetMemory(memories => memories.filter(m => m.role !== "user"));
+   ```
+
+
 ## Predefined CognitiveFunctions
 
 While `CortexStep` allows for the creation of [custom cognitive functions](actions), it comes with several predefined cognitive functions:
