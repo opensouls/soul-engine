@@ -126,7 +126,7 @@ export class CortexStep<LastValueType = undefined> {
    * @param updateFn A function that takes the existing memories and returns the new memories (or a promise of the new memories)
    * @returns A new CortexStep instance with the new memories.
    */
-  async resetMemory(updateFn: (existingMemories: Memory[]) => Memory[] | Promise<Memory[]>) {
+  async withUpdatedMemories(updateFn: (existingMemories: Memory[]) => Memory[] | Promise<Memory[]>) {
     return new CortexStep<LastValueType>(this.entityName, {
       parents: [...this.parents, this.id],
       tags: { ...this.tags },
