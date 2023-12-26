@@ -346,6 +346,10 @@ export class CortexStep<LastValueType = undefined> {
         }
       }
       buffer = [buffer, ...isStreamingBuffer].join('')
+      // if we ended before switching on streaming, then we haven't stripped the prefix yet.
+      if (!isStreaming && prefix) {
+        buffer = buffer.replace(prefix, '');
+      }
       if (buffer.length > 0) {
         // if there was some buffer left over, then we need to check if there was a suffix
         // and remove that from the last part of the stream.
