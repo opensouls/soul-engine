@@ -199,7 +199,7 @@ describe("CortexStep", () => {
         role: ChatMessageRoleEnum.System,
         content: "You are modeling the mind of Bogus, a very bad dude.",
       }
-    ]).next(instruction("What one paragraph response would bogus have now?"), { stream: true})
+    ]).next(externalDialog("Bogus says a Haiku."), { stream: true})
 
     let streamed = ""
 
@@ -211,7 +211,6 @@ describe("CortexStep", () => {
       expect(chunk).to.exist
       streamed += chunk
     }
-    expect(resp.memories[resp.memories.length - 1].content).to.eq(resp.value)
     expect(resp.value).to.be.an("string")
     expect(resp.value).to.eq(streamed)
     expect(resp.value).to.have.length.greaterThan(10)

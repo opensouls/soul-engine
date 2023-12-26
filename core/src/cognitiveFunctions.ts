@@ -6,9 +6,7 @@ import { html } from "common-tags";
 const stripResponseBoilerPlate = ({ entityName }: CortexStep<any>, _verb: string, response: string) => {
   // sometimes the LLM will respond with something like "Bogus said with a sinister smile: "I'm going to eat you!" (adding more words)
   // so we just strip any of those
-  let strippedResponse = response.replace(new RegExp(`${entityName} .*?:`, "i"), "").trim();
-  // sometimes the LLM will ignore the verb and just respond with: Bogus: "..."
-  strippedResponse = strippedResponse.replace(`${entityName}:`, "").trim();
+  let strippedResponse = response.replace(new RegExp(`${entityName}.*?:`, "i"), "").trim();
   // get rid of the quotes
   strippedResponse = strippedResponse.replace(/^["']|["']$/g, '').trim();
   return strippedResponse
@@ -39,6 +37,12 @@ export const externalDialog = (extraInstructions?: string, verb = "said") => {
 
           Please reply with the next utterance from ${name}. Use the format '${name} ${verb}: "..."'
         `;
+      },
+      stripStreamPrefix: ({ entityName }: CortexStep<any>) => {
+        return new RegExp(`^${entityName}.*?:\\s*["']*`, "i")
+      },
+      stripStreamSuffix: () => {
+        return /["']$/
       },
       commandRole: ChatMessageRoleEnum.System,
       process: (step: CortexStep<any>, response: string) => {
@@ -85,6 +89,12 @@ export const spokenDialog = (extraInstructions?: string, verb = "said") => {
           Please reply with the next utterance from ${name}. Use the format '${name} ${verb}: "..."'
         `;
       },
+      stripStreamPrefix: ({ entityName }: CortexStep<any>) => {
+        return new RegExp(`^${entityName}.*?:\\s*["']*`, "i")
+      },
+      stripStreamSuffix: () => {
+        return /["']$/
+      },
       commandRole: ChatMessageRoleEnum.System,
       process: (step: CortexStep<any>, response: string) => {
         return {
@@ -126,6 +136,12 @@ export const internalMonologue = (extraInstructions?: string, verb = "thought") 
 
           Please reply with the next internal monologue thought of ${name}. Use the format '${name} ${verb}: "..."'
       `},
+      stripStreamPrefix: ({ entityName }: CortexStep<any>) => {
+        return new RegExp(`^${entityName}.*?:\\s*["']*`, "i")
+      },
+      stripStreamSuffix: () => {
+        return /["']$/
+      },
       process: (step: CortexStep<any>, response: string) => {
         return {
           value: stripResponseBoilerPlate(step, verb, response),
