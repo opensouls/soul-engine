@@ -274,6 +274,19 @@ export class CortexStep<LastValueType = undefined> {
     })
   }
 
+  async regexpFromStripStream(stripStream: BrainFunctionWithFunction<any,any>["stripStreamPrefix"] | BrainFunctionWithFunction<any,any>["stripStreamSuffix"]): Promise<RegExp | undefined> {
+    if (stripStream) {
+      if (typeof stripStream === 'string') {
+        return new RegExp(stripStream)
+      } else if (stripStream instanceof RegExp) {
+        return stripStream
+      } else {
+        return new RegExp(await stripStream(this))
+      }
+    }
+    return undefined
+  }
+
   /**
    * Processes an input stream by applying optional prefix and suffix filters.
    * If a prefix is defined, the stream will start after the prefix is matched.
@@ -282,30 +295,12 @@ export class CortexStep<LastValueType = undefined> {
    * @param cognitiveFunc - The cognitive function containing the streamPrefix and streamSuffix.
    * @returns - Returns a Promise that resolves to an AsyncIterable<string> representing the processed stream.
    */
-  private async processStream<ParsedArgumentType>(stream: AsyncIterable<string>, cognitiveFunc: BrainFunction<ParsedArgumentType, any>): Promise<AsyncIterable<string>> {
+  private async processStream(stream: AsyncIterable<string>, cognitiveFunc: BrainFunction<any, any>): Promise<AsyncIterable<string>> {
     if (!cognitiveFunc.stripStreamPrefix && !cognitiveFunc.stripStreamSuffix) {
       return stream
     }
-    let prefix: RegExp | undefined
-    if (cognitiveFunc.stripStreamPrefix) {
-      if (typeof cognitiveFunc.stripStreamPrefix === 'string') {
-        prefix = new RegExp(cognitiveFunc.stripStreamPrefix)
-      } else if (cognitiveFunc.stripStreamPrefix instanceof RegExp) {
-        prefix = cognitiveFunc.stripStreamPrefix
-      } else {
-        prefix = new RegExp(await cognitiveFunc.stripStreamPrefix(this))
-      }
-    }
-    let suffix: RegExp | undefined
-    if (cognitiveFunc.stripStreamSuffix) {
-      if (typeof cognitiveFunc.stripStreamSuffix === 'string') {
-        suffix = new RegExp(cognitiveFunc.stripStreamSuffix)
-      } else if (cognitiveFunc.stripStreamSuffix instanceof RegExp) {
-        suffix = cognitiveFunc.stripStreamSuffix
-      } else {
-        suffix = new RegExp(await cognitiveFunc.stripStreamSuffix(this))
-      }
-    }
+    const prefix = await this.regexpFromStripStream(cognitiveFunc.stripStreamPrefix)
+    const suffix = await this.regexpFromStripStream(cognitiveFunc.stripStreamSuffix)
 
     let isStreaming = !prefix
     let prefixMatched = !prefix
