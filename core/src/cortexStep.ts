@@ -105,11 +105,32 @@ export class CortexStep<LastValueType = undefined> {
     return this.lastValue;
   }
 
+
+  /**
+   * Adds the given memories to the step and returns a new step (does not modify existing step)
+   * @param memory An array of Memory instances to add.
+   * @returns A new CortexStep instance with the added memories.
+   */
   withMemory(memory: Memory[]) {
     return new CortexStep<LastValueType>(this.entityName, {
       parents: [...this.parents, this.id],
       tags: { ...this.tags },
       memories: [...this.memories, ...memory],
+      lastValue: this.lastValue,
+      processor: this.processor,
+    });
+  }
+
+  /**
+   * Returns a new step with the memories provided by the updateFn
+   * @param updateFn A function that takes the existing memories and returns the new memories (or a promise of the new memories)
+   * @returns A new CortexStep instance with the new memories.
+   */
+  async withUpdatedMemory(updateFn: (existingMemories: Memory[]) => Memory[] | Promise<Memory[]>) {
+    return new CortexStep<LastValueType>(this.entityName, {
+      parents: [...this.parents, this.id],
+      tags: { ...this.tags },
+      memories: await updateFn(this.memories.map((m) => ({ ...m }))),
       lastValue: this.lastValue,
       processor: this.processor,
     });

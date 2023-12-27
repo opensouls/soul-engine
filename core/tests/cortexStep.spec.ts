@@ -33,6 +33,36 @@ describe("CortexStep", () => {
     expect(resp.value).to.be.an("string")
     expect(resp.value).to.have.length.greaterThan(10)
   })
+  
+  it("updates the memories", async () => {
+    const step = new CortexStep("Bogus").withMemory([
+      {
+        role: ChatMessageRoleEnum.System,
+        content: "You are modeling the mind of Bogus, a very bad dude.",
+      },
+      {
+        role: ChatMessageRoleEnum.User,
+        content: "hi",
+      }
+    ])
+
+    const newStep = await step.withUpdatedMemory(async (memories) => {
+      return memories.map((m) => {
+        if (m.role === ChatMessageRoleEnum.User) {
+          return {
+            ...m,
+            content: "hello world"
+          }
+        }
+        return m
+      })
+    })
+
+    expect(newStep.memories[newStep.memories.length - 1].content).to.eq("hello world")
+    expect(newStep).to.not.equal(step)
+    expect(newStep.entityName).to.eq(step.entityName)
+    expect(newStep.memories).to.have.lengthOf(step.memories.length)
+  })
 
   it("creates internal monologues", async () => {
     const step = new CortexStep("Bogus",)
