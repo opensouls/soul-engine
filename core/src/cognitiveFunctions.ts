@@ -12,14 +12,6 @@ const stripResponseBoilerPlate = ({ entityName }: CortexStep<any>, _verb: string
   return strippedResponse
 }
 
-/**
- * Processes an input stream by applying optional prefix and suffix filters.
- * If a prefix is defined, the stream will start after the prefix is matched.
- * If a suffix is defined, the stream will end when the suffix is matched.
- * @param stream - The input stream to be processed.
- * @param cognitiveFunc - The cognitive function containing the streamPrefix and streamSuffix.
- * @returns - Returns a Promise that resolves to an AsyncIterable<string> representing the processed stream.
- */
 const boilerPlateStreamProcessor = async ({ entityName }: CortexStep<any>, stream: AsyncIterable<string>): Promise<AsyncIterable<string>> => {
   const prefix = new RegExp(`^${entityName}.*?:\\s*["']*`, "i")
   const suffix = /["']$/
