@@ -60,6 +60,8 @@ interface FunctionOutput<ProcessFunctionReturnType> {
 export type StepCommandFunction = (step: CortexStep<any>) => Promise<string> | string
 export type StepCommand = string | StepCommandFunction
 
+export type StreamProcessor = (step: CortexStep<any>, stream: AsyncIterable<string>) => AsyncIterable<string> | Promise<AsyncIterable<string>>
+
 interface BrainFunctionAsCommand<ParsedArgumentType = string, ProcessFunctionReturnType = string> {
   name?: string;
   description?: string;
@@ -67,8 +69,7 @@ interface BrainFunctionAsCommand<ParsedArgumentType = string, ProcessFunctionRet
   process?: (step: CortexStep<any>, response: ParsedArgumentType) => Promise<FunctionOutput<ProcessFunctionReturnType>> | FunctionOutput<ProcessFunctionReturnType>;
   command: StepCommand;
   commandRole?: ChatMessageRoleEnum;
-  stripStreamPrefix?: string | RegExp | ((step: CortexStep<any>) => Promise<string | RegExp> | string | RegExp)
-  stripStreamSuffix?: string | RegExp | ((step: CortexStep<any>) => Promise<string | RegExp> | string | RegExp)
+  streamProcessor?: StreamProcessor
 }
 
 interface BrainFunctionWithFunction<ParsedArgumentType, ProcessFunctionReturnType> {
@@ -78,8 +79,7 @@ interface BrainFunctionWithFunction<ParsedArgumentType, ProcessFunctionReturnTyp
   process?: (step: CortexStep<any>, response: ParsedArgumentType) => Promise<FunctionOutput<ProcessFunctionReturnType>> | FunctionOutput<ProcessFunctionReturnType>;
   command?: StepCommand;
   commandRole?: ChatMessageRoleEnum;
-  stripStreamPrefix?: string | RegExp | ((step: CortexStep<any>) => Promise<string | RegExp> | string | RegExp)
-  stripStreamSuffix?: string | RegExp | ((step: CortexStep<any>) => Promise<string | RegExp> | string | RegExp)
+  streamProcessor?: StreamProcessor
 }
 
 export type BrainFunction<ParsedArgumentType, ProcessFunctionReturnType> = BrainFunctionAsCommand<ParsedArgumentType, ProcessFunctionReturnType> | BrainFunctionWithFunction<ParsedArgumentType, ProcessFunctionReturnType>
@@ -269,95 +269,9 @@ export class CortexStep<LastValueType = undefined> {
 
       return {
         parsed: parsed(),
-        stream: await this.processStream(rawStream, description),
+        stream: description.streamProcessor ? await description.streamProcessor(this, rawStream) : rawStream,
       }
     })
-  }
-
-  async regexpFromStripStream(stripStream: BrainFunctionWithFunction<any,any>["stripStreamPrefix"] | BrainFunctionWithFunction<any,any>["stripStreamSuffix"]): Promise<RegExp | undefined> {
-    if (stripStream) {
-      if (typeof stripStream === 'string') {
-        return new RegExp(stripStream)
-      } else if (stripStream instanceof RegExp) {
-        return stripStream
-      } else {
-        return new RegExp(await stripStream(this))
-      }
-    }
-    return undefined
-  }
-
-  /**
-   * Processes an input stream by applying optional prefix and suffix filters.
-   * If a prefix is defined, the stream will start after the prefix is matched.
-   * If a suffix is defined, the stream will end when the suffix is matched.
-   * @param stream - The input stream to be processed.
-   * @param cognitiveFunc - The cognitive function containing the streamPrefix and streamSuffix.
-   * @returns - Returns a Promise that resolves to an AsyncIterable<string> representing the processed stream.
-   */
-  private async processStream(stream: AsyncIterable<string>, cognitiveFunc: BrainFunction<any, any>): Promise<AsyncIterable<string>> {
-    if (!cognitiveFunc.stripStreamPrefix && !cognitiveFunc.stripStreamSuffix) {
-      return stream
-    }
-    const prefix = await this.regexpFromStripStream(cognitiveFunc.stripStreamPrefix)
-    const suffix = await this.regexpFromStripStream(cognitiveFunc.stripStreamSuffix)
-
-    let isStreaming = !prefix
-    let prefixMatched = !prefix
-    let buffer = ""
-    const isStreamingBuffer: string[] = []
-
-    const processedStream = (async function* () {
-      for await (const chunk of stream) {
-        // if we are already streaming, then we need to look out for a suffix
-        // we keep the last 2 chunks in the buffer to check after the stream is finished
-        // othwerwise we keep streaming
-        if (isStreaming) {
-          if (!suffix) {
-            yield chunk
-            continue;
-          }
-          isStreamingBuffer.push(chunk)
-          if (isStreamingBuffer.length > 2) {
-            yield isStreamingBuffer.shift() as string
-          }
-          continue;
-        }
-
-        // if we're not streaming, then keep looking for the prefix, and allow one *more* chunk
-        // after detecting a hit on the prefix to come in, in case the prefix has some optional ending
-        // characters.
-        buffer += chunk;
-        if (prefix && prefix.test(buffer)) {
-          if (prefixMatched) {
-            isStreaming = true;
-
-            buffer = buffer.replace(prefix, '');
-            yield buffer; // yield everything after the prefix
-            buffer = ''; // clear the buffer
-            continue
-          }
-          prefixMatched = true
-        }
-      }
-      buffer = [buffer, ...isStreamingBuffer].join('')
-      // if we ended before switching on streaming, then we haven't stripped the prefix yet.
-      if (!isStreaming && prefix) {
-        buffer = buffer.replace(prefix, '');
-      }
-      if (buffer.length > 0) {
-        // if there was some buffer left over, then we need to check if there was a suffix
-        // and remove that from the last part of the stream.
-        if (suffix) {
-          buffer = buffer.replace(suffix, '');
-          yield buffer; // yield everything before the suffix
-          return
-        }
-        // if there was no suffix, then just yield what's left.
-        yield buffer; // yield the last part of the buffer if anything is left
-      }
-    })();
-    return processedStream;
   }
 
   /*
