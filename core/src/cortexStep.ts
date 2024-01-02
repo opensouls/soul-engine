@@ -60,6 +60,8 @@ interface FunctionOutput<ProcessFunctionReturnType> {
 export type StepCommandFunction = (step: CortexStep<any>) => Promise<string> | string
 export type StepCommand = string | StepCommandFunction
 
+export type StreamProcessor = (step: CortexStep<any>, stream: AsyncIterable<string>) => AsyncIterable<string> | Promise<AsyncIterable<string>>
+
 interface BrainFunctionAsCommand<ParsedArgumentType = string, ProcessFunctionReturnType = string> {
   name?: string;
   description?: string;
@@ -67,6 +69,7 @@ interface BrainFunctionAsCommand<ParsedArgumentType = string, ProcessFunctionRet
   process?: (step: CortexStep<any>, response: ParsedArgumentType) => Promise<FunctionOutput<ProcessFunctionReturnType>> | FunctionOutput<ProcessFunctionReturnType>;
   command: StepCommand;
   commandRole?: ChatMessageRoleEnum;
+  streamProcessor?: StreamProcessor
 }
 
 interface BrainFunctionWithFunction<ParsedArgumentType, ProcessFunctionReturnType> {
@@ -76,6 +79,7 @@ interface BrainFunctionWithFunction<ParsedArgumentType, ProcessFunctionReturnTyp
   process?: (step: CortexStep<any>, response: ParsedArgumentType) => Promise<FunctionOutput<ProcessFunctionReturnType>> | FunctionOutput<ProcessFunctionReturnType>;
   command?: StepCommand;
   commandRole?: ChatMessageRoleEnum;
+  streamProcessor?: StreamProcessor
 }
 
 export type BrainFunction<ParsedArgumentType, ProcessFunctionReturnType> = BrainFunctionAsCommand<ParsedArgumentType, ProcessFunctionReturnType> | BrainFunctionWithFunction<ParsedArgumentType, ProcessFunctionReturnType>
@@ -105,6 +109,12 @@ export class CortexStep<LastValueType = undefined> {
     return this.lastValue;
   }
 
+
+  /**
+   * Adds the given memories to the step and returns a new step (does not modify existing step)
+   * @param memory An array of Memory instances to add.
+   * @returns A new CortexStep instance with the added memories.
+   */
   withMemory(memory: Memory[]) {
     return new CortexStep<LastValueType>(this.entityName, {
       parents: [...this.parents, this.id],
@@ -115,6 +125,27 @@ export class CortexStep<LastValueType = undefined> {
     });
   }
 
+  /**
+   * Returns a new step with the memories provided by the updateFn
+   * @param updateFn A function that takes the existing memories and returns the new memories (or a promise of the new memories)
+   * @returns A new CortexStep instance with the new memories.
+   */
+  async withUpdatedMemory(updateFn: (existingMemories: Memory[]) => Memory[] | Promise<Memory[]>) {
+    return new CortexStep<LastValueType>(this.entityName, {
+      parents: [...this.parents, this.id],
+      tags: { ...this.tags },
+      memories: await updateFn(this.memories.map((m) => ({ ...m }))),
+      lastValue: this.lastValue,
+      processor: this.processor,
+    });
+  }
+
+  /**
+   * Adds the given thought to the step as a new memory and returns a new step (does not modify existing step)
+   * @param thought a thought the internal entity will now remember
+   * @param verbPhrase a verb phrase like 'thought', 'thought to themself', 'screamed internally', etc.
+   * @returns A new CortexStep instance with the added memories.
+   */
   withMonologue(thought: string, verbPhrase = "thought") {
     const memory = [{
       role: ChatMessageRoleEnum.Assistant,
@@ -237,7 +268,7 @@ export class CortexStep<LastValueType = undefined> {
 
       const memories = this.memoriesWithCommandString(rawFn.command, description.commandRole)
 
-      const { response, stream } = await this.processor.execute<ParsedArgumentType>(
+      const { response, stream: rawStream } = await this.processor.execute<ParsedArgumentType>(
         memories,
         {
           functionCall: rawFn.specification.name ? { name: rawFn.specification.name } : undefined,
@@ -259,7 +290,7 @@ export class CortexStep<LastValueType = undefined> {
 
       return {
         parsed: parsed(),
-        stream
+        stream: description.streamProcessor ? await description.streamProcessor(this, rawStream) : rawStream,
       }
     })
   }
