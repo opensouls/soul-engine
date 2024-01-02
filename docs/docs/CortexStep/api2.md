@@ -36,6 +36,10 @@ let step = new CortexStep("Assistant", {
 
 ## Other Methods
 
+### withMonologue(thought, verbPhrase)
+
+`withMonologue(thought: string, verbPhrase = "thought")` is syntactic sugar for adding a memory to the step of the form: `<entity> <verbPhrase>: <thought>`
+
 ### toString()
 
 `toString()` generates a string representation of the assistant's chat history, including system instructions, user queries, and assistant responses.

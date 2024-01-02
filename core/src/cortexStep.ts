@@ -115,6 +115,21 @@ export class CortexStep<LastValueType = undefined> {
     });
   }
 
+  withMonologue(thought: string, verbPhrase = "thought") {
+    const memory = [{
+      role: ChatMessageRoleEnum.Assistant,
+      content: `${this.entityName} ${verbPhrase}: ${thought}`,
+      name: this.entityName,
+    }]
+    return new CortexStep<LastValueType>(this.entityName, {
+      parents: [...this.parents, this.id],
+      tags: { ...this.tags },
+      memories: [...this.memories, ...memory],
+      lastValue: this.lastValue,
+      processor: this.processor,
+    });
+  }
+
   public toString(): string {
     return this.memories
       .map((m) => {
