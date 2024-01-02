@@ -60,6 +60,8 @@ interface FunctionOutput<ProcessFunctionReturnType> {
 export type StepCommandFunction = (step: CortexStep<any>) => Promise<string> | string
 export type StepCommand = string | StepCommandFunction
 
+export type StreamProcessor = (step: CortexStep<any>, stream: AsyncIterable<string>) => AsyncIterable<string> | Promise<AsyncIterable<string>>
+
 interface BrainFunctionAsCommand<ParsedArgumentType = string, ProcessFunctionReturnType = string> {
   name?: string;
   description?: string;
@@ -67,6 +69,7 @@ interface BrainFunctionAsCommand<ParsedArgumentType = string, ProcessFunctionRet
   process?: (step: CortexStep<any>, response: ParsedArgumentType) => Promise<FunctionOutput<ProcessFunctionReturnType>> | FunctionOutput<ProcessFunctionReturnType>;
   command: StepCommand;
   commandRole?: ChatMessageRoleEnum;
+  streamProcessor?: StreamProcessor
 }
 
 interface BrainFunctionWithFunction<ParsedArgumentType, ProcessFunctionReturnType> {
@@ -76,6 +79,7 @@ interface BrainFunctionWithFunction<ParsedArgumentType, ProcessFunctionReturnTyp
   process?: (step: CortexStep<any>, response: ParsedArgumentType) => Promise<FunctionOutput<ProcessFunctionReturnType>> | FunctionOutput<ProcessFunctionReturnType>;
   command?: StepCommand;
   commandRole?: ChatMessageRoleEnum;
+  streamProcessor?: StreamProcessor
 }
 
 export type BrainFunction<ParsedArgumentType, ProcessFunctionReturnType> = BrainFunctionAsCommand<ParsedArgumentType, ProcessFunctionReturnType> | BrainFunctionWithFunction<ParsedArgumentType, ProcessFunctionReturnType>
@@ -243,7 +247,7 @@ export class CortexStep<LastValueType = undefined> {
 
       const memories = this.memoriesWithCommandString(rawFn.command, description.commandRole)
 
-      const { response, stream } = await this.processor.execute<ParsedArgumentType>(
+      const { response, stream: rawStream } = await this.processor.execute<ParsedArgumentType>(
         memories,
         {
           functionCall: rawFn.specification.name ? { name: rawFn.specification.name } : undefined,
@@ -265,7 +269,7 @@ export class CortexStep<LastValueType = undefined> {
 
       return {
         parsed: parsed(),
-        stream
+        stream: description.streamProcessor ? await description.streamProcessor(this, rawStream) : rawStream,
       }
     })
   }
