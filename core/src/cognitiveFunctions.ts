@@ -337,7 +337,6 @@ export const questionMemory = (question: string) => {
   }
 }
 
-
 // This is an internal use function that is used in mentalQuery to make the decision *after* thinking through the answer.
 const _mentalQueryDecision = (statement: string) => {
   return ({entityName: name}: CortexStep<any>) => {
@@ -418,7 +417,7 @@ export const instruction = (command: StepCommand): NextFunction<string, string> 
 }
 
 /**
- * @deprecated
+ * @deprecated will be removed in 0.2.0, use instruction instead.
  */
 export const stringCommand = (command: StepCommand) => {
   return instruction(command)
