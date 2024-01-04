@@ -294,6 +294,13 @@ export const queryMemory = (query: string) => {
   return questionMemory(query)
 }
 
+/**
+ * questionMemory is used to retrieve a detailed answer from memory based on a given question.
+ * Unlike mentalQuery, which is designed to determine the truth value (true/false) of a statement,
+ * questionMemory aims to provide a comprehensive response.
+ *
+ * @param question - The question to answer from memory
+ */
 export const questionMemory = (question: string) => {
   return () => {
     const params = z.object({
