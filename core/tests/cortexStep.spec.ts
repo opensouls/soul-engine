@@ -315,6 +315,16 @@ describe("CortexStep", () => {
     expect(val).to.equal("yes")
   })
 
+  it("handles switching the model on an individual next call", async () => {
+    const step = new CortexStep("Samantha").withMemory([{
+      role: ChatMessageRoleEnum.System,
+      content: "You are modeling the mind of Samantha, a quantum physicist.",
+    }])
+
+    const resp = await step.next(externalDialog("What does Bogus say?"), { model: "gpt-3.5-turbo-1106" })
+    expect(resp.value).to.be.a("string")
+  })
+
   it('does a long bogus monologue', async () => {
     return tracer.startActiveSpan('bogus-monologue', async (span) => {
       try {

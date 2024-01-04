@@ -10,6 +10,8 @@ const tracer = trace.getTracer(
 );
 
 export interface NextOptions {
+  // allows specifying an alternative model
+  model?: string
   requestOptions?: RequestOptions
   tags?: Record<string, string>
   stream?: boolean
@@ -202,6 +204,7 @@ export class CortexStep<LastValueType = undefined> {
       const resp = await this.processor.execute<ParsedArgumentType>(
         memories,
         {
+          ...(opts.model ? { model: opts.model } : {}),
           functionCall: rawFn.specification.name ? { name: rawFn.specification.name } : undefined,
         },
         (rawFn.specification.name ? [rawFn.specification as FunctionSpecification] : []),
@@ -250,6 +253,7 @@ export class CortexStep<LastValueType = undefined> {
       const { response, stream: rawStream } = await this.processor.execute<ParsedArgumentType>(
         memories,
         {
+          ...(opts.model ? { model: opts.model } : {}),
           functionCall: rawFn.specification.name ? { name: rawFn.specification.name } : undefined,
         },
         (rawFn.specification.name ? [rawFn.specification as FunctionSpecification] : []),
