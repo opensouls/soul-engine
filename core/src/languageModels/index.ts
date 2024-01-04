@@ -6,6 +6,7 @@ export { FunctionlessLLM } from "./FunctionlessLLM";
 export interface LanguageModelProgramExecutorExecuteOptions {
   stop?: string;
   functionCall?: "none" | "auto" | { name: string };
+  model?: string;
 }
 
 export interface ExecutorResponse<FunctionCallArgumentsType = any> {
@@ -19,7 +20,8 @@ export type Headers = Record<string, string | null | undefined>;
 export interface RequestOptions {
   signal?: AbortSignal | null;
   headers?: Headers;
-  stream?: boolean
+  stream?: boolean;
+  timeout?: number;
 }
   
 export interface RequestOptionsStreaming extends RequestOptions {

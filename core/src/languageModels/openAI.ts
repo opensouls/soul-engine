@@ -88,7 +88,9 @@ export class OpenAILanguageProgramProcessor
       ...defaultCompletionParams,
       stream: false,
     };
-    this.defaultRequestOptions = defaultRequestOptions || {}
+    this.defaultRequestOptions = {
+      ...defaultRequestOptions
+    }
   }
 
   private validateFunctioncall(requestedFunction: LanguageModelProgramExecutorExecuteOptions["functionCall"], message: ChatCompletionMessage | undefined, functions: FunctionSpecification[]): ValidateFunctionCallResult {
@@ -320,11 +322,11 @@ export class OpenAILanguageProgramProcessor
 
     return tracer.startActiveSpan('execute', async (span) => {
       try {
-        const { functionCall, ...restRequestParams } = completionParams;
+        const { functionCall, ...completionParamsWithoutFunctionCall } = completionParams;
 
         const params = {
           ...this.defaultCompletionParams,
-          ...restRequestParams,
+          ...completionParamsWithoutFunctionCall,
           function_call: functionCall,
           messages: messages as ChatCompletionMessageParam[],
         }
