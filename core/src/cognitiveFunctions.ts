@@ -15,7 +15,7 @@ const stripResponseBoilerPlate = ({ entityName }: CortexStep<any>, _verb: string
 const boilerPlateStreamProcessor = async ({ entityName }: CortexStep<any>, stream: AsyncIterable<string>): Promise<AsyncIterable<string>> => {
   const prefix = new RegExp(`^${entityName}.*?:\\s*["']*`, "i")
   const suffix = /["']$/
-  
+
   let isStreaming = !prefix
   let prefixMatched = !prefix
   let buffer = ""
@@ -286,22 +286,40 @@ export const brainstorm = (description: string) => {
   }
 }
 
+
+/**
+ * @deprecated since version 0.1.3, will be removed in version 0.2.0. Use questionMemory instead.
+ */
 export const queryMemory = (query: string) => {
+  return questionMemory(query)
+}
+
+/**
+ * questionMemory is used to retrieve a detailed answer from memory based on a given question.
+ * Unlike mentalQuery, which is designed to determine the truth value (true/false) of a statement,
+ * questionMemory aims to provide a comprehensive response.
+ *
+ * @param question - The question to answer from memory
+ */
+export const questionMemory = (question: string) => {
   return () => {
     const params = z.object({
-      answer: z.string().describe(`The answer to: ${query}`)
+      answer: z.string().describe(`The answer to: ${question}`)
     });
 
     return {
       name: "query_memory",
-      description: query,
+      description: question,
       parameters: params,
       command: html`
-        Do not repeat ${query} and instead use the dialog history.
-        Do not copy sections of the chat history as an answer.
-        Do summarize and thoughtfully answer in sentence and paragraph format.
-        
-        Take a deep breath, analyze the chat history step by step and answer the question: ${query}.
+        ## Instructions
+        * Do not repeat the question in your answer.
+        * Do not copy sections of the chat history as an answer.
+        * Do summarize and thoughtfully answer in sentence and paragraph format.
+        * Do use the dialog history to answer the question.
+
+        Take a deep breath, analyze the chat history step by step and answer the question:
+        > ${question}.
       `,
       process: (_step: CortexStep<any>, response: z.infer<typeof params>) => {
         // Use the inferred type from the Zod schema
@@ -310,12 +328,78 @@ export const queryMemory = (query: string) => {
           memories: [{
             role: ChatMessageRoleEnum.Assistant,
             content: html`
-              The answer to ${query} is ${response.answer}.
+              The answer to ${question} is ${response.answer}.
             `
           }],
         }
       }
     };
+  }
+}
+
+// This is an internal use function that is used in mentalQuery to make the decision *after* thinking through the answer.
+const _mentalQueryDecision = (statement: string) => {
+  return ({entityName: name}: CortexStep<any>) => {
+
+    const params = z.object({
+      decision: z.boolean().describe(`Is the statement true or false in the mind of ${name}?`)
+    })
+
+    return {
+      description: html`
+        Save whether or not ${name} believes the following statement to be true or false:
+        > ${statement}
+      `,
+      name: "mentalQuery",
+      parameters: params
+    };
+  }
+}
+
+/**
+ * mentalQuery is used to model the mind of an entity and make a decision based on a question. The `question` parameter should be a true or false statement.
+ * 
+ * Example:
+ * mentalQuery("The meeting is today.")
+ * 
+ * @param statement - A true or false statement that the entity evaluates.
+ * 
+ * When used in a CortexStep#next or #compute command, the typed #value will be the boolean result of the decision process, reflecting the entity's belief.
+ * This cognitive function makes two calls to the underlying LanguageProcessor: one to think through 
+ */
+export const mentalQuery = (statement: string) => {
+  // *first* we create an internal thought that we'll use to guide the decision making process.
+  return () => {
+
+    return {
+      command: ({ entityName: name }: CortexStep) => {
+        return html`
+          ${name} decides if the following statement is true or false and gives their reasoning:
+          > ${statement}
+
+          Please reply with whether or not ${name} thinks the statement is true or false and provide their reasoning. Use the format '${name} decided: "..."'
+      `},
+      process: async (step: CortexStep<any>, response: string) => {
+        const stepWithThought = step.withMemory([{
+          role: ChatMessageRoleEnum.Assistant,
+          content: html`
+            ${step.entityName} considered if the following statment is true or false:
+            > ${statement}
+            ${response}
+          `
+        }])
+
+        const { decision } = await stepWithThought.compute(_mentalQueryDecision(statement))
+        
+        return {
+          value: decision,
+          memories: [{
+            content: `${step.entityName} evaluated: \`${statement}\` and decided that the statement is ${decision}`,
+            role: ChatMessageRoleEnum.Assistant
+          }],
+        }
+      }
+    }
   }
 }
 
@@ -333,7 +417,7 @@ export const instruction = (command: StepCommand): NextFunction<string, string> 
 }
 
 /**
- * @deprecated
+ * @deprecated will be removed in 0.2.0, use instruction instead.
  */
 export const stringCommand = (command: StepCommand) => {
   return instruction(command)

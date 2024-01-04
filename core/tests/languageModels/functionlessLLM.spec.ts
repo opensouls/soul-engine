@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { CortexStep, ChatMessageRoleEnum, decision, externalDialog, internalMonologue, queryMemory, z } from "../../src";
+import { CortexStep, ChatMessageRoleEnum, decision, externalDialog, internalMonologue, questionMemory, z } from "../../src";
 import { FunctionlessLLM } from "../../src/languageModels/FunctionlessLLM";
 
 // this is set to skip because it requires a locally running LLM server.
@@ -93,12 +93,12 @@ describe.skip("FunctionlessLLM", () => {
         const exclaims = await shouts.next(externalDialog("Bogus exclaims!"))
         const continues = await exclaims.next(externalDialog("Bogus continues"))
         console.log(continues.toString());
-        const query = (await continues.next(queryMemory("Please provide a summary of everything Bogus said"))).value
+        const query = (await continues.next(questionMemory("Please provide a summary of everything Bogus said"))).value
         console.log(query)
         expect(query).to.have.length.greaterThan(10)
       } else {
         console.log(action.toString())
-        const query = (await action.next(queryMemory("Please provide a summary of everything Bogus said"))).value
+        const query = (await action.next(questionMemory("Please provide a summary of everything Bogus said"))).value
         console.log(query)
         expect(query).to.have.length.greaterThan(10)
       }
