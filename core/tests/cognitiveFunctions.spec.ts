@@ -79,7 +79,6 @@ describe("cognitiveFunctions", () => {
       ])
 
       const result = await game.next(mentalQuery(`Samantha's conversation partner told them they guessed the rockstar correctly.`))
-      // const result = await game.next(mentalQuery(`Samantha has guessed the rockstar correctly.`))
       expect(result.value).to.be.false
     })
   })
