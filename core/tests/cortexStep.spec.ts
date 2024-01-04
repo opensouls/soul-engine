@@ -1,4 +1,4 @@
-import { ChatMessageRoleEnum, CortexStep, decision, instruction, queryMemory, externalDialog, internalMonologue, spokenDialog } from "../src";
+import { ChatMessageRoleEnum, CortexStep, decision, instruction, questionMemory, externalDialog, internalMonologue, spokenDialog } from "../src";
 import { expect } from "chai";
 import { z } from "zod";
 import { trace } from "@opentelemetry/api";
@@ -352,13 +352,13 @@ describe("CortexStep", () => {
           const exclaims = await shouts.next(externalDialog("Bogus exclaims!"))
           const continues = await exclaims.next(externalDialog("Bogus continues"))
           console.log(continues.toString());
-          const query = (await continues.next(queryMemory("Please provide a summary of everything Bogus said"))).value
+          const query = (await continues.next(questionMemory("Please provide a summary of everything Bogus said"))).value
           span.end()
           console.log(query)
           expect(query).to.have.length.greaterThan(10)
         } else {
           console.log(action.toString())
-          const query = (await action.next(queryMemory("Please provide a summary of everything Bogus said"))).value
+          const query = (await action.next(questionMemory("Please provide a summary of everything Bogus said"))).value
           span.end()
           console.log(query)
           expect(query).to.have.length.greaterThan(10)
