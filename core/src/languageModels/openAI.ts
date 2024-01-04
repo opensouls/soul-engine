@@ -15,6 +15,7 @@ import {
 import { zodToSchema } from "./zodToSchema";
 import { html } from "common-tags";
 import { ReusableStream } from "./reusableStream";
+import { backOff } from "exponential-backoff";
 
 const MAX_RETRIES = 3;
 
@@ -89,6 +90,7 @@ export class OpenAILanguageProgramProcessor
       stream: false,
     };
     this.defaultRequestOptions = {
+      timeout: 10_000,
       ...defaultRequestOptions
     }
   }
@@ -163,9 +165,9 @@ export class OpenAILanguageProgramProcessor
     requestOptions: RequestOptionsStreaming = { stream: true },
     retryError: RetryInformation | undefined = undefined
   ): Promise<{
-      response: Promise<ExecutorResponse<FunctionCallReturnType>>,
-      stream: AsyncIterable<string>,
-    }> {
+    response: Promise<ExecutorResponse<FunctionCallReturnType>>,
+    stream: AsyncIterable<string>,
+  }> {
     return tracer.startActiveSpan('streamingExecute', async (span) => {
       try {
         const { functionCall, ...restRequestParams } = completionParams;
@@ -216,15 +218,24 @@ export class OpenAILanguageProgramProcessor
           "request-options": JSON.stringify(requestOptions || {}),
         });
 
-        const stream = await this.client.chat.completions.create(
-          { ...params, stream: true },
-          {
-            ...this.defaultRequestOptions,
-            ...requestOptions,
+        const stream = await backOff(() => {
+          return this.client.chat.completions.create(
+            { ...params, stream: true },
+            {
+              ...this.defaultRequestOptions,
+              ...requestOptions,
+            }
+          )
+        }, {
+          maxDelay: 200,
+          numOfAttempts: 3,
+          retry: (e, attempt) => {
+            console.error("error in open ai call", e, attempt)
+            return true
           }
-        );
+        })
 
-        const _generateContent = async function*() {
+        const _generateContent = async function* () {
           for await (const res of stream) {
             if (res.choices && res.choices.length > 0) {
               const message = res.choices[0].delta;
@@ -241,7 +252,7 @@ export class OpenAILanguageProgramProcessor
 
         const reusableStream = new ReusableStream(_generateContent())
 
-        const streamToText = async function*() {
+        const streamToText = async function* () {
           for await (const res of reusableStream.stream()) {
             yield res.content || res.functionCall?.arguments || "";
           }
@@ -258,7 +269,7 @@ export class OpenAILanguageProgramProcessor
             }
           }
 
-          let parsedFnCall: {name: string, arguments: string} | undefined = undefined
+          let parsedFnCall: { name: string, arguments: string } | undefined = undefined
 
           if (functionCall && returnedFunctionallArguments) {
             if (typeof functionCall === "string") {
@@ -275,7 +286,7 @@ export class OpenAILanguageProgramProcessor
             "completion-content": content,
             "completion-function-call": JSON.stringify(returnedFunctionallArguments || "{}"),
           })
-  
+
           const { error, parsed } = this.validateFunctioncall(functionCall, {
             content: content,
             function_call: parsedFnCall,
@@ -285,7 +296,7 @@ export class OpenAILanguageProgramProcessor
             console.error("error in execute", error)
             throw new Error('error in execute')
           }
-  
+
           return {
             content: content,
             functionCall: parsedFnCall as (FunctionCall | undefined),
@@ -297,7 +308,7 @@ export class OpenAILanguageProgramProcessor
           response: respFunction(),
           stream: streamToText(),
         };
-     
+
       } catch (err: any) {
         span.recordException(err);
         console.error('error in execute', err);
@@ -370,13 +381,22 @@ export class OpenAILanguageProgramProcessor
           "request-options": JSON.stringify(requestOptions || {}),
         });
 
-        const res = await this.client.chat.completions.create(
-          { ...params, stream: false },
-          {
-            ...this.defaultRequestOptions,
-            ...requestOptions,
+        const res = await backOff(() => {
+          return this.client.chat.completions.create(
+            { ...params, stream: false },
+            {
+              ...this.defaultRequestOptions,
+              ...requestOptions,
+            }
+          )
+        }, {
+          maxDelay: 200,
+          numOfAttempts: 3,
+          retry: (e, attempt) => {
+            console.error("error in open ai call", e, attempt)
+            return true
           }
-        );
+        })
 
         span.setAttributes({
           "total-tokens": res.usage?.total_tokens || "?",
