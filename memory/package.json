@@ -39,8 +39,8 @@
   },
   "dependencies": {
     "@opentelemetry/api": "^1.4.1",
-    "@xenova/transformers": "^2.5.3",
-    "gpt-tokenizer": "^2.1.1",
+    "@xenova/transformers": "^2.13.3",
+    "gpt-tokenizer": "^2.1.2",
     "uuid": "^9.0.1"
   },
   "optionalDependencies": {
