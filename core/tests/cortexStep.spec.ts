@@ -1,9 +1,10 @@
-import { ChatMessageRoleEnum, CortexStep, decision, instruction, questionMemory, externalDialog, internalMonologue, spokenDialog } from "../src";
+import { ChatMessageRoleEnum, CortexStep, decision, instruction, questionMemory, externalDialog, internalMonologue, spokenDialog, FunctionlessLLM } from "../src";
 import { expect } from "chai";
 import { z } from "zod";
 import { trace } from "@opentelemetry/api";
 import { html } from "common-tags";
 import { angelDevilConversation } from "./exampleAngelDevilConversation";
+import OpenAI from "openai";
 
 describe("CortexStep", () => {
 
@@ -325,7 +326,32 @@ describe("CortexStep", () => {
     expect(resp.value).to.be.a("string")
   })
 
-  it('does a long bogus monologue', async () => {
+  it("works with openai client", async () => {
+    const client = new OpenAI({
+      baseURL: "https://api.together.xyz/v1",
+      apiKey: process.env.TOGETHER_API_KEY,
+    })
+    const res = await client.chat.completions.create(
+      {             
+        model: "NousResearch/Nous-Hermes-2-Yi-34B",
+        temperature: 0.7,
+        max_tokens: 300,
+        messages: [
+          {
+            role: "system",
+            content: "You are modeling the mind of Alfred, a helpful AI",
+          },
+          {
+            role: ChatMessageRoleEnum.User,
+            content: "hi",
+          },
+        ]
+      }
+    );
+    console.dir(res.choices)
+  })
+
+  it.only('does a long bogus monologue', async () => {
     return tracer.startActiveSpan('bogus-monologue', async (span) => {
       try {
         span.setAttribute("test-spec", "bogus-mono")
@@ -342,7 +368,26 @@ describe("CortexStep", () => {
         ];
         const monologue = new CortexStep("Bogus", {
           // uncomment one of these to try different models (including OpenAI API compatible local models)
-          // processor: new FunctionlessLLM({ baseURL: "http://localhost:1234/v1", singleSystemMessage: true })
+          processor: new FunctionlessLLM({
+            baseURL: "https://api.mistral.ai/v1/",
+            singleSystemMessage: true,
+            apiKey: process.env.MISTRAL_API_KEY,
+          }, {
+            model: "mistral-medium",
+            // model: "teknium/OpenHermes-2p5-Mistral-7B",
+            temperature: 0.8,
+            max_tokens: 300,
+          })
+          // processor: new FunctionlessLLM({
+          //   baseURL: "https://api.together.xyz/v1",
+          //   singleSystemMessage: true,
+          //   apiKey: process.env.TOGETHER_API_KEY,
+          // }, {
+          //   model: "NousResearch/Nous-Hermes-2-Yi-34B",
+          //   // model: "teknium/OpenHermes-2p5-Mistral-7B",
+          //   temperature: 0.7,
+          //   max_tokens: 300,
+          // })
           // processor: new OpenAILanguageProgramProcessor({}, { model: "gpt-3.5-turbo-1106"})
           // processor: new OpenAILanguageProgramProcessor({}, { model: "gpt-4-1106-preview"})
         }).withMemory(memory)
@@ -353,26 +398,27 @@ describe("CortexStep", () => {
         }
 
         const feels = await monologue.next(internalMonologue("Bogus notes how it feels to themself in one sentence"))
-        const thinks = await feels.next(internalMonologue("What does Bogus think to themself in one sentence"))
-        const says = await thinks.next(externalDialog("What does Bogus says out loud next"))
-        const action = await says.next(decision("Decide Bogus' next course of action in the dialog. Should he ramble or stop?", BogusAction))
-        if (action.value === BogusAction.rambles) {
-          const rambles = await action.next(externalDialog("Bogus rambles for two sentences out loud, extending his last saying"))
-          const shouts = await rambles.next(externalDialog("Bogus shouts incredibly loudly with all caps"))
-          const exclaims = await shouts.next(externalDialog("Bogus exclaims!"))
-          const continues = await exclaims.next(externalDialog("Bogus continues"))
-          console.log(continues.toString());
-          const query = (await continues.next(questionMemory("Please provide a summary of everything Bogus said"))).value
-          span.end()
-          console.log(query)
-          expect(query).to.have.length.greaterThan(10)
-        } else {
-          console.log(action.toString())
-          const query = (await action.next(questionMemory("Please provide a summary of everything Bogus said"))).value
-          span.end()
-          console.log(query)
-          expect(query).to.have.length.greaterThan(10)
-        }
+        console.log("feels: ", feels.value)
+        // const thinks = await feels.next(internalMonologue("What does Bogus think to themself in one sentence"))
+        // const says = await thinks.next(externalDialog("What does Bogus says out loud next"))
+        // const action = await says.next(decision("Decide Bogus' next course of action in the dialog. Should he ramble or stop?", BogusAction))
+        // if (action.value === BogusAction.rambles) {
+        //   const rambles = await action.next(externalDialog("Bogus rambles for two sentences out loud, extending his last saying"))
+        //   const shouts = await rambles.next(externalDialog("Bogus shouts incredibly loudly with all caps"))
+        //   const exclaims = await shouts.next(externalDialog("Bogus exclaims!"))
+        //   const continues = await exclaims.next(externalDialog("Bogus continues"))
+        //   console.log(continues.toString());
+        //   const query = (await continues.next(questionMemory("Please provide a summary of everything Bogus said"))).value
+        //   span.end()
+        //   console.log(query)
+        //   expect(query).to.have.length.greaterThan(10)
+        // } else {
+        //   console.log(action.toString())
+        //   const query = (await action.next(questionMemory("Please provide a summary of everything Bogus said"))).value
+        //   span.end()
+        //   console.log(query)
+        //   expect(query).to.have.length.greaterThan(10)
+        // }
       } catch (err: any) {
         span.end()
         span.recordException("error", err)

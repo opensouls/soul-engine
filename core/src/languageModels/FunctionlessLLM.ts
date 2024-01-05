@@ -326,6 +326,8 @@ export class FunctionlessLLM
             ...requestOptions,
           }
         );
+        console.dir(res.choices)
+
 
         span.setAttributes({
           "total-tokens": res.usage?.total_tokens || "?",
