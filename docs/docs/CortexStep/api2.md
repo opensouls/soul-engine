@@ -43,7 +43,8 @@ let step = new CortexStep("Assistant", {
 ```javascript
 step = step.withMonologue(html`
   Samantha thought: This is getting out of control, I need to leave.
-`)```
+`)
+```
 
 ### toString()
 
