@@ -142,14 +142,13 @@ export class CortexStep<LastValueType = undefined> {
 
   /**
    * Adds the given thought to the step as a new memory and returns a new step (does not modify existing step)
-   * @param thought a thought the internal entity will now remember
-   * @param verbPhrase a verb phrase like 'thought', 'thought to themself', 'screamed internally', etc.
+   * @param narrative a narrative phrase like "Samantha thought: This is getting out of control, I need to leave."
    * @returns A new CortexStep instance with the added memories.
    */
-  withMonologue(thought: string, verbPhrase = "thought") {
+  withMonologue(narrative: string) {
     const memory = [{
       role: ChatMessageRoleEnum.Assistant,
-      content: `${this.entityName} ${verbPhrase}: ${thought}`,
+      content: narrative,
       name: this.entityName,
     }]
     return new CortexStep<LastValueType>(this.entityName, {
