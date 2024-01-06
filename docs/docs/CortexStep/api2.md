@@ -36,9 +36,9 @@ let step = new CortexStep("Assistant", {
 
 ## Other Methods
 
-### withMonologue(thought, verbPhrase)
+### withMonologue(narrative)
 
-`withMonologue(thought: string, verbPhrase = "thought")` is syntactic sugar for adding a memory to the step of the form: `<entity> <verbPhrase>: <thought>`
+`withMonologue(narrative: string)` is syntactic sugar for adding a memory to the step, intended of the form: `"Samantha thought: This is getting out of control, I need to leave."`
 
 ### toString()
 
