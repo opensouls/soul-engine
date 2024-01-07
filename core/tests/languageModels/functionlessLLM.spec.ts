@@ -1,9 +1,9 @@
 import { expect } from "chai";
 import { CortexStep, ChatMessageRoleEnum, decision, externalDialog, internalMonologue, questionMemory, z } from "../../src";
-import { FunctionlessLLM } from "../../src/languageModels/FunctionlessLLM";
+import { FunctionlessLLM } from "../../src/languageModels/old_FunctionlessLLM";
 
 // this is set to skip because it requires a locally running LLM server.
-describe.skip("FunctionlessLLM", () => {
+describe.only("FunctionlessLLM", () => {
   it("runs example from readme", async () => {
     const queryMemory = (query: string) => {
       return () => {

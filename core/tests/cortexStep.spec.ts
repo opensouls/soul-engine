@@ -326,7 +326,7 @@ describe("CortexStep", () => {
     expect(resp.value).to.be.a("string")
   })
 
-  it("works with openai client", async () => {
+  it.only("works with openai client", async () => {
     const client = new OpenAI({
       baseURL: "https://api.together.xyz/v1",
       apiKey: process.env.TOGETHER_API_KEY,
@@ -339,11 +339,11 @@ describe("CortexStep", () => {
         messages: [
           {
             role: "system",
-            content: "You are modeling the mind of Alfred, a helpful AI",
+            content: "You are modeling the mind of Alfred, a helpful AI.",
           },
           {
             role: ChatMessageRoleEnum.User,
-            content: "hi",
+            content: "hello alfred.",
           },
         ]
       }
@@ -351,7 +351,7 @@ describe("CortexStep", () => {
     console.dir(res.choices)
   })
 
-  it.only('does a long bogus monologue', async () => {
+  it.skip('does a long bogus monologue', async () => {
     return tracer.startActiveSpan('bogus-monologue', async (span) => {
       try {
         span.setAttribute("test-spec", "bogus-mono")
@@ -368,26 +368,27 @@ describe("CortexStep", () => {
         ];
         const monologue = new CortexStep("Bogus", {
           // uncomment one of these to try different models (including OpenAI API compatible local models)
-          processor: new FunctionlessLLM({
-            baseURL: "https://api.mistral.ai/v1/",
-            singleSystemMessage: true,
-            apiKey: process.env.MISTRAL_API_KEY,
-          }, {
-            model: "mistral-medium",
-            // model: "teknium/OpenHermes-2p5-Mistral-7B",
-            temperature: 0.8,
-            max_tokens: 300,
-          })
           // processor: new FunctionlessLLM({
-          //   baseURL: "https://api.together.xyz/v1",
+          //   baseURL: "https://api.mistral.ai/v1/",
           //   singleSystemMessage: true,
-          //   apiKey: process.env.TOGETHER_API_KEY,
+          //   apiKey: process.env.MISTRAL_API_KEY,
           // }, {
-          //   model: "NousResearch/Nous-Hermes-2-Yi-34B",
+          //   model: "mistral-medium",
           //   // model: "teknium/OpenHermes-2p5-Mistral-7B",
-          //   temperature: 0.7,
+          //   temperature: 0.8,
           //   max_tokens: 300,
           // })
+          processor: new FunctionlessLLM({
+            baseURL: "https://api.together.xyz/v1",
+            singleSystemMessage: true,
+            apiKey: process.env.TOGETHER_API_KEY,
+          }, {
+            // model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
+            model: "NousResearch/Nous-Hermes-2-Yi-34B",
+            // model: "teknium/OpenHermes-2p5-Mistral-7B",
+            temperature: 0.7,
+            max_tokens: 300,
+          })
           // processor: new OpenAILanguageProgramProcessor({}, { model: "gpt-3.5-turbo-1106"})
           // processor: new OpenAILanguageProgramProcessor({}, { model: "gpt-4-1106-preview"})
         }).withMemory(memory)
