@@ -142,6 +142,20 @@ export class CortexStep<LastValueType = undefined> {
     });
   }
 
+  /**
+   * Adds the given thought to the step as a new memory and returns a new step (does not modify existing step)
+   * @param narrative a narrative phrase like "Samantha thought: This is getting out of control, I need to leave."
+   * @returns A new CortexStep instance with the added memories.
+   */
+  withMonologue(narrative: string) {
+    const memory = [{
+      role: ChatMessageRoleEnum.Assistant,
+      content: narrative,
+      name: this.entityName,
+    }]
+    return this.withMemory(memory)
+  }
+
   public toString(): string {
     return this.memories
       .map((m) => {
