@@ -1,44 +1,49 @@
 import OpenAI from "openai";
-import { ChatMessage, ExecutorResponse, FunctionSpecification, LanguageModelProgramExecutor } from ".";
-import { ChatCompletionCreateParams, ChatCompletionMessageParam, ChatCompletionTool } from "openai/resources";
+import { ChatMessage, ChatMessageRoleEnum, ExecutorResponse, FunctionSpecification, LanguageModelProgramExecutor } from ".";
+import { ChatCompletionCreateParams, ChatCompletionMessageParam } from "openai/resources";
 import { RequestOptions } from "openai/core";
 import { trace } from "@opentelemetry/api";
-import { RunnableFunctionWithParse, RunnableTools } from "openai/lib/RunnableFunction";
-import { zodToJsonSchema } from 'zod-to-json-schema';
 import { LanguageModelProgramExecutorExecuteOptions } from "../legacy";
 import { backOff } from "exponential-backoff";
-import { ChatCompletionToolRunnerParams } from "openai/lib/ChatCompletionRunner";
+import { OpenAICompatibleStream } from "./LLMStream";
+import { FunctionToContentConverter } from "./FunctionToContentConverter";
 import { withErrorCatchingSpan } from "./errorCatchingSpan";
 
-type Config = ConstructorParameters<typeof OpenAI>[0];
+type Config = ConstructorParameters<typeof OpenAI>[0] & { singleSystemMessage?: boolean };
 type ChatCompletionParams =
   Partial<ChatCompletionCreateParams>
 
 type DefaultCompletionParams = ChatCompletionParams & {
-  model: ChatCompletionCreateParams["model"];
+  model: ChatCompletionCreateParams["model"] | string;
 };
 
 const tracer = trace.getTracer(
-  'open-souls-openai',
+  'open-souls-functionlessllm2',
   '0.0.1',
 );
 
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-const emptyFunction = () => { }
+function* fakeStream(str: string) {
+  yield str
+}
 
-export class OpenAILanguageProcessor2 implements LanguageModelProgramExecutor {
+export class FunctionlessLLM2 implements LanguageModelProgramExecutor {
   client: OpenAI;
   defaultCompletionParams: DefaultCompletionParams
   defaultRequestOptions: RequestOptions
+  singleSystemMessage: boolean
 
   constructor(
-    openAIConfig: Config = {},
+    executorConfig: Config = {},
     defaultCompletionParams: ChatCompletionParams = {},
     defaultRequestOptions: RequestOptions = {}
   ) {
     const defaultConfig = {
       dangerouslyAllowBrowser: !!process.env.DANGEROUSLY_ALLOW_OPENAI_BROWSER
     }
+
+    const { singleSystemMessage, ...openAIConfig } = executorConfig
+    this.singleSystemMessage = !!singleSystemMessage
+
     this.client = new OpenAI({
       ...defaultConfig,
       ...openAIConfig,
@@ -66,7 +71,7 @@ export class OpenAILanguageProcessor2 implements LanguageModelProgramExecutor {
       const params: ChatCompletionCreateParams = {
         ...this.defaultCompletionParams,
         ...completionParamsWithoutFunctionCall,
-        messages: messages as ChatCompletionMessageParam[],
+        messages: this.compressSystemMessagesIfNeeded(messages) as ChatCompletionMessageParam[],
       }
 
       span.setAttributes({
@@ -75,11 +80,25 @@ export class OpenAILanguageProcessor2 implements LanguageModelProgramExecutor {
       });
 
       if (requestOptions.stream) {
+        // for now, if it's a function call we won't *actually* stream, but we'll provide
+        // the same facade.
+        if ((functionCall as any)?.name) {
+          const fnExecutor = new FunctionToContentConverter(this)
+          const resp = await fnExecutor.executeWithFunctionCall(messages as ChatMessage[], completionParams, functions, requestOptions)
+
+          return {
+            response: Promise.resolve(resp),
+            stream: fakeStream(resp.functionCall.arguments)
+          }
+
+        }
+
         return this.executeStreaming(params, requestOptions, functions)
       }
 
       if (functionCall) {
-        return this.executeWithFunctionCall(params, requestOptions, (functionCall as any), functions)
+        const fnExecutor = new FunctionToContentConverter(this)
+        return fnExecutor.executeWithFunctionCall(messages, completionParams, functions, requestOptions)
       }
 
       return this.nonFunctionExecute(params, requestOptions)
@@ -94,25 +113,20 @@ export class OpenAILanguageProcessor2 implements LanguageModelProgramExecutor {
     response: Promise<ExecutorResponse<any>>,
     stream: AsyncIterable<string>,
   }> {
-    return tracer.startActiveSpan("executeStreaming", async (span) => {
+    return tracer.startActiveSpan('executeStreaming', async (span) => {
       try {
-        const tools = functions.length > 0 ? this.mapFunctionCallsToTools(functions, emptyFunction) as unknown as ChatCompletionTool[] : undefined
-
-        const params = {
-          ...completionParams,
-          ...(tools ? { tools } : {})
-        }
-  
-        const stream = this.client.beta.chat.completions.stream(
-          { ...params, stream: true },
+        const rawStream = await this.client.chat.completions.create(
+          { ...completionParams, stream: true },
           {
             ...this.defaultRequestOptions,
             ...requestOptions,
           }
         )
   
+        const stream = new OpenAICompatibleStream(rawStream)
+  
         const streamToText = async function* () {
-          for await (const res of stream) {
+          for await (const res of stream.stream()) {
             yield res.choices[0].delta.content || res.choices[0].delta.tool_calls?.[0]?.function?.arguments || ""
           }
         }
@@ -126,103 +140,31 @@ export class OpenAILanguageProcessor2 implements LanguageModelProgramExecutor {
             const fn = functions.find((f) => f.name === functionCall.name)
             parsed = fn?.parameters.parse(JSON.parse(functionCall.arguments))
           }
-  
-          const usage = await stream.totalUsage()
-  
+
           span.setAttributes({
-            "total-tokens": usage.total_tokens || "?",
-            "prompt-tokens": usage.prompt_tokens || "?",
-            "completion-tokens": usage.completion_tokens || "?",
             "completion-content": content,
             "completion-function-call": JSON.stringify(functionCall || "{}"),
             "completion-parsed": JSON.stringify(parsed || "{}"),
           })
-
-          span.end()
   
+          span.end()
           return {
             content,
             functionCall: parsed ? { name: functionCall?.name || "", arguments: parsed } : { name: "", arguments: "" },
             parsedArguments: parsed ? parsed : content,
           };
         }
-  
+        
         return {
           response: responseFn(),
           stream: streamToText(),
         }
-      } catch (err: any) {
-        span.recordException(err);
-        console.error("error in open ai call", err)
+      } catch (err:any) {
+        console.error("error in executeStreaming", err)
+        span.recordException(err)
         span.end()
         throw err
       }
-    })
-  }
-
-  private async executeWithFunctionCall(
-    completionParams: ChatCompletionCreateParams,
-    requestOptions: RequestOptions,
-    functionCall: { name: string },
-    functions: FunctionSpecification[] = [],
-  ): Promise<any> {
-    return withErrorCatchingSpan(tracer, "executeWithFunctionCall", async (span) => {
-      let parsed: any
-
-      const handler = (fnCall: any) => {
-        parsed = fnCall
-      }
-
-      const paramsWithFunctions: ChatCompletionToolRunnerParams<any> = {
-        ...completionParams,
-        tool_choice: {
-          type: "function",
-          function: functionCall
-        },
-        tools: this.mapFunctionCallsToTools(functions, handler),
-        stream: false,
-      }
-
-      if (!paramsWithFunctions.model) {
-        throw new Error("missing model")
-      }
-
-      const { content, usage } = await backOff(async () => {
-        const runner = this.client.beta.chat.completions.runTools(
-          { ...paramsWithFunctions },
-          {
-            ...this.defaultRequestOptions,
-            ...requestOptions,
-          }
-        )
-        runner.on("error", (error) => console.error("runner error", error))
-        return {
-          content: await runner.finalContent(),
-          usage: await runner.totalUsage(),
-        }
-      }, {
-        maxDelay: 200,
-        numOfAttempts: 3,
-        retry: (e, attempt) => {
-          console.error("error in open ai call", e, attempt)
-          return true
-        }
-      })
-
-      span.setAttributes({
-        "total-tokens": usage.total_tokens || "?",
-        "prompt-tokens": usage.prompt_tokens || "?",
-        "completion-tokens": usage.completion_tokens || "?",
-        "completion-content": "",
-        "completion-function-call": JSON.stringify(content),
-        "completion-parsed": JSON.stringify(parsed),
-      })
-
-      return {
-        content: "",
-        functionCall: content,
-        parsedArguments: parsed
-      };
     })
   }
 
@@ -266,20 +208,26 @@ export class OpenAILanguageProcessor2 implements LanguageModelProgramExecutor {
     })
   }
 
-  private mapFunctionCallsToTools(functions: FunctionSpecification[], argCapture: (...args: any) => void): RunnableTools<any> {
-    return functions.map((functionSpec): { type: 'function', function: RunnableFunctionWithParse<any> } => {
-      return {
-        type: 'function',
-        function: {
-          name: functionSpec.name || "function_to_call",
-          function: argCapture,
-          description: functionSpec.description || "A function",
-          parse: (resp: string) => {
-            return functionSpec.parameters.parse(JSON.parse(resp))
-          },
-          parameters: zodToJsonSchema(functionSpec.parameters) as any, // TODO: why?!
-        },
+  /**
+   * swaps all but the first system message to user messages for OSS models that only support a single system message.
+   */
+  private compressSystemMessagesIfNeeded(messages: (ChatMessage | ChatCompletionMessageParam)[]): ChatCompletionMessageParam[] {
+    if (!this.singleSystemMessage) {
+      return messages as ChatCompletionMessageParam[]
+    }
+    let firstSystemMessage = false
+    return messages.map((originalMessage) => {
+      const message = { ...originalMessage }
+      if (message.role === ChatMessageRoleEnum.System) {
+        if (firstSystemMessage) {
+          firstSystemMessage = true
+          return message
+        }
+        message.role = ChatMessageRoleEnum.User
+        // systemMessage += message.content + "\n"
+        return message
       }
-    })
+      return message
+    }) as ChatCompletionMessageParam[]
   }
 }

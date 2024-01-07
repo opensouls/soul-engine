@@ -1,10 +1,20 @@
 import { expect } from "chai"
 import { CortexStep, brainstorm, externalDialog } from "../../src"
-import { OpenAILanguageProcessor2 } from "../../src/languageModels/openai2"
+import { FunctionlessLLM2 } from "../../src/languageModels/FunctionlessLLM2"
 
-describe.only("openai2", () => {
+describe.only("FunctionlessLLM2", () => {
   const step = new CortexStep("bob", {
-    processor: new OpenAILanguageProcessor2()
+    processor: new FunctionlessLLM2({
+      baseURL: "https://api.together.xyz/v1",
+      singleSystemMessage: true,
+      apiKey: process.env.TOGETHER_API_KEY,
+    }, {
+      // model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
+      // model: "NousResearch/Nous-Hermes-2-Yi-34B",
+      model: "teknium/OpenHermes-2p5-Mistral-7B",
+      temperature: 0.7,
+      max_tokens: 300,
+    })
   })
 
   it('works with non-streaming, non-functions', async () => {
@@ -24,17 +34,17 @@ describe.only("openai2", () => {
   })
 
   it('streams functions', async () => {
-    const { nextStep, stream } = await step.next(brainstorm("3 ways to say hello"), { stream: true })
+    const { nextStep, stream } = await step.next(brainstorm("hi"), { stream: true })
+    // expect(stream).to.be.an("AsyncGenerator")
     let streamed = ""
     for await (const res of stream) {
       streamed += res
     }
-    console.log("streamed", streamed)
     expect((await nextStep).value).to.be.an("array")
     expect(JSON.parse(streamed).new_ideas[0]).to.equal((await nextStep).value[0])
   })
 
-  it("works with functions", async () => {
+  it.only("works with functions", async () => {
     const result = await step.next(brainstorm("numbers less than 5"))
     expect(result.value).to.be.an("array")
     expect(parseInt(result.value[0])).to.be.a("number")
