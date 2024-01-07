@@ -1,10 +1,10 @@
 import { expect } from "chai"
 import { CortexStep, brainstorm, externalDialog } from "../../src"
-import { OpenAi2 } from "../../src/languageModels/openai2"
+import { OpenAILanguageProcessor2 } from "../../src/languageModels/openai2"
 
 describe.only("openai2", () => {
   const step = new CortexStep("bob", {
-    processor: new OpenAi2()
+    processor: new OpenAILanguageProcessor2()
   })
 
   it('works with non-streaming, non-functions', async () => {
@@ -30,12 +30,13 @@ describe.only("openai2", () => {
     for await (const res of stream) {
       streamed += res
     }
-    expect((await nextStep).value).to.be.a("string")
-    expect(streamed).to.equal((await nextStep).value)
+    expect((await nextStep).value).to.be.an("array")
+    expect(JSON.parse(streamed).new_ideas[0]).to.equal((await nextStep).value[0])
   })
 
   it("works with functions", async () => {
     const result = await step.next(brainstorm("numbers less than 5"))
-    console.log(result.value)
+    expect(result.value).to.be.an("array")
+    expect(parseInt(result.value[0])).to.be.a("number")
   })
 })

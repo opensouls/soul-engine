@@ -22,7 +22,7 @@ const tracer = trace.getTracer(
   '0.0.1',
 );
 
-export class OpenAi2 implements LanguageModelProgramExecutor {
+export class OpenAILanguageProcessor2 implements LanguageModelProgramExecutor {
   client: OpenAI;
   defaultCompletionParams: DefaultCompletionParams
   defaultRequestOptions: RequestOptions
@@ -56,7 +56,7 @@ export class OpenAi2 implements LanguageModelProgramExecutor {
     functions: FunctionSpecification[] = [],
     requestOptions: RequestOptions = {},
   ): Promise<any> {
-    return tracer.startActiveSpan('execute', async (span) => {
+    return tracer.startActiveSpan('execute', async () => {
 
       const { functionCall, ...completionParamsWithoutFunctionCall } = completionParams;
 
@@ -68,7 +68,7 @@ export class OpenAi2 implements LanguageModelProgramExecutor {
       }
 
       if (requestOptions.stream) {
-        return this.executeStreaming(params, requestOptions, (functionCall as any), functions)
+        return this.executeStreaming(params, requestOptions, functions)
       }
 
       if (functionCall) {
@@ -82,47 +82,66 @@ export class OpenAi2 implements LanguageModelProgramExecutor {
   private async executeStreaming(
     completionParams: ChatCompletionCreateParams,
     requestOptions: RequestOptions,
-    functionCall: { name: string },
     functions: FunctionSpecification[] = [],
   ): Promise<{
     response: Promise<ExecutorResponse<any>>,
     stream: AsyncIterable<string>,
   }> {
+    return tracer.startActiveSpan('executeStreaming', async (span) => {
 
-    const tools = functions.length > 0 ? this.mapFunctionCallsToTools(functions, () => { }) : undefined
+      const tools = functions.length > 0 ? this.mapFunctionCallsToTools(functions, () => { }) as unknown as ChatCompletionTool[] : undefined
 
-    const params = { ...completionParams, stream: true, tools  }
-  
-    const stream = this.client.beta.chat.completions.stream(
-      params,
-      {
-        ...this.defaultRequestOptions,
-        ...requestOptions,
+      const params = {
+        ...completionParams,
+        ...(tools ? { tools } : {})
       }
-    )
 
-    const streamToText = async function* () {
-      for await (const res of stream) {
-        yield res.choices[0].delta.content || res.choices[0].delta.tool_calls?.[0]?.function?.arguments || ""
+      const stream = this.client.beta.chat.completions.stream(
+        { ...params, stream: true },
+        {
+          ...this.defaultRequestOptions,
+          ...requestOptions,
+        }
+      )
+
+      const streamToText = async function* () {
+        for await (const res of stream) {
+          yield res.choices[0].delta.content || res.choices[0].delta.tool_calls?.[0]?.function?.arguments || ""
+        }
       }
-    }
 
-    const responseFn = async () => {
-      const content = (await stream.finalContent()) || ""
+      const responseFn = async () => {
+        const content = (await stream.finalContent()) || ""
+        const functionCall = await (stream.finalFunctionCall())
+        let parsed: any = undefined
+
+        if (functionCall) {
+          const fn = functions.find((f) => f.name === functionCall.name)
+          parsed = fn?.parameters.parse(JSON.parse(functionCall.arguments))
+        }
+
+        const usage = await stream.totalUsage()
+
+        span.setAttributes({
+          "total-tokens": usage.total_tokens || "?",
+          "prompt-tokens": usage.prompt_tokens || "?",
+          "completion-tokens": usage.completion_tokens || "?",
+          "completion-content": content,
+          "completion-function-call": JSON.stringify(functionCall || "{}"),
+        })
+
+        return {
+          content,
+          functionCall: parsed ? { name: functionCall?.name || "", arguments: parsed } : { name: "", arguments: "" },
+          parsedArguments: parsed ? parsed : content,
+        };
+      }
+
       return {
-        content,
-        functionCall: {
-          name: "hi",
-          arguments: "asdf"
-        },
-        parsedArguments: content,
-      };
-    }
-
-    return {
-      response: responseFn(),
-      stream: streamToText(),
-    }
+        response: responseFn(),
+        stream: streamToText(),
+      }
+    })
   }
 
   private async executeWithFunctionCall(
@@ -135,7 +154,7 @@ export class OpenAi2 implements LanguageModelProgramExecutor {
 
       let parsed: any
 
-      const handler = (fnCall:any) => {
+      const handler = (fnCall: any) => {
         parsed = fnCall
       }
 
@@ -153,7 +172,7 @@ export class OpenAi2 implements LanguageModelProgramExecutor {
         throw new Error("missing model")
       }
 
-      const functionCallResponse = await backOff(async () => {
+      const { content, usage } = await backOff(async () => {
         const runner = this.client.beta.chat.completions.runTools(
           { ...paramsWithFunctions },
           {
@@ -162,8 +181,10 @@ export class OpenAi2 implements LanguageModelProgramExecutor {
           }
         )
         runner.on("error", (error) => console.error("runner error", error))
-        return runner.finalContent();
-
+        return {
+          content: await runner.finalContent(),
+          usage: await runner.totalUsage(),
+        }
       }, {
         maxDelay: 200,
         numOfAttempts: 3,
@@ -173,9 +194,17 @@ export class OpenAi2 implements LanguageModelProgramExecutor {
         }
       })
 
+      span.setAttributes({
+        "total-tokens": usage.total_tokens || "?",
+        "prompt-tokens": usage.prompt_tokens || "?",
+        "completion-tokens": usage.completion_tokens || "?",
+        "completion-content": "",
+        "completion-function-call": JSON.stringify(content),
+      })
+
       return {
         content: "",
-        functionCall: functionCallResponse,
+        functionCall: content,
         parsedArguments: parsed
       };
     })
@@ -237,5 +266,4 @@ export class OpenAi2 implements LanguageModelProgramExecutor {
       }
     })
   }
-
 }
