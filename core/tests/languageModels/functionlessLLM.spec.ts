@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { CortexStep, ChatMessageRoleEnum, decision, externalDialog, internalMonologue, questionMemory, z, brainstorm } from "../../src";
 import { FunctionlessLLM } from "../../src/languageModels/FunctionlessLLM";
 
-// this is set to skip because it requires a locally running LLM server.
+// this is set to skip because it requires a locally running LLM server or API keys other than OpenAI
 describe.skip("FunctionlessLLM", () => {
   const step = new CortexStep("bob", {
     processor: new FunctionlessLLM({
