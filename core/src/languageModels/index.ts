@@ -1,7 +1,8 @@
 import { ZodSchema } from "zod";
 
 export { OpenAILanguageProgramProcessor } from "./openAI";
-export { FunctionlessLLM } from "./old_FunctionlessLLM";
+export { FunctionlessLLM } from "./FunctionlessLLM";
+export { FunctionToContentConverter } from "./FunctionToContentConverter";
 
 export interface LanguageModelProgramExecutorExecuteOptions {
   stop?: string;

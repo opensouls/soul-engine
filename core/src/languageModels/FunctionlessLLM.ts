@@ -26,7 +26,7 @@ function* fakeStream(str: string) {
   yield str
 }
 
-export class FunctionlessLLM2 implements LanguageModelProgramExecutor {
+export class FunctionlessLLM implements LanguageModelProgramExecutor {
   client: OpenAI;
   defaultCompletionParams: DefaultCompletionParams
   defaultRequestOptions: RequestOptions
