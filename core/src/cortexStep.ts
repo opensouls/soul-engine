@@ -151,13 +151,7 @@ export class CortexStep<LastValueType = undefined> {
       content: narrative,
       name: this.entityName,
     }]
-    return new CortexStep<LastValueType>(this.entityName, {
-      parents: [...this.parents, this.id],
-      tags: { ...this.tags },
-      memories: [...this.memories, ...memory],
-      lastValue: this.lastValue,
-      processor: this.processor,
-    });
+    return this.withMemory(memory)
   }
 
   public toString(): string {
