@@ -9,7 +9,6 @@ import { LanguageModelProgramExecutorExecuteOptions } from "../legacy";
 import { backOff } from "exponential-backoff";
 import { ChatCompletionToolRunnerParams } from "openai/lib/ChatCompletionRunner";
 import { withErrorCatchingSpan } from "./errorCatchingSpan";
-import { ReusableStream } from "./reusableStream";
 import { OpenAICompatibleStream } from "./LLMStream";
 
 type Config = ConstructorParameters<typeof OpenAI>[0];
