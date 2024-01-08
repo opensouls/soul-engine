@@ -215,12 +215,12 @@ export class FunctionlessLLM implements LanguageModelProgramExecutor {
     if (!this.singleSystemMessage) {
       return messages as ChatCompletionMessageParam[]
     }
-    let firstSystemMessage = false
+    let firstSystemMessage = true
     return messages.map((originalMessage) => {
       const message = { ...originalMessage }
       if (message.role === ChatMessageRoleEnum.System) {
         if (firstSystemMessage) {
-          firstSystemMessage = true
+          firstSystemMessage = false
           return message
         }
         message.role = ChatMessageRoleEnum.User
