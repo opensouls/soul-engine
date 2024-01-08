@@ -1,4 +1,4 @@
-import { ChatMessageRoleEnum, CortexStep, decision, instruction, questionMemory, externalDialog, internalMonologue, spokenDialog } from "../src";
+import { ChatMessageRoleEnum, CortexStep, decision, instruction, questionMemory, externalDialog, internalMonologue, spokenDialog, FunctionlessLLM, OpenAILanguageProgramProcessor } from "../src";
 import { expect } from "chai";
 import { z } from "zod";
 import { trace } from "@opentelemetry/api";
@@ -342,7 +342,26 @@ describe("CortexStep", () => {
         ];
         const monologue = new CortexStep("Bogus", {
           // uncomment one of these to try different models (including OpenAI API compatible local models)
-          // processor: new FunctionlessLLM({ baseURL: "http://localhost:1234/v1", singleSystemMessage: true })
+          // processor: new FunctionlessLLM({
+          //   baseURL: "https://api.mistral.ai/v1/",
+          //   singleSystemMessage: true,
+          //   apiKey: process.env.MISTRAL_API_KEY,
+          // }, {
+          //   model: "mistral-medium",
+          //   temperature: 0.8,
+          //   max_tokens: 300,
+          // })
+          // processor: new FunctionlessLLM({
+          //   baseURL: "https://api.together.xyz/v1",
+          //   singleSystemMessage: true,
+          //   apiKey: process.env.TOGETHER_API_KEY,
+          // }, {
+          //   // model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
+          //   model: "NousResearch/Nous-Hermes-2-Yi-34B",
+          //   // model: "teknium/OpenHermes-2p5-Mistral-7B",
+          //   temperature: 0.7,
+          //   max_tokens: 300,
+          // })
           // processor: new OpenAILanguageProgramProcessor({}, { model: "gpt-3.5-turbo-1106"})
           // processor: new OpenAILanguageProgramProcessor({}, { model: "gpt-4-1106-preview"})
         }).withMemory(memory)
@@ -353,6 +372,7 @@ describe("CortexStep", () => {
         }
 
         const feels = await monologue.next(internalMonologue("Bogus notes how it feels to themself in one sentence"))
+        console.log("feels: ", feels.value)
         const thinks = await feels.next(internalMonologue("What does Bogus think to themself in one sentence"))
         const says = await thinks.next(externalDialog("What does Bogus says out loud next"))
         const action = await says.next(decision("Decide Bogus' next course of action in the dialog. Should he ramble or stop?", BogusAction))
