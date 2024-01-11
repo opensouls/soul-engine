@@ -90,3 +90,21 @@ While `CortexStep` allows for the creation of [custom cognitive functions](actio
 ```javascript
 let lastValue = step.value;
 ```
+
+## Streaming support
+
+Response streaming is fully support on `.next` steps
+
+```javascript
+const { stream, nextStep } = await step.next(internalMonologue("thinks, understanding the user's message"), { stream: "true" });
+for await (const chunk of stream) {
+   console.log(chunk);
+}
+step = await nextStep;
+```
+
+## Model specification
+
+By default, `CortexStep` is configured to use OpenAI models. On each `.next` step or `.compute` call, an OpenAI model string can optionally be passed as `.next(..., { model: "gpt-3.5-turbo-1106" })`.
+
+We also have first-class support for open source models through optional specification of a [language model executor interface](/languageModels) when constructing a `CortexStep`.

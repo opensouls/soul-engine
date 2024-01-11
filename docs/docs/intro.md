@@ -32,4 +32,4 @@ We recently updated our codebase to a new version of socialagi. Older code is pr
 
 ## Supported LLMs
 
-SocialAGI is primarily intended to work with OpenAI, however, it is possible to substitute in any language model through our [executor and streaming interfaces](/languageModels).
+SocialAGI is primarily intended to work with OpenAI, however, it is possible to substitute in any language model through our [language model executor interface](/languageModels).
