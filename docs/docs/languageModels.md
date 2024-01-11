@@ -36,12 +36,38 @@ interface LanguageModelProgramExecutor {
 We also include a `FunctionlessLLM` `LanguageModelProgramExecutor` implementation that supports APIs with OpenAI chat API support (but does *not* require function calling support). This executor also supports calling APIs that do not allow more than one system message:
 
 ```typescript
-  let step = new CortexStep("Jonathan", {
-    processor: new FunctionlessLLM({
-      baseURL: "http://localhost:1234/v1",
-      compressSystemMessages: true,
-    })
-  });
+let step = new CortexStep("Jonathan", {
+  processor: new FunctionlessLLM({
+    baseURL: "http://localhost:1234/v1",
+    compressSystemMessages: true,
+  })
+});
+```
+
+Many Mistral and Together AI models work with this same interface, though we recommend only using their most intelligent models, e.g.
+```typescript
+const monologue = new CortexStep("Jonathan", {
+  processor: new FunctionlessLLM({
+  baseURL: "https://api.mistral.ai/v1/",
+  singleSystemMessage: true,
+  apiKey: "your_xyz_MISTRAL_API_KEY",
+}, {
+  model: "mistral-medium",
+  temperature: 0.8,
+  max_tokens: 300,
+})
+```
+or
+```typescript
+processor: new FunctionlessLLM({
+  baseURL: "https://api.together.xyz/v1",
+  singleSystemMessage: true,
+  apiKey: "your_xyz_TOGETHER_API_KEY",
+}, {
+  model: "NousResearch/Nous-Hermes-2-Yi-34B",
+  temperature: 0.7,
+  max_tokens: 300,
+})
 ```
 
 ### Example OpenAI completion engines
