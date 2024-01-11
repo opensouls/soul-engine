@@ -96,7 +96,7 @@ let lastValue = step.value;
 Response streaming is fully support on `.next` steps
 
 ```javascript
-const { stream, nextStep } = await step.next(internalMonologue("thinks, understanding the user's message"), { stream: "true" });
+const { stream, nextStep } = await step.next(internalMonologue("thinks, understanding the user's message"), { stream: true });
 for await (const chunk of stream) {
    console.log(chunk);
 }
