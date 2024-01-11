@@ -1,13 +1,9 @@
 ---
-id: advanced-examples
+id: metacognition
 sidebar_position: 7
 ---
 
-# Advanced Examples
-
-This collection of advanced examples illustrates quite complex topics at the frontier of AI cognitive modeling.
-
-## Metacognition
+# Metacognition
 
 Here we display a much more complex example of the following and intriguing concept: what if an AI Soul is given the capacity to remember and think about how it is thinking? This concept is generally known as metacognition, and is a core skill humans display. This example is currently presented without further context.
 
