@@ -34,8 +34,8 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "gpt-tokenizer": "^2.1.1",
-    "puppeteer": "^21.3.6",
-    "turndown": "^7.1.2"
+    "gpt-tokenizer": "~2.1.2",
+    "puppeteer": "~21.7.0",
+    "turndown": "~7.1.2"
   }
 }
