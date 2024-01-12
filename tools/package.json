@@ -1,6 +1,6 @@
 {
   "name": "@socialagi/tools",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A library for loading web pages and other resources for use in socialagi. It provides efficient and reliable tools for Open Souls to use.",
   "main": "dist/src/index.js",
   "publishConfig": {
@@ -34,8 +34,8 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "gpt-tokenizer": "^2.1.1",
-    "puppeteer": "^21.3.6",
-    "turndown": "^7.1.2"
+    "gpt-tokenizer": "~2.1.2",
+    "puppeteer": "~21.7.0",
+    "turndown": "~7.1.2"
   }
 }

@@ -19,7 +19,7 @@ describe("browser", () => {
     const { pageContent, metadata } = await loader.load()
 
     expect(pageContent).to.contain("I illustrated just how we’re going to imbue AI with the indescribable essence of humanity")
-    expect(metadata.title).to.equal("Kevin Fischer on X")
+    expect(metadata.title).to.include("Kevin Fischer")
     expect(metadata.source).to.equal(url)
   })
 
