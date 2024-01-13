@@ -22,13 +22,7 @@ Check out the full documentation at [socialagi.dev](http://socialagi.dev)!
 
 ## 💫 AI Souls
 
-SocialAGI aims to simplify the developer experience as much as possible in creating agentic and embodied Open Souls. Unlike traditional chatbots, Open Souls have personality, drive, ego, and will.
-
-We are solving problems all the way across the AI souls stack, including:
-- How do I create the most lifelike AI entity?
-- How do I quickly host an AI soul?
-- How do I manage dialog and cognitive memory?
-- How do I get away from boring technical details and instead sculpt personalities?
+AI Souls are agentic and embodied digital beings, one day comprising thousands of linguistic instructions (managed by SocialAGI). Unlike traditional chatbots, these SocialAGI instructions will give digital souls personality, drive, ego, and will.
 
 ## Key Concepts
 
