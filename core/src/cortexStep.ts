@@ -157,7 +157,7 @@ export class CortexStep<LastValueType = undefined> {
   }
 
   public toString(): string {
-    return this.memories
+    return this.memories.flat()
       .map((m) => {
         if (m.role === "system") {
           return `<System>\n${m.content}\n</System>`;
