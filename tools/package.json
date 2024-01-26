@@ -1,0 +1,41 @@
+{
+  "name": "@socialagi/tools",
+  "version": "0.0.4",
+  "description": "A library for loading web pages and other resources for use in socialagi. It provides efficient and reliable tools for Open Souls to use.",
+  "main": "dist/src/index.js",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "build": "rm -rf dist && tsc",
+    "test": "mocha",
+    "prepublishOnly": "npm run build"
+  },
+  "files": [
+    "dist/src"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:opensouls/SocialAGI.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/chai": "^4.3.6",
+    "@types/common-tags": "^1.8.2",
+    "@types/mocha": "^10.0.2",
+    "@types/turndown": "^5.0.2",
+    "chai": "^4.3.10",
+    "common-tags": "^1.8.2",
+    "mocha": "^10.2.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "gpt-tokenizer": "~2.1.2",
+    "puppeteer": "~21.7.0",
+    "turndown": "~7.1.2"
+  }
+}

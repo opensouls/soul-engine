@@ -1,0 +1,49 @@
+{
+  "name": "@socialagi/memory",
+  "version": "0.0.4",
+  "description": "",
+  "files": [
+    "dist"
+  ],
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "build": "rm -rf dist && tsc",
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:opensouls/SocialAGI.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/opensouls/SocialAGI/issues"
+  },
+  "homepage": "https://github.com/opensouls/SocialAGI#readme",
+  "devDependencies": {
+    "@types/chai": "^4.3.5",
+    "@types/mocha": "^10.0.1",
+    "@types/uuid": "^9.0.5",
+    "chai": "^4.3.8",
+    "dotenv": "^16.3.1",
+    "eslint": "^8.47.0",
+    "mocha": "^10.2.0",
+    "prettier": "^3.0.2",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.4.1",
+    "@xenova/transformers": "^2.13.3",
+    "gpt-tokenizer": "^2.1.2",
+    "uuid": "^9.0.1"
+  },
+  "optionalDependencies": {
+    "@opentelemetry/sdk-node": "^0.41.2"
+  }
+}

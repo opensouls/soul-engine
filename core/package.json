@@ -1,0 +1,89 @@
+{
+  "name": "socialagi",
+  "version": "0.1.5",
+  "description": "Subroutines for AI Souls",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "scripts": {
+    "build": "rm -rf dist && tsc",
+    "test": "mocha",
+    "prepublishOnly": "npm run build"
+  },
+  "exports": {
+    ".": "./dist/src/index.js",
+    "./instrumentation": "./dist/src/instrumentation.js",
+    "./legacy": "./dist/src/legacy/index.js",
+    "./next": "./dist/src/index.js",
+    "./next/instrumentation": "./dist/src/instrumentation.js"
+  },
+  "files": [
+    "dist/src"
+  ],
+  "keywords": [
+    "soul",
+    "entity",
+    "personality",
+    "dialog",
+    "chatbot",
+    "agent",
+    "chat",
+    "llm",
+    "ai",
+    "gpt3",
+    "gpt4",
+    "linguistic programming",
+    "chain",
+    "prompt",
+    "prompt engineering",
+    "chatgpt",
+    "personality",
+    "ml",
+    "machine learning",
+    "openai"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opensouls/SocialAGI.git"
+  },
+  "author": "SocialAGI",
+  "license": "ISC",
+  "devDependencies": {
+    "@socialagi/memory": "^0.0.2",
+    "@types/chai": "^4.3.5",
+    "@types/common-tags": "^1.8.1",
+    "@types/dotenv": "^8.2.0",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^18.16.16",
+    "@types/react": "^18.2.15",
+    "@types/react-dom": "^18.2.6",
+    "@typescript-eslint/eslint-plugin": "^5.59.2",
+    "chai": "^4.3.7",
+    "dotenv": "^16.3.1",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-config-recommended": "^4.1.0",
+    "eslint-plugin-jest": "^27.2.1",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-typescript": "^0.14.0",
+    "mocha": "^10.2.0",
+    "prettier": "^2.8.8",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.6.0",
+    "abort-controller": "^3.0.0",
+    "async-mutex": "^0.4.0",
+    "common-tags": "^1.8.2",
+    "exponential-backoff": "^3.1.1",
+    "openai": "^4.24.1",
+    "uuidv4": "^6.2.13",
+    "zod": "^3.22.4",
+    "zod-to-json-schema": "^3.22.3"
+  },
+  "optionalDependencies": {
+    "@opentelemetry/sdk-node": "^0.43.0",
+    "next": "*",
+    "react": "*"
+  }
+}

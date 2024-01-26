@@ -1,0 +1,203 @@
+---
+id: Example
+sidebar_position: 2
+title: A simple RAGBot
+description: Explore a super clean implementation of RAG
+image: http://socialagi.dev/doc_images/ragbot.png
+keywords: [RAG, memory, retrieval]
+---
+import ExampleCard from "@site/src/components/ExampleCard";
+
+# Retrieval Augmented Generation Example
+
+In this example we will use both `@socialagi/memory` and `@socialagi/tools` to create a QA bot that will visit a web page, divide it into sections, store it in a `MemoryStream` and make it available for Question and Answers (all in just a little bit of code).
+
+<ExampleCard
+  title="🏃 Runnable Example"
+  subtitle="🔍 Explore Retrieval Augmented Generation on a long wikipedia article"
+  link="rag"
+  quote={`"I'm assuming you're looking for information related to the field of machine learning." - Tamara `} />
+
+
+Import the necessary pacakges.
+
+```typescript
+import { Memory, MemoryStream } from "@socialagi/memory"
+import { WebLoader, createBrowser, splitSections } from "@socialagi/tools"
+import { html } from "common-tags"
+import { EventEmitter } from "events"
+import { ChatMessageRoleEnum, CortexScheduler, CortexStep, MentalProcess, z } from "socialagi"
+```
+
+Setup our Cognitive Functions
+
+```typescript
+const storageQuestion = () => {
+  return ({entityName }: CortexStep<any>) => {
+    const params = z.object({
+      questions: z.array(z.string()).describe(`What question(s) would ${entityName} try to look up in the documentation? (at most 3)`)
+    })
+
+    return {
+      name: `create_and_save_storage_lookup`.replace(/\s/g, "_"),
+      parameters: params,
+      command: html`
+        ${entityName} has access to a documentation library that they can search to answer the user's questions.
+        ${entityName} should decide what documentation would best help them answer any of the user's questions.
+        
+        Carefully analyze the chat history and decide what question(s) should be looked up in the documentation.
+      `,
+    }
+  }
+}
+
+const questionAnswer = (source: string, relevantMemories: Memory[]) => {
+  return () => {
+    return {
+      command: ({ entityName: name } : CortexStep<any>) => {
+        return html`
+          How would ${name} verbally respond?
+
+          ## Relevant Documentation
+          source: ${source}
+
+          ${relevantMemories.map((memory) => html`
+            * ${memory.content} 
+          `)}
+  
+          ## Instructions
+          * You only answer questions about ${source}. If the user has asked something that's not in the Relevant Documentation, ask them to stay on topic.
+          * Use the Relevant Documenation as the *only* source of truth.
+          * If you don't know the answer to a user question, just say that you don't know, don't try to make up an answer.
+          * Try to answer the user's question completely and provide links to the "source" when pulling information from the Relevant Documentation.
+          * The response should be short (as most speech is short).
+          * Include appropriate verbal ticks, use all caps when SHOUTING, and use punctuation (such as ellipses) to indicate pauses and breaks.
+          * Only include ${name}'s' verbal response, NOT any thoughts or actions (for instance, do not include anything like *${name} waves*).
+          * Do NOT include text that is not part of ${name}'s speech. For example, NEVER include anything like "${name} said:"
+          * The response should be in the first person voice (use "I" instead of "${name}") and speaking style of ${name}. 
+
+          Pretend to be ${name}!
+        `;
+      },
+      commandRole: ChatMessageRoleEnum.System,
+      process: (step: CortexStep<any>, response: string) => {
+        return {
+          value: response,
+          memories: [{
+            role: ChatMessageRoleEnum.Assistant,
+            content: `${step.entityName} said: ${response}`
+          }],
+        }
+      }
+    }
+  }
+}
+```
+
+Load up the website, and chunk it into 400 token length sections (this particular page is very long, over 280 of these sections).
+
+```typescript
+
+const url = "https://en.wikipedia.org/wiki/Deep_learning"
+  const emitter = new EventEmitter()
+  const stream = new MemoryStream()
+
+  const browser = await createBrowser()
+  try {
+    const loader = new WebLoader({
+      browser,
+      url,
+    })
+    const content = await loader.load()
+    const sections = splitSections(content.pageContent, 400)
+    console.log("page loaded, sections: ", sections.length)
+
+    await Promise.all(sections.map(async (section) => {
+      try {
+        if (!section) {
+          return
+        }
+        return stream.store({
+          content: section,
+          metadata: {
+            source: url,
+          }
+        })
+      } catch (err) {
+        console.error("error storing section", err, section)
+        throw err
+      }
+
+    }))
+    console.log("loaded up sections. count:", sections.length)
+  } catch (err) {
+    console.error("error getting page", err)
+    throw err
+  } finally {
+    browser.close()
+  }
+```
+
+Set up our CortexScheduler to handle user's questions, use our cognitive functions we setup before, and answer based on the user's questions.
+
+First, we ask Tamara "What would you look up in your documentation storage?" to get a better retrieval focal point (for the embeddings).
+
+Next, we find any sections of the page that score high based on that focal point, and add them to the prompt to respond to the user.
+
+```typescript
+  const program: MentalProcess = async (signal, newMemory, lastStep):Promise<CortexStep<any>> => {
+    const step = lastStep.withMemory([newMemory])
+
+    const questionStep = await step.next(storageQuestion())
+    emitter.emit("questions", questionStep.value.questions)
+    
+    const memories = (await Promise.all(questionStep.value.questions.map(async (q) => {
+      const relevantSections = (await stream.search(q)).slice(3)
+      return relevantSections
+    }))).flat().filter((memory) => memory.similarity > 0.6)
+    memories.sort((a, b) => b.similarity - a.similarity)
+    const topMemories = memories.slice(0, 4)
+    
+    const resp = await step.next(questionAnswer(url, topMemories))
+
+    emitter.emit("response", resp.value)
+    return resp
+  }
+
+  const firstStep = new CortexStep("Tamara").withMemory([
+    {
+      role: ChatMessageRoleEnum.System,
+      content: html`
+        # You are modeling the mind of Tamara.
+
+        ## Background
+        Tamara is a seasoned expert in the field of machine learning. 
+        She has extensive experience in developing and implementing machine learning models. 
+        Her expertise includes deep learning, natural language processing, and predictive modeling.
+
+        ## Speaking Style
+        Tamara speaks in a clear and concise manner. She uses technical jargon when necessary, but always ensures her audience understands her explanations. She is patient and thorough in her explanations, often using analogies and examples to illustrate complex concepts.
+
+        ## Instructions
+
+        * Try to answer the user's question completely and provide links to the "source" when pulling information from the Relevant Documentation.
+        * It's REALLY GOOD to joke around, and tease the user, but don't be mean.
+        * Always do ELI5 (Explain Like I'm 5) when possible.
+      `
+    }
+  ])
+
+
+
+  const scheduler = new CortexScheduler(firstStep)
+  scheduler.register({
+    name: "RAGBot",
+    process: program,
+  })
+  
+
+```
+
+And we're done!
+
+Don't forget to check out the [runnable example](/playground?load=rag) (which skips doing the browser import).

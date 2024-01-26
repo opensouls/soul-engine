@@ -1,0 +1,100 @@
+.app {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  padding: 2rem;
+  margin-left: 5%;
+  margin-right: 5%;
+  padding-top: 0px;
+  margin-bottom: 50px;
+}
+
+.title {
+  justify-content: start;
+  width: 100%;
+  margin: 1rem;
+  padding: 1rem;
+  margin-bottom: -25px;
+}
+
+.heading {
+  margin-left: -16.5px;
+  font-size: var(--ifm-h1-font-size);
+  color: var(--ifm-heading-color);
+  font-family: var(--ifm-heading-font-family);
+  font-weight: var(--ifm-heading-font-weight);
+  line-height: var(--ifm-heading-line-height);
+}
+
+.subheading {
+  margin-top: 12px;
+  margin-left: -16.5px;
+}
+
+.card {
+  background: var(--ifm-card-background-color);
+  border-radius: var(--ifm-card-border-radius);
+  margin: 1rem;
+  padding: 1rem;
+  width: calc(100% - 2rem);
+  transition: all var(--ifm-transition-fast) ease;
+  transition-property: border,box-shadow;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  box-shadow: 0 1.5px 3px 0 rgba(0,0,0,.15);
+  cursor: pointer;
+  text-align: left;
+}
+
+@media screen and (min-width: 900px) {
+  .card {
+    width: calc(50% - 2rem);
+  }
+}
+
+.card:hover {
+  border: 1px solid var(--ifm-breadcrumb-color-active) !important;
+}
+
+@media screen and (max-width: 500px) {
+  .app {
+    margin-left: 5px;
+    padding: 2rem;
+    margin-right: 5%;
+    padding-top: 0px;
+    padding-left: 0.7rem;
+  }
+  .card {
+    margin: 0rem;
+    margin-bottom: 1rem;
+    margin-top: 0.5rem;
+    width: 100%;
+  }
+  .title {
+    margin: 0;
+  }
+  .subheading {
+    margin-bottom: -1px;
+  }
+}
+
+.card-title {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  color: var(--ifm-color-secondary);
+  text-align: left;
+}
+
+.card-subtitle {
+  font-size: 0.8rem;
+  margin-bottom: 1rem;
+  color: var(--ifm-color-secondary);
+  text-align: left;
+  font-weight: normal;
+}
+
+.card-quote {
+  font-size: 1rem;
+  color: #999;
+  text-align: left;
+  font-style: italic;
+}

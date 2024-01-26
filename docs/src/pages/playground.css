@@ -1,0 +1,241 @@
+.App {
+  width: 100%;
+  height: 100%;
+  background-color: var(--ifm-background-color);
+}
+
+.containerTest {
+  display: flex;
+  height: calc(100vh - var(--ifm-navbar-height));
+  width: 100vw;
+}
+
+.panel {
+  height: calc(100vh - var(--ifm-navbar-height));
+  flex: 1;
+  box-sizing: border-box;
+  padding: 0px;
+  overflow: auto;
+  flex-direction: column;
+}
+
+.editorPreambleMessages {
+}
+
+.messages {
+  flex: 1;
+  overflow: auto;
+  overflow-y: scroll;
+  margin-left: 20px;
+  margin-right: 20px;
+  margin-top: 10px;
+  padding-top: 10px;
+}
+
+input[type="text"] {
+  width: 80%;
+  padding: 5px;
+  font-size: 14px;
+}
+
+button {
+  padding: 5px 10px;
+}
+
+.runBtnContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  height: 74px;
+  width: 100%;
+  padding: 18px;
+}
+
+.runBtn {
+  background-color: var(--ifm-breadcrumb-item-background-active);
+  width: 100%;
+  border-color: transparent;
+  border-radius: var(--ifm-global-radius);
+  font-size: 14px;
+}
+
+.runBtn:hover {
+  color: var(--ifm-breadcrumb-color-active);
+}
+
+.ace_editor {
+  background: var(--prism-background-color);
+}
+
+.panelDivider {
+  height: calc(100vh - var(--ifm-navbar-height));
+  width: 0.5px;
+  background-color: var(--ifm-color-emphasis-300);
+}
+
+.run-code-button-chevron {
+  margin: -5px;
+  font-weight: bold;
+}
+
+.user-message {
+  background-color: var(--ifm-breadcrumb-item-background-active);
+}
+
+.non-user-message {
+  background-color: var(--ifm-breadcrumb-item-background-active);
+}
+
+.log {
+  background-color: var(--ifm-breadcrumb-item-background-active);
+}
+
+input {
+  background-color: transparent;
+  border-radius: 5px;
+  padding: 14px !important;
+  outline: none;
+  border: 0px solid var(--ifm-color-emphasis-300);
+}
+
+form {
+  margin-left: 10px;
+  flex: 1;
+}
+
+.submit-btn {
+  background-color: transparent;
+  border: transparent;
+  cursor: pointer;
+}
+
+.submit-group {
+  border: 1px solid var(--ifm-color-emphasis-300);
+  display: flex;
+  flex-direction: row;
+  margin: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.1);
+}
+
+.send-btn {
+  margin-top: 2px;
+  margin-bottom: -2px;
+  margin-right: 3px;
+  position: relative;
+  color: var(--ifm-color-emphasis-300);
+}
+
+.active {
+  color: var(--ifm-breadcrumb-color-active) !important;
+}
+
+.ace-editor-div {
+  height: calc(100vh - 74px);
+  display: flex;
+  flex-direction: row;
+}
+
+.message-container {
+  background-color: var(--ifm-breadcrumb-item-background-active);
+  padding: 5px;
+  padding-left: 10px;
+  padding-right: 10px;
+  margin-top: 2px;
+  border-radius: 4px;
+  color: var(--ifm-color-content);
+}
+
+.message-container-log {
+  padding-left: 10px;
+  padding-right: 10px;
+  border-radius: 4px;
+  color: var(--ifm-color-emphasis-300);
+  font-size: 13px;
+  white-space: pre-line;
+}
+
+.message-heading {
+  font-style: italic;
+  font-weight: bold;
+  color: var(--ifm-color-emphasis-600);
+  font-size: 14px;
+}
+
+.message-heading-log {
+  font-style: italic;
+  margin-right: 20px;
+  color: var(--ifm-color-emphasis-200);
+  font-size: 13px;
+}
+
+.log-container {
+  display: flex;
+  flex-direction: row;
+  margin-top: -10px;
+}
+
+.log-container-bright {
+  color: var(--ifm-color-emphasis-600) !important;
+}
+
+.settings {
+  display: flex;
+  flex-direction: row;
+  justify-content: right;
+}
+
+.transparent {
+  color: transparent;
+}
+
+.tocCollapsibleButton {
+  font-size: inherit;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0.8rem;
+  width: 100%;
+}
+
+.tocCollapsibleButton::after {
+  content: '';
+  background: var(--ifm-menu-link-sublist-icon) 50% 50% / 2rem 2rem no-repeat;
+  filter: var(--ifm-menu-link-sublist-icon-filter);
+  height: 1.25rem;
+  width: 1.25rem;
+  transform: rotate(180deg);
+  transition: transform var(--ifm-transition-fast);
+}
+
+.editor-container {
+  display: flex;
+  flex-direction: row;
+}
+
+.editor-plus-run {
+  flex: 1;
+}
+
+.warning-message {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 20px;
+  font-size: 1.3em;
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+  border-radius: 5px;
+  text-align: center;
+  z-index: 100;
+}
+
+/* This will only apply when the max width is 768px (tablet and below) */
+@media only screen and (max-width: 768px) {
+    .warning-message {
+        display: block;
+    }
+}

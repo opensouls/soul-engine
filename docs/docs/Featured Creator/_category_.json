@@ -1,0 +1,9 @@
+{
+  "label": "Featured Creators",
+  "position": 9,
+  "collapsed": false,
+  "link": {
+    "type": "doc",
+    "id": "intro"
+  }
+}
