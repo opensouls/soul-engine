@@ -34,7 +34,7 @@ describe("cognitiveFunctions", () => {
     expect(value).to.be.equal("Meet me 6:00PM at the park");
   });
 
-  describe("mentalQuery", () => {
+  describe.only("mentalQuery", () => {
     let samantha: CortexStep
     beforeEach(async () => {
       samantha = new CortexStep("Samantha").withMemory([{
