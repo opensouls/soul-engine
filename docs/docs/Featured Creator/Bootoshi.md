@@ -7,13 +7,17 @@ sidebar_position: 2
 
 ![Bitcoin Boos](images/BITCOIN_BOOS.png)
 
-Our first featured SocialAGI creator is none other than the one and only **Bootoshi**!
+Get ready to dive into the whimsical world of **Bootoshi**, our first spotlighted SocialAGI creator, and his wildly imaginative creation: "Bitcoin Boos"!
 
-"Bitcoin Boos" is centered around a vast collection of unique digital art pieces, lovingly referred to as Boos, that are created as to live anywhere, in Discord, games, and as tradable NFTs. The kingdom is a retro game-inspired world full of inspiring art and automation, a vibrant Discord full of boss battles, humor, and creative energy, and a dedicated fan base of thousands make BitcoinBoos a truly special space to play and share. Each Boo is one-of-a-kind, featuring a variety of themes and stories, making it an unique hangout for collectors and crypto enthusiasts.
+Imagine stepping into a pixel-perfect, retro game-inspired kingdom, where every corner bursts with eye-popping digital art pieces, affectionately dubbed as Boos. These aren't just any art pieces; they're vibrant, living entities thriving across various platforms – from the buzz of Discord chats to the immersive realms of video games, and even making their mark in the ever-evolving universe of NFTs. This kingdom isn't just a space; it's a pulsating hub of creativity, humor, and boss-level battles that keep its thriving community of thousands hooked and constantly coming back for more.
+
+Every Boo is a masterpiece with its own tale, a melting pot of themes and stories, making this kingdom a magnet for collectors and crypto aficionados alike. What sets Bootoshi's Boos apart? Personality, baby! Thanks to the magic of SocialAGI, these characters aren't just pixels on a screen; they're bursting with life! Each Boo is a unique character, armed with its own set of skills, quirks, and attitudes, all evolving and interacting in a narrative that's as dynamic as life itself. It's like stepping into a living, breathing storybook where the plot thickens with every second.
+
+![Boo Chat - Discord](images/BooChat.gif)
+
+The genius of Bootoshi, fueled by SocialAGI, has turned a spark of an idea into a universe full of creativity. As you wander through this ever-changing kingdom, you're not just observing; you're part of the adventure, figuring out the twists and turns of the narrative as it unfolds in real time. With Bootoshi at the helm, "Bitcoin Boos" isn't just a collection of digital art; it's a vibrant, evolving world where imagination knows no bounds!
 
 ![Bitcoin Boos](images/boos1.png)
-
-As NFTs, the Bitcoin Boos artworks are stored and traded on a blockchain, ensuring their authenticity and ownership. This project exemplifies the merging of digital art with blockchain technology.
 
 Check out Bootoshi's work and join the community!
 
@@ -29,8 +33,6 @@ Check out Bootoshi's work and join the community!
 
 ---
 
-![Bitcoin Boos](images/boos2.png)
-
 ## The Bitcoin Boo Kingdom
 
 ![Boo Discord](images/BooDiscord1.gif)
@@ -42,13 +44,5 @@ Check out Bootoshi's work and join the community!
 [Follow Bitcoin Boos while you're at it.](https://twitter.com/BitcoinBoos)
 
 [Collect and trade at Magic Eden](https://twitter.com/BitcoinBoos)
-
-## AI & Bitcoin Boos - Webinar
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/zsw26HEvK-U?si=hdKh09yrBW9RDh0P" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-
-## Discussion with Bootoshi from the Early Ordinal Project Bitcoin Boos
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/W9awalOaJPg?si=noOva0fQth-wC_dp" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
 ![Bitcoin Boos](images/boos3.png)
