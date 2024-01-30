@@ -90,6 +90,7 @@ export class CortexStep<LastValueType = undefined> {
   id: string
   parents: string[]
   tags: Record<string, string>
+  nextOptions?: NextOptions
 
   readonly entityName: string;
 
@@ -402,6 +403,7 @@ export class CortexStep<LastValueType = undefined> {
     functionFactory: NextFunction<ParsedArgumentType, ProcessFunctionReturnType>,
     opts?: NextOptions
   ): Promise<any> {
+    this.nextOptions = opts
     if (opts?.stream) {
       return this.streamingNext<ParsedArgumentType, ProcessFunctionReturnType>(functionFactory, opts)
     } else {
