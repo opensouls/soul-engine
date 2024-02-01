@@ -33,6 +33,16 @@ describe("CortexStep", () => {
     expect(resp.value).to.be.an("string")
     expect(resp.value).to.have.length.greaterThan(10)
   })
+
+  it("adds timestamp to the metadata by default", async () => {
+    const step = new CortexStep("Bogus",)
+    const resp = await step.withMemory([{
+      role: ChatMessageRoleEnum.System,
+      content: "You are modeling the mind of Bogus, a very bad dude.",
+    }]).next(externalDialog("What does Bogus shout?"))
+
+    expect(resp.memories.slice(-1)[0].metadata?.timestamp).to.be.a("number")
+  })
   
   it("updates the memories", async () => {
     const step = new CortexStep("Bogus").withMemory([
