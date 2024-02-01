@@ -69,9 +69,14 @@ export enum ChatMessageRoleEnum {
   Function = "function",
 }
 
+export type ContentText = { type: "text", text: string }
+export type ContentImage = { type: "image_url", image_url: string }
+
+export type ChatMessageContent = string | (ContentText | ContentImage)[]
+
 export interface ChatMessage {
   role: ChatMessageRoleEnum;
-  content: string;
+  content: ChatMessageContent;
   name?: string;
   function_call?: FunctionCall;
 }

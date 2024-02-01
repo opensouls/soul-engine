@@ -1,7 +1,7 @@
 import { SpanStatusCode, trace } from "@opentelemetry/api";
 import { v4 as uuidv4 } from 'uuid';
 import { z } from "zod";
-import { ChatMessageRoleEnum, FunctionCall, LanguageModelProgramExecutor, FunctionSpecification, RequestOptions } from "./languageModels";
+import { ChatMessageRoleEnum, FunctionCall, LanguageModelProgramExecutor, FunctionSpecification, RequestOptions, ChatMessageContent } from "./languageModels";
 import { OpenAILanguageProgramProcessor } from "./languageModels/openAI"
 
 const tracer = trace.getTracer(
@@ -37,9 +37,10 @@ export type NextFunction<
       ProcessFunctionReturnType
     >;
 
+
 export interface Memory<MetaDataType = Record<string, unknown>> {
   role: ChatMessageRoleEnum;
-  content: string;
+  content: ChatMessageContent;
   name?: string;
   function_call?: FunctionCall;
   metadata?: MetaDataType;
