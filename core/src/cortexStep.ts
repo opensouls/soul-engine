@@ -1,7 +1,7 @@
 import { SpanStatusCode, trace } from "@opentelemetry/api";
 import { v4 as uuidv4 } from 'uuid';
 import { z } from "zod";
-import { ChatMessageRoleEnum, FunctionCall, LanguageModelProgramExecutor, FunctionSpecification, RequestOptions, ChatMessageContent } from "./languageModels";
+import { ChatMessageRoleEnum, FunctionCall, LanguageModelProgramExecutor, FunctionSpecification, RequestOptions, ChatMessageContent, ChatMessage } from "./languageModels";
 import { OpenAILanguageProgramProcessor } from "./languageModels/openAI"
 
 const tracer = trace.getTracer(
@@ -46,6 +46,20 @@ export interface Memory<MetaDataType = Record<string, unknown>> {
   metadata?: MetaDataType;
 }
 
+// removes metadata field from memory so not to pass it along to the langaguage executors.
+export const memoryToChatMessage = (memory: Memory): ChatMessage => {
+  return {
+    role: memory.role,
+    content: memory.content,
+    name: memory.name,
+    function_call: memory.function_call,
+  }
+}
+
+const memoriesToChatMessages = (memories: Memory[]): ChatMessage[] => {
+  return memories.map(memoryToChatMessage)
+}
+
 interface BrainStepInit<LastValue = string, MetaDataType = Record<string, unknown>> {
   id?: string;
   parents?: string[];
@@ -87,6 +101,17 @@ interface BrainFunctionWithFunction<ParsedArgumentType, ProcessFunctionReturnTyp
 
 export type BrainFunction<ParsedArgumentType, ProcessFunctionReturnType> = BrainFunctionAsCommand<ParsedArgumentType, ProcessFunctionReturnType> | BrainFunctionWithFunction<ParsedArgumentType, ProcessFunctionReturnType>
 
+export const memoryWithDefaultMetadata = (...memories: Memory[]) => {
+  const now = Date.now()
+  return memories.map((m) => ({
+    ...m,
+    metadata: {
+      timestamp: now,
+      ...(m.metadata || {}),
+    }
+  }))
+}
+
 export class CortexStep<LastValueType = undefined> {
   id: string
   parents: string[]
@@ -119,11 +144,12 @@ export class CortexStep<LastValueType = undefined> {
    * @param memory An array of Memory instances to add.
    * @returns A new CortexStep instance with the added memories.
    */
-  withMemory(memory: Memory[]) {
+  withMemory(memory: Memory[], skipMetadata = false) {
+    const memories = skipMetadata ? memory : memoryWithDefaultMetadata(...memory)
     return new CortexStep<LastValueType>(this.entityName, {
       parents: [...this.parents, this.id],
       tags: { ...this.tags },
-      memories: [...this.memories, ...memory],
+      memories: [...this.memories, ...memories],
       lastValue: this.lastValue,
       processor: this.processor,
     });
@@ -215,7 +241,7 @@ export class CortexStep<LastValueType = undefined> {
         span.setAttribute("command", rawFn.command)
       }
 
-      const memories = this.memoriesWithCommandString(rawFn.command, description.commandRole)
+      const memories = memoriesToChatMessages(this.memoriesWithCommandString(rawFn.command, description.commandRole))
 
       const resp = await this.processor.execute<ParsedArgumentType>(
         memories,
@@ -264,7 +290,7 @@ export class CortexStep<LastValueType = undefined> {
         span.setAttribute("command", rawFn.command)
       }
 
-      const memories = this.memoriesWithCommandString(rawFn.command, description.commandRole)
+      const memories = memoriesToChatMessages(this.memoriesWithCommandString(rawFn.command, description.commandRole))
 
       const { response, stream: rawStream } = await this.processor.execute<ParsedArgumentType>(
         memories,
@@ -330,17 +356,17 @@ export class CortexStep<LastValueType = undefined> {
             // because we have checked the fnSpecs.process ourselves.
             return new CortexStep<ProcessFunctionReturnType>(this.entityName, {
               parents: [...this.parents, this.id],
-              memories: [...this.memories, ...(processed.memories || [])],
+              memories: [...this.memories, ...(memoryWithDefaultMetadata(...(processed.memories || [])))],
               lastValue: processed.value,
               tags: { ...this.tags },
               processor: this.processor,
             }) as any
           }
 
-          const newMemory: Memory = {
+          const newMemory: Memory = memoryWithDefaultMetadata({
             role: ChatMessageRoleEnum.Assistant,
             content: typeof parsed === 'string' ? parsed : JSON.stringify(parsed),
-          }
+          })[0]
           // see note above for why we return as any here.
           span.end()
           return new CortexStep<ParsedArgumentType>(this.entityName, {
@@ -440,17 +466,17 @@ export class CortexStep<LastValueType = undefined> {
           // because we have checked the fnSpecs.process ourselves.
           return new CortexStep<ProcessFunctionReturnType>(this.entityName, {
             parents: [...this.parents, this.id],
-            memories: [...this.memories, ...(processed.memories || [])],
+            memories: [...this.memories, ...memoryWithDefaultMetadata(...(processed.memories || []))],
             lastValue: processed.value,
             tags: { ...this.tags },
             processor: this.processor,
           }) as any
         }
 
-        const newMemory: Memory = {
+        const newMemory: Memory = memoryWithDefaultMetadata({
           role: ChatMessageRoleEnum.Assistant,
           content: typeof parsed === 'string' ? parsed : JSON.stringify(parsed),
-        }
+        })[0]
 
         // see note above for why we return as any here.
         span.end()
