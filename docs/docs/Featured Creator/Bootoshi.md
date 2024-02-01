@@ -43,6 +43,4 @@ Check out Bootoshi's work and join the community!
 
 [Follow Bitcoin Boos while you're at it.](https://twitter.com/BitcoinBoos)
 
-[Collect and trade at Magic Eden](https://twitter.com/BitcoinBoos)
-
 ![Bitcoin Boos](images/boos3.png)
