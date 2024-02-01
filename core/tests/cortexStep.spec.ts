@@ -1,4 +1,4 @@
-import { ChatMessageRoleEnum, CortexStep, decision, instruction, questionMemory, externalDialog, internalMonologue, spokenDialog, FunctionlessLLM, OpenAILanguageProgramProcessor } from "../src";
+import { ChatMessageRoleEnum, CortexStep, decision, instruction, questionMemory, externalDialog, internalMonologue, spokenDialog, FunctionlessLLM, OpenAILanguageProgramProcessor, MemoryText } from "../src";
 import { expect } from "chai";
 import { z } from "zod";
 import { trace } from "@opentelemetry/api";
