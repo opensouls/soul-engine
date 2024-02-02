@@ -347,7 +347,7 @@ const _mentalQueryDecision = (statement: string) => {
 
     return {
       description: html`
-        Save whether or not ${name} believes the following statement to be true or false:
+        This function extracts if ${name} believes the following statement is true or false:
         > ${statement}
       `,
       name: "mentalQuery",
@@ -377,7 +377,7 @@ export const mentalQuery = (statement: string) => {
           ${name} decides if the following statement is true or false and gives their reasoning:
           > ${statement}
 
-          Please reply with whether or not ${name} thinks the statement is true or false and provide their reasoning. Use the format '${name} decided: "..."'
+          Please reply with if ${name} believes the statement is true or false and provide their reasoning. Use the format '${name} decided: "..."'
       `},
       process: async (step: CortexStep<any>, response: string) => {
         const stepWithThought = step.withMemory([{
@@ -389,7 +389,7 @@ export const mentalQuery = (statement: string) => {
           `
         }])
 
-        const { decision } = await stepWithThought.compute(_mentalQueryDecision(statement))
+        const { decision } = await stepWithThought.compute(_mentalQueryDecision(statement), stepWithThought.nextOptions)
         
         return {
           value: decision,

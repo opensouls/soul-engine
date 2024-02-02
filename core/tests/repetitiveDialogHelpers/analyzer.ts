@@ -22,11 +22,11 @@ export const analyzeStepForRepetitiveness = async (step: CortexStep<any>) => {
   const memoriesWithEmbeddings = await Promise.all(assistantMemories.map(async (m) => {
     return {
       memory: m,
-      embedding: await embedder.createEmbedding(m.content)
+      embedding: await embedder.createEmbedding(m.content.toString())
     }
   }))
 
-  const lastEmbedding = await embedder.createEmbedding(last.content)
+  const lastEmbedding = await embedder.createEmbedding(last.content.toString())
 
   const distances = memoriesWithEmbeddings.map((m) => {
     return {
