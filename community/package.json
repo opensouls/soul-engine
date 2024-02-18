@@ -1,0 +1,23 @@
+{
+  "name": "@opensouls/community",
+  "version": "0.0.1",
+  "description": "Community cognitive functions",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "exports": {
+    ".": "./dist/src/index.js"
+  },
+  "files": [
+    "dist/src"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "author": "OpenSouls",
+  "license": "ISC",
+  "dependencies": {
+    "common-tags": "^1.8.2",
+    "socialagi": "^0.1.7"
+  }
+}

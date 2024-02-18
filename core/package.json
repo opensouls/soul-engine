@@ -1,7 +1,7 @@
 {
   "name": "socialagi",
   "version": "0.1.7",
-  "description": "Subroutines for AI Souls",
+  "description": "Cognitive Functions for AI Souls",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
   "scripts": {
@@ -12,7 +12,6 @@
   "exports": {
     ".": "./dist/src/index.js",
     "./instrumentation": "./dist/src/instrumentation.js",
-    "./legacy": "./dist/src/legacy/index.js",
     "./next": "./dist/src/index.js",
     "./next/instrumentation": "./dist/src/instrumentation.js"
   },
