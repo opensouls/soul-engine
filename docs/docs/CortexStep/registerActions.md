@@ -55,7 +55,7 @@ const { questions } = response.value
 
 ## Important Points
 
-- CortexStep aims to model an AI's internal monologue. Keeping this concept in mind when defining custom actions ensures consistency.
+> CortexStep aims to model an AI's internal monologue. Keeping this concept in mind when defining custom actions ensures consistency.
 
 Through cognitive functions, you can extend CortexStep's capabilities and create a flexible cognitive model.
 
