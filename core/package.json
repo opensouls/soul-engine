@@ -1,6 +1,6 @@
 {
   "name": "socialagi",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Cognitive Functions for AI Souls",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -53,8 +53,6 @@
     "@types/dotenv": "^8.2.0",
     "@types/mocha": "^10.0.1",
     "@types/node": "^18.16.16",
-    "@types/react": "^18.2.15",
-    "@types/react-dom": "^18.2.6",
     "@typescript-eslint/eslint-plugin": "^5.59.2",
     "chai": "^4.3.7",
     "dotenv": "^16.3.1",
@@ -81,8 +79,6 @@
     "zod-to-json-schema": "^3.22.3"
   },
   "optionalDependencies": {
-    "@opentelemetry/sdk-node": "^0.43.0",
-    "next": "*",
-    "react": "*"
+    "@opentelemetry/sdk-node": "^0.43.0"
   }
 }
