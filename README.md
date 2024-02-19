@@ -1,8 +1,8 @@
 # 🤖+👱 SocialAGI
 
-> Subroutines for AI Souls
+> Cognitive Functions for AI Souls
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg) ![Twitter](https://img.shields.io/twitter/url/https/twitter.com/socialagi.svg?style=social&label=Follow%20%40socialagi)](https://twitter.com/socialagi) [![](https://dcbadge.vercel.app/api/server/FCPcCUbw3p?compact=true&style=flat)](https://discord.gg/FCPcCUbw3p)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg) ![Twitter](https://img.shields.io/twitter/url/https/twitter.com/socialagi.svg?style=social&label=Follow%20%40socialagi)](https://twitter.com/socialagi) [![](https://dcbadge.vercel.app/api/server/FCPcCUbw3p?compact=true&style=flat)](https://discord.gg/opensouls)
 
 ## 🤔 What is this?
 
@@ -36,13 +36,13 @@ console.log("Elizabar says: ", (await nextStep).value)
 
 ## 💫 AI Souls
 
-AI Souls are agentic and embodied digital beings, one day comprising thousands of linguistic instructions (managed by SocialAGI). Unlike traditional chatbots, these SocialAGI instructions will give digital souls personality, drive, ego, and will.
+AI Souls are agentic and embodied digital beings, one day comprising thousands of cognitive steps (managed by SocialAGI). Unlike traditional chatbots, these SocialAGI instructions will give digital souls personality, drive, ego, and will.
 
 ## 📖 Repo structure
 
 - [`/core`](./core) contains the library [`socialagi` NPM package source](https://www.npmjs.com/package/socialagi)
+- [`/community`](./community) contains the library [`@socialagi/community` NPM package source](), which has community contributed cognitive functions
 - [`/docs`](./docs) contains the documentation website for the project, running at [socialagi.dev](http://socialagi.dev)
-- [`/memory`](./memory) contains the library [`@socialagi/memory` NPM package source](https://www.npmjs.com/package/@socialagi/memory)
 
 ## 🚀 Getting started
 
@@ -54,12 +54,6 @@ Check out the full documentation at [socialagi.dev](http://socialagi.dev)!
 
 ## 👏 Contributing
 
-If this project is exciting to you, check out the issues, open a pull request, or simply hangout in the [Social AGI Discord](https://discord.gg/BRhXTSmuMB)!
+If this project is exciting to you, check out the issues, open a pull request, or simply hangout in the [OPEN SOULS Discord](https://discord.gg/BRhXTSmuMB).
 
-On the roadmap at a high level are:
-
-- Minimal API surfaces for designing AI cognition
-- New techniques to specify personality
-- Ways to design the conversations that constitute an identity
-- Coherent theory of mind behind AI cognition
-- Ways to test and debug AI souls
+We'd love to see more contributed `/community` cognitive functions, and is the easiest place to make a contribution!
