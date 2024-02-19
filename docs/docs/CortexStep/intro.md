@@ -36,7 +36,7 @@ As this example illustrates, CortexStep operates on the principles of functional
 2. **Append-Only Context Management:** The context grows progressively with each new piece of information, never deleting or modifying existing information. This leads to a robust, traceable, and more manageable context.
 3. **Modularity:** Each 'step' is a self-contained unit that can be developed, tested, and reasoned about independently. These steps can then be seamlessly integrated to form comprehensive units of thought.
 
-Compared to other tools like LangChain, which offer broader flexibility but also bring in complexity, CortexStep provides a more opinionated approach. It boasts a minimalistic API that ensures a clean abstraction layer over the language model, making the development process more straightforward.
+Compared to other tools which offer broader flexibility, but also bring in complexity, CortexStep provides a more opinionated approach. It boasts a minimalistic API that ensures a clean abstraction layer over the language model, making the development process more straightforward.
 
 CortexStep excels at managing context, a crucial aspect when dealing with LLMs. It streamlines the creation of sophisticated behaviors with language models, making it easier to develop AI-powered conversations and tasks while avoiding common pitfalls.
 

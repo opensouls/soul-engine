@@ -77,9 +77,6 @@ While `CortexStep` allows for the creation of [custom cognitive functions](actio
 4. `brainstorm`: Facilitates brainstorming of potential actions for the AI.
 
    ```javascript
-   let spec = {
-     actionsForIdea: "Next conversation topics",
-   };
    step = await step.next(brainstorm("Brainstorm the next conversation topics"));
    ```
 
