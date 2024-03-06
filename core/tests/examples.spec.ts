@@ -18,7 +18,6 @@ describe("examples from the docs", () => {
 
     beforeEach(() => {
       step = new CortexStep("A Helpful Assistant");
-      step = new CortexStep("A Helpful Assistant");
       const initialMemory = [
         {
           role: ChatMessageRoleEnum.System,

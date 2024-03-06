@@ -1,4 +1,4 @@
-import { Stream } from "openai/streaming"
+// import { Stream } from "openai/streaming"
 import { ReusableStream } from "./reusableStream"
 import { ChatCompletionChunk } from "openai/resources"
 
@@ -9,7 +9,7 @@ export class OpenAICompatibleStream {
   private complete: Promise<void>
   private streamResolver?: () => void
 
-  constructor(stream: Stream<ChatCompletionChunk>) {
+  constructor(stream: AsyncIterable<ChatCompletionChunk>) {
     this.reusableStream = new ReusableStream(stream)
     this.buffer = { content: "", functionCall: { name: "", arguments: "" } }
     this.complete = new Promise((resolve) => {

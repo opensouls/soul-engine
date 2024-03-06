@@ -6,7 +6,7 @@
   "types": "dist/src/index.d.ts",
   "scripts": {
     "build": "rm -rf dist && tsc",
-    "test": "mocha",
+    "test": "mocha tests/**/*.spec.ts",
     "prepublishOnly": "npm run build"
   },
   "exports": {
@@ -79,6 +79,7 @@
     "zod-to-json-schema": "^3.22.3"
   },
   "optionalDependencies": {
+    "@anthropic-ai/sdk": "^0.16.1",
     "@opentelemetry/sdk-node": "^0.43.0"
   }
 }
