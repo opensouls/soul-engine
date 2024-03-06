@@ -67,4 +67,30 @@ describe.skip("AnthropicProcessor", () => {
     expect(resp.value.answer).to.equal("Jonathan")
   }).timeout(65_000)
 
+  it("works with non alternating memories", async () => {
+    const multiMemory = step.withMemory([
+      {
+        role: ChatMessageRoleEnum.System,
+        content: "You are modeling the mind of bob, an immortal emperor of tinyville."
+      },
+      {
+        role: ChatMessageRoleEnum.Assistant,
+        content: "Bob said: Welcome servant."
+      },
+      {
+        role: ChatMessageRoleEnum.Assistant,
+        content: "Bob thought: Who goes there?"
+      },
+      {
+        role: ChatMessageRoleEnum.User,
+        content: "I am a visitor."
+      }
+    ])
+
+    const speech = await multiMemory.compute(externalDialog("Bob warns the user to leave"))
+    console.log("speech: ", speech)
+    expect(speech).to.be.a("string")
+
+  })
+
 })

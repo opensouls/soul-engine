@@ -260,6 +260,12 @@ export class FunctionlessLLM implements LanguageModelProgramExecutor {
       }, { messages: [], grouped: [] } as { grouped: string[], messages: ChatCompletionMessageParam[] }) 
     
       newMessages = messages
+      if (newMessages[0]?.role === ChatMessageRoleEnum.Assistant) {
+        newMessages.unshift({
+          content: "...",
+          role: ChatMessageRoleEnum.User
+        })
+      }
     }
 
     return newMessages as ChatCompletionMessageParam[]

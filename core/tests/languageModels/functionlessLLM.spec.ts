@@ -8,6 +8,7 @@ describe.skip("FunctionlessLLM", () => {
     processor: new FunctionlessLLM({
       baseURL: "https://api.together.xyz/v1",
       singleSystemMessage: true,
+      forcedRoleAlternation: true,
       apiKey: process.env.TOGETHER_API_KEY,
     }, {
       // model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
@@ -49,6 +50,32 @@ describe.skip("FunctionlessLLM", () => {
     const result = await step.next(brainstorm("numbers less than 5"))
     expect(result.value).to.be.an("array")
     expect(parseInt(result.value[0])).to.be.a("number")
+  })
+
+  it("works with non alternating memories", async () => {
+    const multiMemory = step.withMemory([
+      {
+        role: ChatMessageRoleEnum.System,
+        content: "You are modeling the mind of bob, an immortal emperor of tinyville."
+      },
+      {
+        role: ChatMessageRoleEnum.Assistant,
+        content: "Bob said: Welcome servant."
+      },
+      {
+        role: ChatMessageRoleEnum.Assistant,
+        content: "Bob thought: Who goes there?"
+      },
+      {
+        role: ChatMessageRoleEnum.User,
+        content: "I am a visitor."
+      }
+    ])
+
+    const speech = await multiMemory.compute(externalDialog("Bob warns the user to leave"))
+    console.log("speech: ", speech)
+    expect(speech).to.be.a("string")
+
   })
 
   it("runs example from readme", async () => {
@@ -127,7 +154,7 @@ describe.skip("FunctionlessLLM", () => {
     expect(val.value).to.be.a("string")
   })
 
-  it('does a long bogus monologue', async () => {
+  it.only('does a long bogus monologue', async () => {
     try {
       const memory = [
         {
@@ -146,9 +173,10 @@ describe.skip("FunctionlessLLM", () => {
           singleSystemMessage: true,
           apiKey: process.env.TOGETHER_API_KEY,
         }, {
+          model: "NousResearch/Nous-Hermes-2-Mixtral-8x7B-DPO",
           // model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
           // model: "NousResearch/Nous-Hermes-2-Yi-34B",
-          model: "teknium/OpenHermes-2p5-Mistral-7B",
+          //model: "teknium/OpenHermes-2p5-Mistral-7B",
           temperature: 0.7,
           max_tokens: 300,
         })
