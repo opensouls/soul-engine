@@ -1,4 +1,3 @@
-// import { Stream } from "openai/streaming"
 import { ReusableStream } from "./reusableStream"
 import { ChatCompletionChunk } from "openai/resources"
 
