@@ -7,8 +7,9 @@ import { backOff } from "exponential-backoff";
 import { OpenAICompatibleStream } from "./LLMStream";
 import { FunctionToContentConverter } from "./FunctionToContentConverter";
 import { withErrorCatchingSpan } from "./errorCatchingSpan";
+import { html } from "common-tags";
 
-type Config = ConstructorParameters<typeof OpenAI>[0] & { singleSystemMessage?: boolean };
+type Config = ConstructorParameters<typeof OpenAI>[0] & { singleSystemMessage?: boolean, forcedRoleAlternation?: boolean };
 type ChatCompletionParams =
   Partial<ChatCompletionCreateParams>
 
@@ -30,6 +31,7 @@ export class FunctionlessLLM implements LanguageModelProgramExecutor {
   defaultCompletionParams: DefaultCompletionParams
   defaultRequestOptions: RequestOptions
   singleSystemMessage: boolean
+  forcedRoleAlternation: boolean
 
   constructor(
     executorConfig: Config = {},
@@ -40,8 +42,9 @@ export class FunctionlessLLM implements LanguageModelProgramExecutor {
       dangerouslyAllowBrowser: !!process.env.DANGEROUSLY_ALLOW_OPENAI_BROWSER
     }
 
-    const { singleSystemMessage, ...openAIConfig } = executorConfig
+    const { singleSystemMessage, forcedRoleAlternation, ...openAIConfig } = executorConfig
     this.singleSystemMessage = !!singleSystemMessage
+    this.forcedRoleAlternation = !!forcedRoleAlternation
 
     this.client = new OpenAI({
       ...defaultConfig,
@@ -70,7 +73,7 @@ export class FunctionlessLLM implements LanguageModelProgramExecutor {
       const params: ChatCompletionCreateParams = {
         ...this.defaultCompletionParams,
         ...completionParamsWithoutFunctionCall,
-        messages: this.compressSystemMessagesIfNeeded(messages) as ChatCompletionMessageParam[],
+        messages: this.possiblyFixMessageRoles(messages) as ChatCompletionMessageParam[],
       }
 
       span.setAttributes({
@@ -121,20 +124,20 @@ export class FunctionlessLLM implements LanguageModelProgramExecutor {
             ...requestOptions,
           }
         )
-  
+
         const stream = new OpenAICompatibleStream(rawStream)
-  
+
         const streamToText = async function* () {
           for await (const res of stream.stream()) {
             yield res.choices[0].delta.content || res.choices[0].delta.tool_calls?.[0]?.function?.arguments || ""
           }
         }
-  
+
         const responseFn = async () => {
           const content = (await stream.finalContent()) || ""
           const functionCall = await (stream.finalFunctionCall())
           let parsed: any = undefined
-  
+
           if (functionCall) {
             const fn = functions.find((f) => f.name === functionCall.name)
             parsed = fn?.parameters.parse(JSON.parse(functionCall.arguments))
@@ -145,7 +148,7 @@ export class FunctionlessLLM implements LanguageModelProgramExecutor {
             "completion-function-call": JSON.stringify(functionCall || "{}"),
             "completion-parsed": JSON.stringify(parsed || "{}"),
           })
-  
+
           span.end()
           return {
             content,
@@ -153,12 +156,12 @@ export class FunctionlessLLM implements LanguageModelProgramExecutor {
             parsedArguments: parsed ? parsed : content,
           };
         }
-        
+
         return {
           response: responseFn(),
           stream: streamToText(),
         }
-      } catch (err:any) {
+      } catch (err: any) {
         console.error("error in executeStreaming", err)
         span.recordException(err)
         span.end()
@@ -210,23 +213,55 @@ export class FunctionlessLLM implements LanguageModelProgramExecutor {
   /**
    * swaps all but the first system message to user messages for OSS models that only support a single system message.
    */
-  private compressSystemMessagesIfNeeded(messages: (ChatMessage | ChatCompletionMessageParam)[]): ChatCompletionMessageParam[] {
-    if (!this.singleSystemMessage) {
+  private possiblyFixMessageRoles(messages: (ChatMessage | ChatCompletionMessageParam)[]): ChatCompletionMessageParam[] {
+    if (!this.singleSystemMessage && !this.forcedRoleAlternation) {
       return messages as ChatCompletionMessageParam[]
     }
-    let firstSystemMessage = true
-    return messages.map((originalMessage) => {
-      const message = { ...originalMessage }
-      if (message.role === ChatMessageRoleEnum.System) {
-        if (firstSystemMessage) {
-          firstSystemMessage = false
+
+    let newMessages = messages
+
+    if (this.singleSystemMessage) {
+      let firstSystemMessage = true
+      newMessages = messages.map((originalMessage) => {
+        const message = { ...originalMessage }
+        if (message.role === ChatMessageRoleEnum.System) {
+          if (firstSystemMessage) {
+            firstSystemMessage = false
+            return message
+          }
+          message.role = ChatMessageRoleEnum.User
+          // systemMessage += message.content + "\n"
           return message
         }
-        message.role = ChatMessageRoleEnum.User
-        // systemMessage += message.content + "\n"
         return message
-      }
-      return message
-    }) as ChatCompletionMessageParam[]
+      }) as ChatCompletionMessageParam[]
+    }
+
+    if (this.forcedRoleAlternation) {
+      // now we make sure that all the messages alternate User/Assistant/User/Assistant
+      let lastRole: ChatCompletionMessageParam["role"]
+      const { messages } = newMessages.reduce((acc, message) => {
+        // If it's the first message or the role is different from the last, push it to the accumulator
+        if (lastRole !== message.role) {
+          acc.messages.push(message as ChatCompletionMessageParam);
+          lastRole = message.role;
+          acc.grouped = [message.content as string]
+        } else {
+          // If the role is the same, combine the content with the last message in the accumulator
+          const lastMessage = acc.messages[acc.messages.length - 1];
+          acc.grouped.push(message.content as string)
+          
+          lastMessage.content = acc.grouped.slice(0, -1).map((str) => {
+            return `${message.role} said: ${str}`
+          }).concat(acc.grouped.slice(-1)[0]).join("\n\n")
+        }
+        
+        return acc;
+      }, { messages: [], grouped: [] } as { grouped: string[], messages: ChatCompletionMessageParam[] }) 
+    
+      newMessages = messages
+    }
+
+    return newMessages as ChatCompletionMessageParam[]
   }
 }

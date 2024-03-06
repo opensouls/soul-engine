@@ -309,26 +309,27 @@ export class AnthropicProcessor implements LanguageModelProgramExecutor {
       return message
     }) as ChatCompletionMessageParam[]
 
-    // now we make sure that all the messages alternate User/Assistant/User/Assistant
-    const alternatingMessages = messagesWithFixedSystem.map((message, index) => {
-      const prevMessage = messagesWithFixedSystem[index - 1]
-      if (!prevMessage) {
-        return message
-      }
-      // if the prev message has the same role as this message, then combine the content from this message and the prvious one
-      // and return undefined for this message
-      if (prevMessage.role === message.role) {
-        prevMessage.content = html`
-          ${message.role} said: ${prevMessage.content}
+     // now we make sure that all the messages alternate User/Assistant/User/Assistant
+     let lastRole: ChatCompletionMessageParam["role"]
+     const { messages: reformattedMessages } = messagesWithFixedSystem.reduce((acc, message) => {
+       // If it's the first message or the role is different from the last, push it to the accumulator
+       if (lastRole !== message.role) {
+         acc.messages.push(message as ChatCompletionMessageParam);
+         lastRole = message.role;
+         acc.grouped = [message.content as string]
+       } else {
+         // If the role is the same, combine the content with the last message in the accumulator
+         const lastMessage = acc.messages[acc.messages.length - 1];
+         acc.grouped.push(message.content as string)
+         
+         lastMessage.content = acc.grouped.slice(0, -1).map((str) => {
+           return `${message.role} said: ${str}`
+         }).concat(acc.grouped.slice(-1)[0]).join("\n\n")
+       }
+       
+       return acc;
+     }, { messages: [], grouped: [] } as { grouped: string[], messages: ChatCompletionMessageParam[] }) 
 
-          ${message.content}
-        `
-        return undefined
-      }
-      return message
-    })
-
-    return alternatingMessages.filter(Boolean) as ChatCompletionMessageParam[]
-
+    return reformattedMessages
   }
 }

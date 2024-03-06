@@ -4,6 +4,10 @@ import { AnthropicProcessor } from "../../src/languageModels/Anthropic";
 
 // this is set to skip because it requires a locally running LLM server or API keys other than OpenAI
 describe.skip("AnthropicProcessor", () => {
+  before(() => {
+    console.log('noting anthropic does not work with bogus')
+  })
+
   const step = new CortexStep("bob", {
     processor: new AnthropicProcessor()
   })
@@ -62,7 +66,5 @@ describe.skip("AnthropicProcessor", () => {
     const resp = await step2.next(queryMemory("What is the name I'm looking for? Answer in a single word"))
     expect(resp.value.answer).to.equal("Jonathan")
   }).timeout(65_000)
-
-  console.log('noting anthropic does not work with bogus')
 
 })

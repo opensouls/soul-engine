@@ -94,6 +94,39 @@ describe.skip("FunctionlessLLM", () => {
   }).timeout(65_000)
 
 
+  it('force-alternates roles', async () => {
+    const step = new CortexStep("bob", {
+      processor: new FunctionlessLLM({
+        baseURL: "https://api.together.xyz/v1",
+        singleSystemMessage: true,
+        forcedRoleAlternation: true,
+        apiKey: process.env.TOGETHER_API_KEY,
+      }, {
+        model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
+        // model: "NousResearch/Nous-Hermes-2-Yi-34B",
+        temperature: 0.7,
+        max_tokens: 300,
+      })
+    }).withMemory([
+      {
+        role: ChatMessageRoleEnum.System,
+        content: "You are modeling the mind of a chef who is preparing a meal.",
+      },
+      {
+        role: ChatMessageRoleEnum.User,
+        content: "Hello chef!",
+      },
+      {
+        role: ChatMessageRoleEnum.User,
+        content: "I say again: hello!",
+      }
+    ])
+
+    const val = await step.next(externalDialog("What's for dinner?"))
+    console.log(val.value)
+    expect(val.value).to.be.a("string")
+  })
+
   it('does a long bogus monologue', async () => {
     try {
       const memory = [
