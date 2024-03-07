@@ -1,11 +1,10 @@
 import OpenAI from "openai";
-import { ChatMessage, ExecutorResponse, FunctionSpecification, LanguageModelProgramExecutor } from ".";
+import { ChatMessage, ExecutorResponse, FunctionSpecification, LanguageModelProgramExecutor, LanguageModelProgramExecutorExecuteOptions } from ".";
 import { ChatCompletionCreateParams, ChatCompletionMessageParam, ChatCompletionTool } from "openai/resources";
 import { RequestOptions } from "openai/core";
 import { trace } from "@opentelemetry/api";
 import { RunnableFunctionWithParse, RunnableTools } from "openai/lib/RunnableFunction";
 import { zodToJsonSchema } from 'zod-to-json-schema';
-import { LanguageModelProgramExecutorExecuteOptions } from "../legacy";
 import { backOff } from "exponential-backoff";
 import { ChatCompletionToolRunnerParams } from "openai/lib/ChatCompletionRunner";
 import { withErrorCatchingSpan } from "./errorCatchingSpan";

@@ -1,6 +1,7 @@
 import { ZodSchema } from "zod";
 
 export { OpenAILanguageProgramProcessor } from "./openAI";
+export { AnthropicProcessor } from "./Anthropic";
 export { FunctionlessLLM } from "./FunctionlessLLM";
 export { FunctionToContentConverter } from "./FunctionToContentConverter";
 
