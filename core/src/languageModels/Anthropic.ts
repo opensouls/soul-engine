@@ -1,6 +1,5 @@
-import { ChatMessage, ChatMessageRoleEnum, ExecutorResponse, FunctionSpecification, LanguageModelProgramExecutor, LanguageModelProgramExecutorExecuteOptions } from ".";
+import { ChatMessage, ChatMessageRoleEnum, ExecutorResponse, FunctionSpecification, LanguageModelProgramExecutor, LanguageModelProgramExecutorExecuteOptions, RequestOptions } from ".";
 import { ChatCompletionChunk, ChatCompletionCreateParams, ChatCompletionMessageParam } from "openai/resources";
-import { RequestOptions } from "openai/core";
 import { trace } from "@opentelemetry/api";
 import { backOff } from "exponential-backoff";
 import { OpenAICompatibleStream } from "./LLMStream";
@@ -8,7 +7,6 @@ import { FunctionToContentConverter } from "./FunctionToContentConverter";
 import { withErrorCatchingSpan } from "./errorCatchingSpan";
 import Anthropic from '@anthropic-ai/sdk';
 import { MessageStream } from "@anthropic-ai/sdk/lib/MessageStream";
-import { html } from "common-tags";
 
 type Config = ConstructorParameters<typeof Anthropic>[0]
 type ChatCompletionParams =
@@ -198,7 +196,10 @@ export class AnthropicProcessor implements LanguageModelProgramExecutor {
 
         const anthropicStream = this.client.messages.stream({
           ...anthropicParams,
-        }, {}) // todo: use request options
+        }, {
+          ...this.defaultRequestOptions,
+          ...requestOptions,
+        })
 
         const stream = new OpenAICompatibleStream(anthropicToOpenAiStream(anthropicStream))
 
@@ -247,7 +248,7 @@ export class AnthropicProcessor implements LanguageModelProgramExecutor {
 
   private async nonFunctionExecute(
     completionParams: ChatCompletionCreateParams,
-    _requestOptions: RequestOptions, // TODO: fix the unused here.
+    requestOptions: RequestOptions, // TODO: fix the unused here.
   ): Promise<any> {
     return withErrorCatchingSpan(tracer, "nonFunctionExecute", async (span) => {
       const { system, messages } = openAiToAnthropicMessages(completionParams.messages)
@@ -264,7 +265,10 @@ export class AnthropicProcessor implements LanguageModelProgramExecutor {
         return this.client.messages.create({
           ...anthropicParams,
           stream: false,
-        }, {}) // todo: use request options
+        }, {
+          ...this.defaultRequestOptions,
+          ...requestOptions,
+        })
       }, {
         maxDelay: 200,
         numOfAttempts: 3,
