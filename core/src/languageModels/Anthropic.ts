@@ -39,10 +39,6 @@ async function* anthropicToOpenAiStream(stream: MessageStream) {
 
   const now = Date.now()
   for await (const evt of stream) {
-    // console.log('evt: ', evt)
-    if (evt.type === "message_stop") {
-      return
-    }
 
     if (evt.type === "message_start") {
       id = evt.message.id
