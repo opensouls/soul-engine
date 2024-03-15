@@ -5,7 +5,7 @@ import { AnthropicProcessor } from "../../src/languageModels/Anthropic";
 // this is set to skip because it requires a locally running LLM server or API keys other than OpenAI
 describe.skip("AnthropicProcessor", () => {
   before(() => {
-    console.log('noting anthropic does not work with bogus')
+    console.log('noting anthropic does not work with Bogus')
   })
 
   const step = new CortexStep("bob", {
@@ -27,6 +27,9 @@ describe.skip("AnthropicProcessor", () => {
     console.log("str: ", streamed)
     expect((await nextStep).value).to.be.a("string")
     expect(streamed).to.equal((await nextStep).value)
+
+    // this is hear because there's an abort error, and it only happens after the stream has completed.
+    await new Promise((resolve) => setTimeout(resolve, 1000))
   })
 
   it('streams functions', async () => {
