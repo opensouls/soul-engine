@@ -1,6 +1,7 @@
 {
   "name": "@opensouls/core",
   "version": "0.0.1",
+  "type": "module",
   "description": "The core functionality of the soul-engine",
   "main": "dist/index.js",
   "scripts": {
@@ -9,8 +10,10 @@
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
+    "gpt-tokenizer": "^2.1.2",
     "nanoid": "^5.0.6",
-    "openai": "^4.29.1"
+    "openai": "^4.29.1",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/chai": "^4.3.12",
