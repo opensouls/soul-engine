@@ -4,18 +4,22 @@
   "description": "The core functionality of the soul-engine",
   "main": "dist/index.js",
   "scripts": {
-    "test": "npx mocha"
+    "test": "mocha tests/**/*.spec.ts"
   },
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
+    "nanoid": "^5.0.6",
     "openai": "^4.29.1"
   },
   "devDependencies": {
     "@types/chai": "^4.3.12",
     "@types/mocha": "^10.0.6",
     "chai": "^5.1.0",
+    "dotenv": "^16.4.5",
     "mocha": "^10.3.0",
+    "node": "^21.7.1",
+    "tsx": "^4.7.1",
     "typescript": "^5.4.2"
   }
 }
