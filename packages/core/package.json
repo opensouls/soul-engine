@@ -1,0 +1,21 @@
+{
+  "name": "@opensouls/core",
+  "version": "0.0.1",
+  "description": "The core functionality of the soul-engine",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "npx mocha"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "openai": "^4.29.1"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.3.12",
+    "@types/mocha": "^10.0.6",
+    "chai": "^5.1.0",
+    "mocha": "^10.3.0",
+    "typescript": "^5.4.2"
+  }
+}
