@@ -71,4 +71,6 @@ describe("memory transformations", () => {
     console.log("newMemory", newMemory, "resp: ", response)
     expect(newMemory.find(m => m.role === ChatMessageRoleEnum.Assistant)?.content).to.include("testy says:")
   })
+
+  
 })

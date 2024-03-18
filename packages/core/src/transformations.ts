@@ -11,7 +11,6 @@ const tracer = trace.getTracer(
   '0.0.1',
 );
 
-
 export type StreamProcessor = (workingMemory: WorkingMemory, stream: AsyncIterable<string>) => AsyncIterable<string> | Promise<AsyncIterable<string>>
 
 interface TransformMemoryOptionsNonStreaming<SchemaType = string> {
@@ -32,9 +31,9 @@ export type TransformMemoryOptions<SchemaType = string> = TransformMemoryOptions
 
 export type CognitiveTransformation = {
   // non-streaming
-  <SchemaType = string>(workingMemory: WorkingMemory, ...args: any[]): Promise<[WorkingMemory, SchemaType]>;
+  <SchemaType = string>(workingMemory: WorkingMemory, ...args: [...any[], Partial<TransformMemoryOptionsNonStreaming<SchemaType>>]): Promise<[WorkingMemory, SchemaType]>;
   // streaming
-  <SchemaType = string>(workingMemory: WorkingMemory, ...args: any[]): Promise<[Promise<WorkingMemory>, Promise<SchemaType>, AsyncIterable<string>]>;
+  <SchemaType = string>(workingMemory: WorkingMemory, ...args: [...any[], Partial<TransformMemoryOptionsStreaming<SchemaType>>]): Promise<[Promise<WorkingMemory>, Promise<SchemaType>, AsyncIterable<string>]>;
 };
 
 const defaultPostProcessor = <SchemaType = string>(workingMemory: WorkingMemory, response: SchemaType) => {
@@ -69,9 +68,26 @@ const handleNonSchemaResponse = async (processor: Processor, memory: WorkingMemo
   return postProcess<string>(memory, await response.completion)
 }
 
-export const transformMemory = async <SchemaType = string>(workingMemory: WorkingMemory, opts: TransformMemoryOptionsNonStreaming & { stream?: boolean }): Promise<[WorkingMemory, SchemaType] | [WorkingMemory, SchemaType, AsyncIterable<string>]> => {
+function isStreamingOpts<SchemaType = any>(opts: TransformMemoryOptionsNonStreaming<SchemaType> | TransformMemoryOptionsStreaming<SchemaType>): opts is TransformMemoryOptionsStreaming<SchemaType> {
+  return (opts as TransformMemoryOptionsStreaming<SchemaType>).stream
+}
+
+export function transformMemory<SchemaType = string>(
+  workingMemory: WorkingMemory,
+  opts: TransformMemoryOptionsNonStreaming<SchemaType>
+): Promise<[WorkingMemory, SchemaType]>;
+
+export function transformMemory<SchemaType = string>(
+  workingMemory: WorkingMemory,
+  opts: TransformMemoryOptionsStreaming<SchemaType>
+): Promise<[Promise<WorkingMemory>, AsyncIterable<string>, Promise<SchemaType>]>;
+
+export async function transformMemory<SchemaType = string>(
+  workingMemory: WorkingMemory,
+  opts: TransformMemoryOptions<SchemaType>
+): Promise<[WorkingMemory, SchemaType] | [Promise<WorkingMemory>, AsyncIterable<string>, Promise<SchemaType>]> {
   return tracer.startActiveSpan('transformMemory', async (span) => {
-    if (opts.stream) {
+    if (isStreamingOpts(opts)) {
       throw new Error("WIP on streaming")
     }
 
@@ -104,7 +120,7 @@ export const transformMemory = async <SchemaType = string>(workingMemory: Workin
       return handleSchemaResponse(processor, schema, memoryWithCommand, opts) as Promise<[WorkingMemory, SchemaType]>
     }
   
-    return handleNonSchemaResponse(processor, memoryWithCommand, opts) as Promise<[WorkingMemory, SchemaType]>
+    return handleNonSchemaResponse(processor, memoryWithCommand, opts as TransformMemoryOptions<string>) as Promise<[WorkingMemory, SchemaType]>
   })
 
 }
