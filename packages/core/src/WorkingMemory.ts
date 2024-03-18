@@ -73,6 +73,22 @@ export class WorkingMemory {
     return this.concat(this.normalizeMemoryListOrWorkingMemory(memories))
   }
 
+  filter(callback: (memory: Memory) => boolean) {
+    const newMemories = this._memories.filter(callback)
+    return new WorkingMemory({
+      entityName: this.entityName,
+      memories: newMemories
+    })
+  }
+
+  some(callback: (memory: Memory) => boolean) {
+    return this._memories.some(callback)
+  }
+
+  find(callback: (memory: Memory) => boolean) {
+    return this._memories.find(callback)
+  }
+
   concat(otherWorkingMemory: WorkingMemory) {
     return new WorkingMemory({
       entityName: this.entityName,
