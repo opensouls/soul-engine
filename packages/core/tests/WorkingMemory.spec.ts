@@ -1,5 +1,5 @@
 import { expect } from "chai"
-import { WorkingMemory } from "../src/WorkingMemory"
+import { WorkingMemory } from "../src/WorkingMemory.js"
 
 
 describe("WorkingMemory", () => {

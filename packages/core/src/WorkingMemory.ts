@@ -42,13 +42,14 @@ export interface WorkingMemoryInitOptions {
   memories?: InputMemory[]
 }
 
-export type MemoryListOrWorkingMemory = Memory[] | WorkingMemory
+export type MemoryListOrWorkingMemory = InputMemory[] | WorkingMemory
 
 export class WorkingMemory {
   readonly id
   private _memories: Memory[]
   protected _isWorkingMemory = true
   entityName: string
+  defaultProcessor = "openai"
 
   constructor({ entityName, memories }: WorkingMemoryInitOptions) {
     this.id = nanoid()
@@ -102,10 +103,19 @@ export class WorkingMemory {
     return this._memories.find(callback)
   }
 
-  concat(otherWorkingMemory: WorkingMemory) {
+  concat(other: MemoryListOrWorkingMemory) {
+    const otherWorkingMemory = this.normalizeMemoryListOrWorkingMemory(other)
     return new WorkingMemory({
       entityName: this.entityName,
       memories: this._memories.concat(otherWorkingMemory._memories)
+    })
+  }
+
+  prepend(otherWorkingMemory: MemoryListOrWorkingMemory) {
+    const otherMemory = this.normalizeMemoryListOrWorkingMemory(otherWorkingMemory)
+    return new WorkingMemory({
+      entityName: this.entityName,
+      memories: otherMemory._memories.concat(this._memories)
     })
   }
 
