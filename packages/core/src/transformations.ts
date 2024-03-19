@@ -14,7 +14,7 @@ const tracer = trace.getTracer(
 
 export type StreamProcessor = (workingMemory: WorkingMemory, stream: AsyncIterable<string>) => (AsyncIterable<string> | Promise<AsyncIterable<string>>)
 
-export interface TransformMemoryOptionsBase<SchemaType> {
+export interface TransformMemoryOptions<SchemaType> {
   processor: string
   command: string | ((workingMemory: WorkingMemory) => InputMemory)
   schema?: ZodSchema<SchemaType>
@@ -23,16 +23,6 @@ export interface TransformMemoryOptionsBase<SchemaType> {
   skipAutoSchemaAddition?: boolean
   signal?: AbortSignal
 }
-
-export interface TransformMemoryOptionsNonStreaming<SchemaType> extends TransformMemoryOptionsBase<SchemaType> {
-  stream?: false
-}
-
-export interface TransformMemoryOptionsStreaming<SchemaType> extends TransformMemoryOptionsBase<SchemaType> {
-  stream: true
-}
-
-export type TransformMemoryOptions<SchemaType = string> = TransformMemoryOptionsNonStreaming<SchemaType> | TransformMemoryOptionsStreaming<SchemaType>
 
 export type CognitiveTransformation = {
   // non-streaming
@@ -66,7 +56,7 @@ const getNonSchemaResponse = async (processor: Processor, memory: WorkingMemory,
     signal: opts.signal
   }) as ProcessResponseWithoutParsed
 
-  return response.completion
+  return response.rawCompletion
 }
 
 const getSchemaStreamingResponse = async <SchemaType>(processor: Processor, schema: ZodSchema<SchemaType>, memory: WorkingMemory, opts: TransformMemoryOptions<SchemaType>): Promise<[AsyncIterable<string>, Promise<SchemaType>]> => {
@@ -85,7 +75,7 @@ const getNonSchemaStreamingResponse = async (processor: Processor, memory: Worki
     signal: opts.signal,
   }) as ProcessResponseWithoutParsed
 
-  return [response.stream, response.completion]
+  return [response.stream, response.rawCompletion]
 }
 
 function isStreamingOpts<SchemaType>(opts: TransformMemoryOptions<SchemaType>): opts is TransformMemoryOptionsStreaming<SchemaType> {

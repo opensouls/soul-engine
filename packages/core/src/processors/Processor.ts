@@ -7,33 +7,21 @@ export interface UsageNumbers {
   output: number
 }
 
-export interface ProcessResponseWithoutParsed {
-  completion: Promise<string>
+export interface ProcessResponse<SchemaType = string> {
+  rawCompletion: Promise<string>
+  parsed: Promise<SchemaType>
   stream: AsyncIterable<string>
   usage: Promise<UsageNumbers>
 }
 
-export interface ProcessResponseWithParsed<SchemaType> extends ProcessResponseWithoutParsed {
-  parsed: Promise<SchemaType>
-}
-
-export type ProcessResonse<SchemaType = any> = ProcessResponseWithoutParsed | ProcessResponseWithParsed<SchemaType>
-
-export interface ProcessOptsWithoutSchema {
+export interface ProcessOpts<SchemaType = string> {
   memory: WorkingMemory,
+  schema?: ZodSchema<SchemaType>
   signal?: AbortSignal
 }
 
-export interface ProcessOptsWithSchema<SchemaType> extends ProcessOptsWithoutSchema {
-  schema: ZodSchema<SchemaType>
-}
-
-export type ProcessOptsWithOptionalSchema<SchemaType> = ProcessOptsWithoutSchema & { schema?: ZodSchema<SchemaType> }
-
 export interface Processor {
-  //TODO
-  process<SchemaType = any>(opts: ProcessOptsWithoutSchema): Promise<ProcessResponseWithoutParsed>
-  process<SchemaType = any>(opts: ProcessOptsWithSchema<SchemaType>): Promise<ProcessResponseWithParsed<SchemaType>>
+  process<SchemaType = string>(opts: ProcessOpts<SchemaType>): Promise<ProcessResponse<SchemaType>>
 }
 
 export interface ProcessorCreationOpts {

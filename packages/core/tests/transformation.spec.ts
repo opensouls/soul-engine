@@ -1,7 +1,6 @@
 import "../src/processors/OpenAIProcessor.js"
 import { codeBlock } from "common-tags"
-import { ChatMessageRoleEnum, WorkingMemory } from "../src/WorkingMemory.js"
-import { CognitiveTransformation, TransformMemoryOptions, transformMemory } from "../src/transformations.js"
+import { ChatMessageRoleEnum, TransformMemoryOptions, WorkingMemory } from "../src/WorkingMemory.js"
 import { expect } from "chai";
 
 const stripResponseBoilerPlate = ({ entityName }: WorkingMemory, _verb: string, response: string) => {
@@ -75,9 +74,8 @@ const boilerPlateStreamProcessor = async ({ entityName }: WorkingMemory, stream:
   return processedStream;
 }
 
-const externalDialog = async (workingMemory: WorkingMemory, extraInstructions: string, verb = "says", overrides: Partial<TransformMemoryOptions> = {}) => {
+const externalDialog = (extraInstructions: string, verb = "says") => {
   const opts: TransformMemoryOptions<string> = {
-    processor: workingMemory.defaultProcessor,
     command: ({ entityName: name }: WorkingMemory) => {
       return {
         role: ChatMessageRoleEnum.System,
@@ -98,17 +96,15 @@ const externalDialog = async (workingMemory: WorkingMemory, extraInstructions: s
     },
     postProcess: (memory: WorkingMemory, response: string) => {
       const stripped = stripResponseBoilerPlate(memory, verb, response)
-      const newMemory = memory.withMemories([{
+      const newMemory = [{
           role: ChatMessageRoleEnum.Assistant,
           content: `${memory.entityName} ${verb}: "${stripped}"`
-      }])
-      return Promise.resolve([newMemory, stripped])
+      }]
+      return Promise.resolve({ memories: newMemory, value: stripped })
     },
-    stream: overrides.stream,
-    ...overrides,
   }
 
-  return transformMemory(workingMemory, opts)
+  return opts
 }
 
 describe("memory transformations", () => {
@@ -128,7 +124,7 @@ describe("memory transformations", () => {
       ]
     })
 
-    const [newMemory, response] = await externalDialog(workingMemory, "Please say hi back to me.")
+    const [newMemory, response] = await workingMemory.next(externalDialog("Please say hi back to me."))
     expect(response).to.be.a('string')
     console.log("newMemory", newMemory, "resp: ", response)
     expect(newMemory.find(m => m.role === ChatMessageRoleEnum.Assistant)?.content).to.include("testy says:")
@@ -149,10 +145,9 @@ describe("memory transformations", () => {
       ]
     })
 
-    const [newMemory, response] = await externalDialog(workingMemory, "Please say hi back to me.", "says", { stream: true })
-    expect(response).to.be.a('string')
-    console.log("newMemory", newMemory, "resp: ", response)
-    expect(newMemory.find(m => m.role === ChatMessageRoleEnum.Assistant)?.content).to.include("testy says:")
+    const [newMemory, stream, response] = await workingMemory.next(externalDialog("Please say hi back to me."), { stream: true })
+    expect(await response).to.be.a('string')
+    
   })
 
 

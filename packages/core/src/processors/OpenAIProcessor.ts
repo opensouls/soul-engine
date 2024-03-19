@@ -1,22 +1,17 @@
 import OpenAI from "openai";
-import { ZodSchema } from 'zod';
 import { trace, context } from "@opentelemetry/api";
 import { encodeChatGenerator, encodeGenerator } from "gpt-tokenizer/model/gpt-4"
 import { registerProcessor } from "./registry.js";
-import { Memory, WorkingMemory } from "../WorkingMemory.js";
+import { Memory } from "../WorkingMemory.js";
 import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { ReusableStream } from "./ReusableStream.js";
 import {
   extractJSON,
   Processor,
-  ProcessOptsWithoutSchema,
-  ProcessResponseWithoutParsed,
-  ProcessResponseWithParsed,
-  ProcessOptsWithOptionalSchema,
-  ProcessResonse,
-  ProcessOptsWithSchema,
   prepareMemoryForJSON,
-  UsageNumbers
+  UsageNumbers,
+  ProcessOpts,
+  ProcessResponse
 } from "./Processor.js";
 import { backOff } from "exponential-backoff";
 import { ChatMessage } from "gpt-tokenizer/GptEncoding";
@@ -57,10 +52,7 @@ export class OpenAIProcessor implements Processor {
     this.client = new OpenAI(clientOptions)
   }
 
-  async process(opts: ProcessOptsWithoutSchema): Promise<ProcessResponseWithoutParsed>;
-  async process<SchemaType = any>(opts: ProcessOptsWithSchema<SchemaType>): Promise<ProcessResponseWithParsed<SchemaType>>;
-
-  async process<SchemaType = any>(opts: ProcessOptsWithOptionalSchema<SchemaType>): Promise<ProcessResonse> {
+  async process<SchemaType = string>(opts: ProcessOpts<SchemaType>): Promise<ProcessResponse<SchemaType>> {
     return tracer.startActiveSpan("OpenAIProcessor.process", async (span) => {
       context.active()
 
@@ -84,7 +76,7 @@ export class OpenAIProcessor implements Processor {
 
         // TODO: how do we both return a stream *and* also parse the json and retry?
         if (opts.schema) {
-          const completion = await resp.completion
+          const completion = await resp.rawCompletion
           const extracted = extractJSON(completion)
           span.addEvent("extracted")
           span.setAttribute("extracted", extracted || "none")
@@ -100,7 +92,10 @@ export class OpenAIProcessor implements Processor {
           }
         }
 
-        return resp
+        return {
+          ...resp,
+          parsed: (resp.rawCompletion as Promise<SchemaType>)
+        }
       },
         {
           numOfAttempts: 5,
@@ -115,7 +110,7 @@ export class OpenAIProcessor implements Processor {
 
   }
 
-  private async execute<SchemaType = any>({ memory, signal, schema }: ProcessOptsWithOptionalSchema<SchemaType>): Promise<ProcessResonse> {
+  private async execute<SchemaType = any>({ memory, signal, schema }: ProcessOpts<SchemaType>): Promise<Omit<ProcessResponse<SchemaType>, "parsed">> {
     return tracer.startActiveSpan("OpenAIProcessor.execute", async (span) => {
       try {
         const model = DEFAULT_MODEL
@@ -203,7 +198,7 @@ export class OpenAIProcessor implements Processor {
         // TODO: schema
 
         return {
-          completion: fullContentPromise,
+          rawCompletion: fullContentPromise,
           stream: textStream.stream(),
           usage: usagePromise,
         }

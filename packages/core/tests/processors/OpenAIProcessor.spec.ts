@@ -25,10 +25,11 @@ describe('OpenAIProcessor', function() {
       streamed += chunk
     }
     
-    const completion = await response.completion;
+    const completion = await response.rawCompletion;
     expect(completion).to.be.a('string');
 
     const usage = await response.usage;
+    expect(usage).to.have.property('input');
     expect(streamed).to.equal(completion);
   });
 
