@@ -1,5 +1,6 @@
 import { ZodSchema } from "zod"
 import { ChatMessageContent, ChatMessageRoleEnum, ContentText, WorkingMemory } from "../WorkingMemory.js"
+import { codeBlock } from "common-tags"
 
 export interface UsageNumbers {
   model: string,
@@ -55,7 +56,7 @@ export const prepareMemoryForJSON = (workingMemory: WorkingMemory, jsonMessage =
       if (memory._id === systemMem._id) {
         return {
           ...memory,
-          content:  `${systemMem.content}\n\n${jsonMessage}`
+          content: systemMem.content + " \n\n " + jsonMessage,
         }
       }
       return memory 

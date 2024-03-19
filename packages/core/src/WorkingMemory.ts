@@ -15,15 +15,17 @@ export interface PostProcessReturn<SchemaType> {
   value: SchemaType
 }
 
-export interface TransformMemoryOptions<SchemaType = string> {
+export interface TransformMemoryOptions<SchemaType = string, PostProcessType = SchemaType> {
   command: string | ((workingMemory: WorkingMemory) => InputMemory)
 
   processor?: string
   schema?: ZodSchema<SchemaType>
-  postProcess?: (originalMemory: WorkingMemory, response: SchemaType) => (Promise<PostProcessReturn<SchemaType>> | PostProcessReturn<SchemaType>)
+  postProcess?: (originalMemory: WorkingMemory, response: SchemaType) => (Promise<PostProcessReturn<PostProcessType>> | PostProcessReturn<PostProcessType>)
   streamProcessor?: StreamProcessor
   skipAutoSchemaAddition?: boolean
 }
+
+export type CognitiveTransformation<SchemaType, PostProcessType> = TransformMemoryOptions<SchemaType, PostProcessType> | ((memory: WorkingMemory, value?: any) => TransformMemoryOptions<SchemaType, PostProcessType>)
 
 export interface NextOptions {
   stream?: boolean
@@ -92,6 +94,8 @@ export class WorkingMemory extends EventEmitter {
 
   protected pending?: Promise<void>
   protected pendingResolve?: () => void
+
+  protected lastValue?: any
 
   entityName: string
   defaultProcessor = "openai"
@@ -168,15 +172,38 @@ export class WorkingMemory extends EventEmitter {
     }]))
   }
 
-  async next<SchemaType>(transformation: TransformMemoryOptions<SchemaType>, opts: { stream: true } & NextOptions): Promise<[WorkingMemory, AsyncIterable<string>, Promise<SchemaType>]>;
-  async next<SchemaType>(transformation: TransformMemoryOptions<SchemaType>, opts?: Omit<NextOptions, 'stream'>): Promise<[WorkingMemory, SchemaType]>;
-  async next<SchemaType>(transformation: TransformMemoryOptions<SchemaType>, opts: NextOptions = {}) {
-    if (this.pending) {
-      await this.pending
-    }
-    const newMemory = this.clone(this.memories)
-    newMemory.markPending()
-    return newMemory.doTransform<SchemaType>(transformation, opts)
+  next<SchemaType, PostProcessType>(transformation: CognitiveTransformation<SchemaType, PostProcessType>, opts: { stream: true } & NextOptions): PromiseWithNext<[WorkingMemory, AsyncIterable<string>, Promise<PostProcessType>]>;
+  next<SchemaType, PostProcessType>(transformation: CognitiveTransformation<SchemaType, PostProcessType>, opts?: Omit<NextOptions, 'stream'>): PromiseWithNext<[WorkingMemory, PostProcessType]>;
+  next<SchemaType, PostProcessType>(transformation: CognitiveTransformation<SchemaType, PostProcessType>, opts: NextOptions = {}) {
+    const externalPromise = new Promise<any>(async (resolve, reject) => {
+      if (this.pending) {
+        await this.pending
+      }
+      const newMemory = this.clone()
+      newMemory.markPending()
+
+      if (typeof transformation === "function") {
+        transformation = transformation(newMemory, this.lastValue)
+      }
+
+      resolve(newMemory.doTransform<SchemaType, PostProcessType>(transformation, opts))
+    }) as PromiseWithNext<any>
+
+    // const externalPromise: PromiseWithNext<any> = internalPromise as any;
+    externalPromise.next = <SchemaType>(transformation: CognitiveTransformation<SchemaType, PostProcessType>, opts: NextOptions = {}) => {
+      return new Promise<any>(async (resolve, reject) => {
+        const [nextStep] = await externalPromise;
+        if (opts.stream) {
+          // Adjust this part to correctly handle the stream case
+          resolve(nextStep.next(transformation, opts) as PromiseWithNext<[WorkingMemory, AsyncIterable<string>, Promise<SchemaType>]>);
+        } else {
+          // Handle the non-stream case
+          resolve(nextStep.next(transformation, opts) as PromiseWithNext<[WorkingMemory, SchemaType]>);
+        }
+      }) as PromiseWithNext<any>;
+    };
+
+    return externalPromise
   }
 
   protected markPending() {
@@ -197,7 +224,7 @@ export class WorkingMemory extends EventEmitter {
     this.pendingResolve = undefined
   }
 
-  protected async doTransform<SchemaType>(transformation: TransformMemoryOptions<SchemaType>, opts: NextOptions) {
+  protected async doTransform<SchemaType, PostProcessType>(transformation: TransformMemoryOptions<SchemaType, PostProcessType>, opts: NextOptions) {
     if (!this.pending) {
       throw new Error("attempting to update working memory not marked as pending")
     }
@@ -219,8 +246,7 @@ export class WorkingMemory extends EventEmitter {
       } : command(this)
 
       if (schema && !skipAutoSchemaAddition) {
-        commandMemory.content += codeBlock`
-          \n
+        commandMemory.content += "\n\n" + codeBlock`
           Respond *only* in JSON, conforming to the following JSON schema:
           ${JSON.stringify(zodToJsonSchema(schema), null, 2)}
         `
@@ -239,6 +265,7 @@ export class WorkingMemory extends EventEmitter {
           try {
             const { memories, value } = await postProcess(this, await response.parsed)
             this._memories.push(...this.memoriesFromInputMemories(memories))
+            this.lastValue = value
             this.resolvePending()
             resolve(value)
           } catch (err) {
@@ -252,9 +279,9 @@ export class WorkingMemory extends EventEmitter {
 
       const { memories, value } = await postProcess(this, await response.parsed)
       this._memories.push(...this.memoriesFromInputMemories(memories))
-      
+      this.lastValue = value
       this.resolvePending()
-      
+
       return [this, value]
     } catch (err) {
       console.error("error in doTransform", err)
@@ -272,7 +299,6 @@ export class WorkingMemory extends EventEmitter {
       })
     })
   }
-
 
   private normalizeMemoryListOrWorkingMemory(memories: MemoryListOrWorkingMemory) {
     if (memories instanceof WorkingMemory) {

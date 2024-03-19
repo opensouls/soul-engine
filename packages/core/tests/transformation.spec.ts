@@ -1,7 +1,8 @@
 import "../src/processors/OpenAIProcessor.js"
 import { codeBlock } from "common-tags"
-import { ChatMessageRoleEnum, TransformMemoryOptions, WorkingMemory } from "../src/WorkingMemory.js"
+import { ChatMessageRoleEnum, CognitiveTransformation, TransformMemoryOptions, WorkingMemory } from "../src/WorkingMemory.js"
 import { expect } from "chai";
+import { EnumLike, z } from "zod";
 
 const stripResponseBoilerPlate = ({ entityName }: WorkingMemory, _verb: string, response: string) => {
   // sometimes the LLM will respond with something like "Bogus said with a sinister smile: "I'm going to eat you!" (adding more words)
@@ -108,6 +109,80 @@ const externalDialog = (extraInstructions: string, verb = "says") => {
   return opts
 }
 
+const internalMonologue = (extraInstructions?: string, verb = "thought") => {
+  const opts: TransformMemoryOptions<string> = {
+    command: ({ entityName: name }: WorkingMemory) => {
+      return {
+        role: ChatMessageRoleEnum.System,
+        name: name,
+        content: codeBlock`
+          Model the mind of ${name}.
+
+          ## Description
+          ${extraInstructions}
+
+          ## Rules
+          * Internal monologue thoughts should match the speaking style of ${name}.
+          * Only respond with the format '${name} ${verb}: "..."', no additional commentary or text.
+          * Follow the Description when creating the internal thought!
+
+          Please reply with the next internal monologue thought of ${name}. Use the format '${name} ${verb}: "..."'
+        `
+      }
+    },
+    streamProcessor: boilerPlateStreamProcessor,
+    postProcess: (memory: WorkingMemory, response: string) => {
+      const stripped = stripResponseBoilerPlate(memory, verb, response)
+      const newMemory = [{
+          role: ChatMessageRoleEnum.Assistant,
+          content: `${memory.entityName} ${verb}: "${stripped}"`
+      }]
+      return Promise.resolve({ memories: newMemory, value: stripped })
+    },
+  }
+
+  return opts
+}
+
+const decision = (description: string, choices: EnumLike | string[]) => {
+
+    const params = z.object({
+      decision: z.nativeEnum(choices as EnumLike).describe(description)
+    })
+
+    const opts: TransformMemoryOptions<z.infer<typeof params>, z.infer<typeof params>["decision"]> = {
+      command: ({ entityName: name }: WorkingMemory) => {
+        return {
+          role: ChatMessageRoleEnum.System,
+          name: name,
+          content: codeBlock`
+            ${name} is deciding between the following options:
+            ${Array.isArray(choices) ? choices.map((c) => `* ${c}`).join('\n') : JSON.stringify(choices, null, 2)}
+
+            ## Description
+            ${description}
+
+            ## Rules
+            * ${name} must decide on one of the options. Return ${name}'s decision.
+          `
+        }
+      },
+      schema: params,
+      postProcess: (memory: WorkingMemory, response: z.output<typeof params>) => {
+        return Promise.resolve({ 
+          memories: [{
+            role: ChatMessageRoleEnum.Assistant,
+            content: `${memory.entityName} decided: ${response.decision}`
+          }],
+          value: response.decision
+        })
+      }
+    }
+
+    return opts
+
+}
+
 describe("memory transformations", () => {
   
   it('allows simple externalDialog implementation', async () => {
@@ -146,7 +221,7 @@ describe("memory transformations", () => {
       ]
     })
     
-    const [newMemory, stream, response] = await workingMemory.next(externalDialog("Please say hi back to me."), { stream: true })
+    const [,stream, response] = await workingMemory.next(externalDialog("Please say hi back to me."), { stream: true })
     let streamed = ""
     for await (const chunk of stream) {
       streamed += chunk
@@ -176,6 +251,36 @@ describe("memory transformations", () => {
     await newMemory.finished
 
     expect(newMemory.memories.length).to.equal(4)
+  })
+
+  it.only('allows next chaining', async () => {
+    const workingMemory = new WorkingMemory({
+      entityName: 'testy',
+      memories: [
+        {
+          role: ChatMessageRoleEnum.System,
+          content: "You are modeling the mind of Testy, a super testy QA robot."
+        },
+        {
+          role: ChatMessageRoleEnum.User,
+          content: "you are quite testy!"
+        }
+      ]
+    })
+
+    const [newMemory, value] = await workingMemory.next(
+      internalMonologue("Testy thinks about a beautiful retort.")
+    ).next(
+      decision("Testy decides to respond with a witty retort.", ["I'm rubber, you're glue.", "I know you are but what am I?"])
+    )
+
+    await newMemory.finished
+    
+    expect(newMemory.memories.length).to.equal(4)
+
+    console.log('value: ', value)
+
+    expect(["I'm rubber, you're glue.", "I know you are but what am I?"]).to.include(value)
   })
 
 
