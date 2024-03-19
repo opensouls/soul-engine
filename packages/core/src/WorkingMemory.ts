@@ -1,10 +1,12 @@
 import { nanoid } from "nanoid"
-import { Schema, ZodSchema, ZodType, z } from "zod"
+import { ZodSchema } from "zod"
 import { EventEmitter } from "eventemitter3"
 import { getProcessor } from "./processors/registry.js"
 import { codeBlock } from "common-tags"
 import { zodToJsonSchema } from "zod-to-json-schema"
 
+
+export type PromiseWithNext<T> = Promise<T> & { next: WorkingMemory["next"] }
 
 export type StreamProcessor = (workingMemory: WorkingMemory, stream: AsyncIterable<string>) => (AsyncIterable<string> | Promise<AsyncIterable<string>>)
 
@@ -103,6 +105,13 @@ export class WorkingMemory extends EventEmitter {
 
   get memories() {
     return this._memories
+  }
+
+  get finished(): Promise<void> {
+    if (!this.pending) {
+      return Promise.resolve()
+    }
+    return this.pending
   }
 
   // TODO: capture everything other option too

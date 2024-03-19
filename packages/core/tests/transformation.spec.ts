@@ -152,7 +152,30 @@ describe("memory transformations", () => {
       streamed += chunk
     }
     expect(await response).to.equal(streamed)
+  })
+
+  it('returns a new memory that can be used right away even if stream is not finished', async () => {
+    const workingMemory = new WorkingMemory({
+      entityName: 'testy',
+      memories: [
+        {
+          role: ChatMessageRoleEnum.System,
+          content: "You are modeling the mind of Testy, a super testy QA robot."
+        },
+        {
+          role: ChatMessageRoleEnum.User,
+          content: "hi!"
+        }
+      ]
+    })
     
+    let newMemory, stream, response
+    [newMemory, stream, response] = await workingMemory.next(externalDialog("Please say hi back to me."), { stream: true });
+    // for instance you could speak(stream) here and then just carry on
+    [newMemory, stream] = await newMemory.next(externalDialog("Now please say 'goodbye'"), { stream: true });
+    await newMemory.finished
+
+    expect(newMemory.memories.length).to.equal(4)
   })
 
 
