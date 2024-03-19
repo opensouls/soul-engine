@@ -253,7 +253,7 @@ describe("memory transformations", () => {
     expect(newMemory.memories.length).to.equal(4)
   })
 
-  it.only('allows next chaining', async () => {
+  it('allows next chaining', async () => {
     const workingMemory = new WorkingMemory({
       entityName: 'testy',
       memories: [
