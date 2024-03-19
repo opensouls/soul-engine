@@ -94,6 +94,7 @@ const externalDialog = (extraInstructions: string, verb = "says") => {
         `
       }
     },
+    streamProcessor: boilerPlateStreamProcessor,
     postProcess: (memory: WorkingMemory, response: string) => {
       const stripped = stripResponseBoilerPlate(memory, verb, response)
       const newMemory = [{
@@ -144,9 +145,13 @@ describe("memory transformations", () => {
         }
       ]
     })
-
+    
     const [newMemory, stream, response] = await workingMemory.next(externalDialog("Please say hi back to me."), { stream: true })
-    expect(await response).to.be.a('string')
+    let streamed = ""
+    for await (const chunk of stream) {
+      streamed += chunk
+    }
+    expect(await response).to.equal(streamed)
     
   })
 
