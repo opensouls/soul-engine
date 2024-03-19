@@ -14,7 +14,7 @@ export interface ProcessResponseWithoutParsed {
 }
 
 export interface ProcessResponseWithParsed<SchemaType> extends ProcessResponseWithoutParsed {
-  parsed: SchemaType
+  parsed: Promise<SchemaType>
 }
 
 export type ProcessResonse<SchemaType = any> = ProcessResponseWithoutParsed | ProcessResponseWithParsed<SchemaType>

@@ -62,7 +62,7 @@ describe('OpenAIProcessor', function() {
       schema: params,
     });
 
-    expect(response.parsed).to.deep.equal({ text: response.parsed.text });
+    expect(await response.parsed).to.deep.equal({ text: (await response.parsed).text });
   })
 
 });

@@ -3,31 +3,36 @@ import { ChatMessageRoleEnum, InputMemory, WorkingMemory } from "./WorkingMemory
 import { getProcessor } from "./processors/registry.js"
 import { codeBlock } from "common-tags"
 import { zodToJsonSchema } from "zod-to-json-schema"
-import { Processor, ProcessResonse, ProcessResponseWithParsed, ProcessResponseWithoutParsed } from "./processors/Processor.js"
+import { Processor, ProcessResponseWithParsed, ProcessResponseWithoutParsed } from "./processors/Processor.js"
 import { trace } from "@opentelemetry/api"
+import { TransformOptions } from "stream"
 
 const tracer = trace.getTracer(
   'open-souls-transformMemory',
   '0.0.1',
 );
 
-export type StreamProcessor = (workingMemory: WorkingMemory, stream: AsyncIterable<string>) => AsyncIterable<string> | Promise<AsyncIterable<string>>
+export type StreamProcessor = (workingMemory: WorkingMemory, stream: AsyncIterable<string>) => (AsyncIterable<string> | Promise<AsyncIterable<string>>)
 
-interface TransformMemoryOptionsNonStreaming<SchemaType = string> {
+export interface TransformMemoryOptionsBase<SchemaType> {
   processor: string
   command: string | ((workingMemory: WorkingMemory) => InputMemory)
   schema?: ZodSchema<SchemaType>
-  postProcess?: (originalMemory: WorkingMemory, response: SchemaType) => Promise<[WorkingMemory, SchemaType]>
-  // streamProcessor?: StreamProcessor
+  postProcess?: (originalMemory: WorkingMemory, response: SchemaType) => (Promise<[WorkingMemory, SchemaType]> | [WorkingMemory, SchemaType])
+  streamProcessor?: StreamProcessor
   skipAutoSchemaAddition?: boolean
   signal?: AbortSignal
 }
 
-interface TransformMemoryOptionsStreaming<SchemaType = string> extends TransformMemoryOptionsNonStreaming<SchemaType> {
+export interface TransformMemoryOptionsNonStreaming<SchemaType> extends TransformMemoryOptionsBase<SchemaType> {
+  stream?: false
+}
+
+export interface TransformMemoryOptionsStreaming<SchemaType> extends TransformMemoryOptionsBase<SchemaType> {
   stream: true
 }
 
-export type TransformMemoryOptions<SchemaType = string> = TransformMemoryOptionsNonStreaming<SchemaType> & { stream?: boolean }
+export type TransformMemoryOptions<SchemaType = string> = TransformMemoryOptionsNonStreaming<SchemaType> | TransformMemoryOptionsStreaming<SchemaType>
 
 export type CognitiveTransformation = {
   // non-streaming
@@ -36,7 +41,7 @@ export type CognitiveTransformation = {
   <SchemaType = string>(workingMemory: WorkingMemory, ...args: [...any[], Partial<TransformMemoryOptionsStreaming<SchemaType>>]): Promise<[Promise<WorkingMemory>, Promise<SchemaType>, AsyncIterable<string>]>;
 };
 
-const defaultPostProcessor = <SchemaType = string>(workingMemory: WorkingMemory, response: SchemaType) => {
+const defaultPostProcessor = <SchemaType = string>(workingMemory: WorkingMemory, response: SchemaType): [WorkingMemory, SchemaType] => {
   const updatedMemory = workingMemory.withMemories([{
     role: ChatMessageRoleEnum.Assistant,
     content: (response as any).toString()
@@ -45,31 +50,46 @@ const defaultPostProcessor = <SchemaType = string>(workingMemory: WorkingMemory,
   return [updatedMemory, response]
 }
 
-const handleSchemaResponse = async <SchemaType>(processor: Processor, schema: ZodSchema<SchemaType>, memory: WorkingMemory, opts: TransformMemoryOptionsNonStreaming<SchemaType>) => {
-  const { postProcess = defaultPostProcessor } = opts
-
+const getSchemaResponse = async <SchemaType>(processor: Processor, schema: ZodSchema<SchemaType>, memory: WorkingMemory, opts: TransformMemoryOptionsNonStreaming<SchemaType>): Promise<SchemaType> => {
   const response = await processor.process({
     memory,
     schema,
     signal: opts.signal
   }) as ProcessResponseWithParsed<SchemaType>
 
-  return postProcess<SchemaType>(memory, response.parsed)
+  return response.parsed
 }
 
-const handleNonSchemaResponse = async (processor: Processor, memory: WorkingMemory, opts: TransformMemoryOptionsNonStreaming<string>) => {
-  const { postProcess = defaultPostProcessor } = opts
-
+const getNonSchemaResponse = async (processor: Processor, memory: WorkingMemory, opts: TransformMemoryOptionsNonStreaming<string>): Promise<string> => {
   const response = await processor.process({
     memory,
     signal: opts.signal
   }) as ProcessResponseWithoutParsed
 
-  return postProcess<string>(memory, await response.completion)
+  return response.completion
 }
 
-function isStreamingOpts<SchemaType = any>(opts: TransformMemoryOptionsNonStreaming<SchemaType> | TransformMemoryOptionsStreaming<SchemaType>): opts is TransformMemoryOptionsStreaming<SchemaType> {
-  return (opts as TransformMemoryOptionsStreaming<SchemaType>).stream
+const getSchemaStreamingResponse = async <SchemaType>(processor: Processor, schema: ZodSchema<SchemaType>, memory: WorkingMemory, opts: TransformMemoryOptions<SchemaType>): Promise<[AsyncIterable<string>, Promise<SchemaType>]> => {
+  const response = await processor.process({
+    memory,
+    schema,
+    signal: opts.signal,
+  }) as ProcessResponseWithParsed<SchemaType>
+
+  return [response.stream, response.parsed]
+}
+
+const getNonSchemaStreamingResponse = async (processor: Processor, memory: WorkingMemory, opts: TransformMemoryOptions<string>): Promise<[AsyncIterable<string>, Promise<string>]> => {
+  const response = await processor.process({
+    memory,
+    signal: opts.signal,
+  }) as ProcessResponseWithoutParsed
+
+  return [response.stream, response.completion]
+}
+
+function isStreamingOpts<SchemaType>(opts: TransformMemoryOptions<SchemaType>): opts is TransformMemoryOptionsStreaming<SchemaType> {
+  return !!opts.stream
 }
 
 export function transformMemory<SchemaType = string>(
@@ -87,41 +107,117 @@ export async function transformMemory<SchemaType = string>(
   opts: TransformMemoryOptions<SchemaType>
 ): Promise<[WorkingMemory, SchemaType] | [Promise<WorkingMemory>, AsyncIterable<string>, Promise<SchemaType>]> {
   return tracer.startActiveSpan('transformMemory', async (span) => {
-    if (isStreamingOpts(opts)) {
-      throw new Error("WIP on streaming")
+    try {
+      if (isStreamingOpts(opts)) {
+        return transformStreaming(workingMemory, opts)
+      }
+  
+      const { 
+        processor: processorName, 
+        command,
+        schema,
+        skipAutoSchemaAddition,
+        postProcess = defaultPostProcessor<SchemaType>
+      } = opts
+  
+  
+      const processor = getProcessor(processorName)
+  
+      const commandMemory = typeof command === "string" ? {
+        role: ChatMessageRoleEnum.System,
+        content: command
+      } : command(workingMemory)
+    
+      if (schema && !skipAutoSchemaAddition) {
+        commandMemory.content += codeBlock`
+          \n
+          Respond *only* in JSON, conforming to the following JSON schema:
+          ${JSON.stringify(zodToJsonSchema(schema), null, 2)}
+        `
+      }
+    
+      const memoryWithCommand = workingMemory.withMemories([commandMemory])
+    
+      const response = schema ?
+        await getSchemaResponse(processor, schema, memoryWithCommand, opts) :
+        await getNonSchemaResponse(processor, memoryWithCommand, opts as unknown as TransformMemoryOptionsNonStreaming<string>)
+
+        
+      return postProcess(workingMemory, (response as SchemaType))
+    } finally {
+      span.end()
     }
-
-    const { 
-      processor: processorName, 
-      command,
-      schema,
-      skipAutoSchemaAddition
-    } = opts
+  })
+}
 
 
-    const processor = getProcessor(processorName)
+async function transformStreaming<SchemaType = string>(
+  workingMemory: WorkingMemory,
+  opts: TransformMemoryOptionsStreaming<SchemaType>
+): Promise<[Promise<WorkingMemory>, AsyncIterable<string>, Promise<SchemaType>]> {
+  const { 
+    processor: processorName, 
+    command,
+    schema,
+    skipAutoSchemaAddition,
+    streamProcessor,
+    postProcess = defaultPostProcessor<SchemaType>
+  } = opts
 
-    const commandMemory = typeof command === "string" ? {
-      role: ChatMessageRoleEnum.System,
-      content: command
-    } : command(workingMemory)
-  
-    if (schema && !skipAutoSchemaAddition) {
-      commandMemory.content += codeBlock`
-        \n
-        Respond *only* in JSON, conforming to the following JSON schema:
-        ${JSON.stringify(zodToJsonSchema(schema), null, 2)}
-      `
+
+  const processor = getProcessor(processorName)
+
+  const commandMemory = typeof command === "string" ? {
+    role: ChatMessageRoleEnum.System,
+    content: command
+  } : command(workingMemory)
+
+  if (schema && !skipAutoSchemaAddition) {
+    commandMemory.content += codeBlock`
+      \n
+      Respond *only* in JSON, conforming to the following JSON schema:
+      ${JSON.stringify(zodToJsonSchema(schema), null, 2)}
+    `
+  }
+
+  const memoryWithCommand = workingMemory.withMemories([commandMemory])
+
+  const [rawStream, parsedOrString] = schema ?
+    await getSchemaStreamingResponse(processor, schema, memoryWithCommand, opts) :
+    await getNonSchemaStreamingResponse(processor, memoryWithCommand, opts as TransformMemoryOptions<string>)
+
+  const stream = streamProcessor ? (await streamProcessor(workingMemory, rawStream)) : rawStream
+
+  const postCompletion = new Promise<[WorkingMemory, SchemaType]>(async (resolve, reject) => {
+    try {
+      const resp = await postProcess(workingMemory, (await parsedOrString) as SchemaType)
+      resolve(resp)
+    } catch (e) {
+      reject(e)
     }
-  
-    const memoryWithCommand = workingMemory.withMemories([commandMemory])
-  
-    if (schema) {
-      return handleSchemaResponse(processor, schema, memoryWithCommand, opts) as Promise<[WorkingMemory, SchemaType]>
-    }
-  
-    return handleNonSchemaResponse(processor, memoryWithCommand, opts as TransformMemoryOptions<string>) as Promise<[WorkingMemory, SchemaType]>
   })
 
+  const memoryPromise = new Promise<WorkingMemory>(async (resolve, reject) => {
+    try {
+      const resp = await postCompletion
+      resolve(resp[0])
+    } catch (e) {
+      reject(e)
+    }
+  })
+
+  const parsedPromise = new Promise<SchemaType>(async (resolve, reject) => {
+    try {
+      const resp = await postCompletion
+      resolve(resp[1])
+    } catch (e) {
+      reject(e)
+    }
+  })
+
+    
+  return [memoryPromise, stream, parsedPromise]
+
 }
+
 

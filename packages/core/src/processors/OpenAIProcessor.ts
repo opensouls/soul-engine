@@ -82,6 +82,7 @@ export class OpenAIProcessor implements Processor {
           memory,
         })
 
+        // TODO: how do we both return a stream *and* also parse the json and retry?
         if (opts.schema) {
           const completion = await resp.completion
           const extracted = extractJSON(completion)
@@ -95,7 +96,7 @@ export class OpenAIProcessor implements Processor {
           span.end()
           return {
             ...resp,
-            parsed,
+            parsed: Promise.resolve(parsed),
           }
         }
 

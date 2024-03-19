@@ -13,9 +13,70 @@ const stripResponseBoilerPlate = ({ entityName }: WorkingMemory, _verb: string, 
   return strippedResponse
 }
 
+const boilerPlateStreamProcessor = async ({ entityName }: WorkingMemory, stream: AsyncIterable<string>): Promise<AsyncIterable<string>> => {
+  const prefix = new RegExp(`^${entityName}.*?:\\s*["']*`, "i")
+  const suffix = /["']$/
+
+  let isStreaming = !prefix
+  let prefixMatched = !prefix
+  let buffer = ""
+  const isStreamingBuffer: string[] = []
+
+  const processedStream = (async function* () {
+    for await (const chunk of stream) {
+      // if we are already streaming, then we need to look out for a suffix
+      // we keep the last 2 chunks in the buffer to check after the stream is finished
+      // othwerwise we keep streaming
+      if (isStreaming) {
+        if (!suffix) {
+          yield chunk
+          continue;
+        }
+        isStreamingBuffer.push(chunk)
+        if (isStreamingBuffer.length > 2) {
+          yield isStreamingBuffer.shift() as string
+        }
+        continue;
+      }
+
+      // if we're not streaming, then keep looking for the prefix, and allow one *more* chunk
+      // after detecting a hit on the prefix to come in, in case the prefix has some optional ending
+      // characters.
+      buffer += chunk;
+      if (prefix && prefix.test(buffer)) {
+        if (prefixMatched) {
+          isStreaming = true;
+
+          buffer = buffer.replace(prefix, '');
+          yield buffer; // yield everything after the prefix
+          buffer = ''; // clear the buffer
+          continue
+        }
+        prefixMatched = true
+      }
+    }
+    buffer = [buffer, ...isStreamingBuffer].join('')
+    // if we ended before switching on streaming, then we haven't stripped the prefix yet.
+    if (!isStreaming && prefix) {
+      buffer = buffer.replace(prefix, '');
+    }
+    if (buffer.length > 0) {
+      // if there was some buffer left over, then we need to check if there was a suffix
+      // and remove that from the last part of the stream.
+      if (suffix) {
+        buffer = buffer.replace(suffix, '');
+        yield buffer; // yield everything before the suffix
+        return
+      }
+      // if there was no suffix, then just yield what's left.
+      yield buffer; // yield the last part of the buffer if anything is left
+    }
+  })();
+  return processedStream;
+}
 
 const externalDialog = async (workingMemory: WorkingMemory, extraInstructions: string, verb = "says", overrides: Partial<TransformMemoryOptions> = {}) => {
-  const opts: TransformMemoryOptions = {
+  const opts: TransformMemoryOptions<string> = {
     processor: workingMemory.defaultProcessor,
     command: ({ entityName: name }: WorkingMemory) => {
       return {
@@ -43,6 +104,7 @@ const externalDialog = async (workingMemory: WorkingMemory, extraInstructions: s
       }])
       return Promise.resolve([newMemory, stripped])
     },
+    stream: overrides.stream,
     ...overrides,
   }
 
@@ -72,5 +134,26 @@ describe("memory transformations", () => {
     expect(newMemory.find(m => m.role === ChatMessageRoleEnum.Assistant)?.content).to.include("testy says:")
   })
 
-  
+  it('streams a simple externalDialog implementation', async () => {
+    const workingMemory = new WorkingMemory({
+      entityName: 'testy',
+      memories: [
+        {
+          role: ChatMessageRoleEnum.System,
+          content: "You are modeling the mind of Testy, a super testy QA robot."
+        },
+        {
+          role: ChatMessageRoleEnum.User,
+          content: "hi!"
+        }
+      ]
+    })
+
+    const [newMemory, response] = await externalDialog(workingMemory, "Please say hi back to me.", "says", { stream: true })
+    expect(response).to.be.a('string')
+    console.log("newMemory", newMemory, "resp: ", response)
+    expect(newMemory.find(m => m.role === ChatMessageRoleEnum.Assistant)?.content).to.include("testy says:")
+  })
+
+
 })
