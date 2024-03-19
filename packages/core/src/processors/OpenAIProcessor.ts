@@ -2,7 +2,7 @@ import OpenAI from "openai";
 import { trace, context } from "@opentelemetry/api";
 import { encodeChatGenerator, encodeGenerator } from "gpt-tokenizer/model/gpt-4"
 import { registerProcessor } from "./registry.js";
-import { Memory } from "../WorkingMemory.js";
+import { ChatMessageRoleEnum, Memory } from "../WorkingMemory.js";
 import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { ReusableStream } from "./ReusableStream.js";
 import {
@@ -33,6 +33,8 @@ export const memoryToChatMessage = (memory: Memory): ChatCompletionMessageParam 
 
 interface OpenAIProcessorOpts {
   clientOptions?: Clientconfig
+  singleSystemMessage?: boolean,
+  forcedRoleAlternation?: boolean,
 }
 
 async function* chunkStreamToTextStream(chunkStream: AsyncIterable<OpenAI.Chat.Completions.ChatCompletionChunk>) {
@@ -48,8 +50,13 @@ export class OpenAIProcessor implements Processor {
   static label = "openai"
   private client: OpenAI
 
-  constructor({ clientOptions }: OpenAIProcessorOpts) {
+  private singleSystemMessage: boolean
+  private forcedRoleAlternation: boolean
+
+  constructor({ clientOptions, singleSystemMessage, forcedRoleAlternation }: OpenAIProcessorOpts) {
     this.client = new OpenAI(clientOptions)
+    this.singleSystemMessage = singleSystemMessage || false
+    this.forcedRoleAlternation = forcedRoleAlternation || false
   }
 
   async process<SchemaType = string>(opts: ProcessOpts<SchemaType>): Promise<ProcessResponse<SchemaType>> {
@@ -114,7 +121,7 @@ export class OpenAIProcessor implements Processor {
     return tracer.startActiveSpan("OpenAIProcessor.execute", async (span) => {
       try {
         const model = DEFAULT_MODEL
-        const messages = memory.memories.map(memoryToChatMessage)
+        const messages = this.possiblyFixMessageRoles(memory.memories.map(memoryToChatMessage))
         const params = {
           model,
           messages,
@@ -207,6 +214,64 @@ export class OpenAIProcessor implements Processor {
         throw err
       }
     })
+  }
+
+  private possiblyFixMessageRoles(messages: (ChatMessage | ChatCompletionMessageParam)[]): ChatCompletionMessageParam[] {
+    if (!this.singleSystemMessage && !this.forcedRoleAlternation) {
+      return messages as ChatCompletionMessageParam[]
+    }
+
+    let newMessages = messages
+
+    if (this.singleSystemMessage) {
+      let firstSystemMessage = true
+      newMessages = messages.map((originalMessage) => {
+        const message = { ...originalMessage }
+        if (message.role === ChatMessageRoleEnum.System) {
+          if (firstSystemMessage) {
+            firstSystemMessage = false
+            return message
+          }
+          message.role = ChatMessageRoleEnum.User
+          // systemMessage += message.content + "\n"
+          return message
+        }
+        return message
+      }) as ChatCompletionMessageParam[]
+    }
+
+    if (this.forcedRoleAlternation) {
+      // now we make sure that all the messages alternate User/Assistant/User/Assistant
+      let lastRole: ChatCompletionMessageParam["role"] | undefined
+      const { messages } = newMessages.reduce((acc, message) => {
+        // If it's the first message or the role is different from the last, push it to the accumulator
+        if (lastRole !== message.role) {
+          acc.messages.push(message as ChatCompletionMessageParam);
+          lastRole = message.role;
+          acc.grouped = [message.content as string]
+        } else {
+          // If the role is the same, combine the content with the last message in the accumulator
+          const lastMessage = acc.messages[acc.messages.length - 1];
+          acc.grouped.push(message.content as string)
+          
+          lastMessage.content = acc.grouped.slice(0, -1).map((str) => {
+            return `${message.role} said: ${str}`
+          }).concat(acc.grouped.slice(-1)[0]).join("\n\n")
+        }
+        
+        return acc;
+      }, { messages: [], grouped: [] } as { grouped: string[], messages: ChatCompletionMessageParam[] }) 
+    
+      newMessages = messages
+      if (newMessages[0]?.role === ChatMessageRoleEnum.Assistant) {
+        newMessages.unshift({
+          content: "...",
+          role: ChatMessageRoleEnum.User
+        })
+      }
+    }
+
+    return newMessages as ChatCompletionMessageParam[]
   }
 
 }
