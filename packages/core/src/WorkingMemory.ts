@@ -4,7 +4,7 @@ import { EventEmitter } from "eventemitter3"
 import { getProcessor } from "./processors/registry.js"
 import { codeBlock } from "common-tags"
 import { zodToJsonSchema } from "zod-to-json-schema"
-import { RequestOptions } from "./processors/Processor.js"
+import { RequestOptions, UsageNumbers } from "./processors/Processor.js"
 
 export type StreamProcessor = (workingMemory: WorkingMemory, stream: AsyncIterable<string>) => (AsyncIterable<string> | Promise<AsyncIterable<string>>)
 
@@ -66,7 +66,7 @@ export interface Memory<MetaDataType = Record<string, unknown>> {
 export type TransformReturnStreaming<PostProcessType> = [WorkingMemory, AsyncIterable<string>, Promise<PostProcessType>]
 export type TransformReturn<PostProcessType> = [WorkingMemory, PostProcessType]
 
-export type CognitiveStep<SchemaType, PostProcessType> = (
+export type CognitiveStep<_SchemaType, PostProcessType> = (
   memory: WorkingMemory,
   value: any,
   options: TransformOptions
@@ -101,6 +101,8 @@ export class WorkingMemory extends EventEmitter {
   readonly id
   private _memories: Memory[]
 
+  private _usage: UsageNumbers
+
   protected pending?: Promise<void>
   protected pendingResolve?: () => void
 
@@ -119,6 +121,15 @@ export class WorkingMemory extends EventEmitter {
     if (processor) {
       this.processor = processor
     }
+    this._usage = {
+      model: "",
+      input: 0,
+      output: 0,
+    }
+  }
+
+  get usage() {
+    return { ...this._usage }
   }
 
   get memories() {
@@ -274,6 +285,7 @@ export class WorkingMemory extends EventEmitter {
             const [memory, value] = await postProcess(this, await response.parsed)
             this._memories.push(...this.memoriesFromInputMemories([memory]))
             this.lastValue = value
+            this._usage = await response.usage
             this.resolvePending()
             resolve(value)
           } catch (err) {
@@ -288,6 +300,7 @@ export class WorkingMemory extends EventEmitter {
       const [memory, value] = await postProcess(this, await response.parsed)
       this._memories.push(...this.memoriesFromInputMemories([memory]))
       this.lastValue = value
+      this._usage = await response.usage
       this.resolvePending()
 
       return [this, value]
