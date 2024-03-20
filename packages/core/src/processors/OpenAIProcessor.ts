@@ -32,7 +32,7 @@ export const memoryToChatMessage = (memory: Memory): ChatCompletionMessageParam 
   } as ChatCompletionMessageParam
 }
 
-interface OpenAIProcessorOpts {
+export interface OpenAIProcessorOpts {
   clientOptions?: Clientconfig
   defaultCompletionParams?: Partial<OpenAI.Chat.Completions.ChatCompletionCreateParams>
   defaultRequestOptions?: Partial<RequestOptions>
@@ -134,7 +134,7 @@ export class OpenAIProcessor implements Processor {
   }: ProcessOpts<SchemaType>): Promise<Omit<ProcessResponse<SchemaType>, "parsed">> {
     return tracer.startActiveSpan("OpenAIProcessor.execute", async (span) => {
       try {
-        const model = developerSpecifiedModel || this.defaultRequestOptions.model || DEFAULT_MODEL
+        const model = developerSpecifiedModel || this.defaultCompletionParams.model || DEFAULT_MODEL
         const messages = this.possiblyFixMessageRoles(memory.memories.map(memoryToChatMessage))
         const params = {
           ...(maxTokens && { max_tokens: maxTokens }),

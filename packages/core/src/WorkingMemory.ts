@@ -4,7 +4,7 @@ import { EventEmitter } from "eventemitter3"
 import { getProcessor } from "./processors/registry.js"
 import { codeBlock } from "common-tags"
 import { zodToJsonSchema } from "zod-to-json-schema"
-import { ProcessOpts, RequestOptions } from "./processors/Processor.js"
+import { RequestOptions } from "./processors/Processor.js"
 
 export type StreamProcessor = (workingMemory: WorkingMemory, stream: AsyncIterable<string>) => (AsyncIterable<string> | Promise<AsyncIterable<string>>)
 
@@ -136,9 +136,9 @@ export class WorkingMemory extends EventEmitter {
   clone(replacementMemories?: InputMemory[]) {
     const newMemory = new WorkingMemory({
       entityName: this.entityName,
-      memories: replacementMemories || this._memories
+      memories: replacementMemories || this._memories,
+      processor: this.processor,
     })
-    newMemory.processor = this.processor
     return newMemory
   }
 
