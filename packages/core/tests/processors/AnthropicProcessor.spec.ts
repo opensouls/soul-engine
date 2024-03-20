@@ -1,5 +1,4 @@
 import { expect } from 'chai';
-import { OpenAIProcessor } from '../../src/processors/OpenAIProcessor.js';
 import { WorkingMemory } from '../../src/WorkingMemory.js';
 import { ChatMessageRoleEnum } from '../../src/WorkingMemory.js';
 import { z } from 'zod';
@@ -22,7 +21,6 @@ describe('AnthropicProcessor', function() {
     
     let streamed = ""
     for await (const chunk of response.stream) {
-      console.log("chunk: ", chunk)
       streamed += chunk
     }
     

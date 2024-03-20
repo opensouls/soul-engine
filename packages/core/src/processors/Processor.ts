@@ -1,6 +1,5 @@
 import { ZodSchema } from "zod"
 import { ChatMessageContent, ChatMessageRoleEnum, ContentText, WorkingMemory } from "../WorkingMemory.js"
-import { codeBlock } from "common-tags"
 
 export interface UsageNumbers {
   model: string,

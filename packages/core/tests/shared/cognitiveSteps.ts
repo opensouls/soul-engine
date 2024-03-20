@@ -209,7 +209,7 @@ export const decision = (memory: WorkingMemory, { description, choices, verb = "
   };
 
   if (transformOpts.stream) {
-    return memory.transform(opts, { stream: true });
+    return memory.transform(opts, { ...transformOpts, stream: true });
   } else {
     return memory.transform(opts, transformOpts);
   }

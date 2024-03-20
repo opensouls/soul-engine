@@ -2,8 +2,12 @@ import OpenAI from "openai";
 import { RequestOptions } from "openai/core";
 import { trace, context } from "@opentelemetry/api";
 import { encodeChatGenerator, encodeGenerator } from "gpt-tokenizer/model/gpt-4"
+import { backOff } from "exponential-backoff";
+import { ChatMessage } from "gpt-tokenizer/GptEncoding";
+import { ZodError, fromZodError } from 'zod-validation-error';
+
 import { registerProcessor } from "./registry.js";
-import { Memory } from "../WorkingMemory.js";
+import { ChatMessageRoleEnum, Memory } from "../WorkingMemory.js";
 import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { ReusableStream } from "../ReusableStream.js";
 import {
@@ -14,9 +18,8 @@ import {
   ProcessOpts,
   ProcessResponse
 } from "./Processor.js";
-import { backOff } from "exponential-backoff";
-import { ChatMessage } from "gpt-tokenizer/GptEncoding";
 import { fixMessageRoles } from "./messageRoleFixer.js";
+import { codeBlock } from "common-tags";
 
 const tracer = trace.getTracer(
   'open-souls-OpenAIProcessor',
@@ -39,6 +42,7 @@ export interface OpenAIProcessorOpts {
   defaultRequestOptions?: Partial<RequestOptions>
   singleSystemMessage?: boolean,
   forcedRoleAlternation?: boolean,
+  disableResponseFormat?: boolean,
 }
 
 async function* chunkStreamToTextStream(chunkStream: AsyncIterable<OpenAI.Chat.Completions.ChatCompletionChunk>) {
@@ -56,71 +60,103 @@ export class OpenAIProcessor implements Processor {
 
   private singleSystemMessage: boolean
   private forcedRoleAlternation: boolean
+  private disableResponseFormat: boolean // default this one to true
 
   private defaultRequestOptions: Partial<RequestOptions>
   private defaultCompletionParams: Partial<OpenAI.Chat.Completions.ChatCompletionCreateParams>
 
-  constructor({ clientOptions, singleSystemMessage, forcedRoleAlternation, defaultRequestOptions, defaultCompletionParams }: OpenAIProcessorOpts) {
+  constructor({ clientOptions, singleSystemMessage, forcedRoleAlternation, defaultRequestOptions, defaultCompletionParams, disableResponseFormat }: OpenAIProcessorOpts) {
     this.client = new OpenAI(clientOptions)
     this.singleSystemMessage = singleSystemMessage || false
     this.forcedRoleAlternation = forcedRoleAlternation || false
     this.defaultRequestOptions = defaultRequestOptions || {}
+    this.disableResponseFormat = disableResponseFormat || false
     this.defaultCompletionParams = defaultCompletionParams || {}
   }
 
   async process<SchemaType = string>(opts: ProcessOpts<SchemaType>): Promise<ProcessResponse<SchemaType>> {
     return tracer.startActiveSpan("OpenAIProcessor.process", async (span) => {
-      context.active()
+      try {
+        context.active()
 
-      let memory = opts.memory
-      if (opts.schema) {
-        memory = prepareMemoryForJSON(memory)
-      }
-
-      span.setAttributes({
-        processOptions: JSON.stringify(opts),
-        memory: JSON.stringify(memory),
-      })
-
-      return backOff(
-        async () => {
-          const resp = await this.execute({
-            ...opts,
-            memory,
-          })
-
-          // TODO: how do we both return a stream *and* also parse the json and retry?
-          if (opts.schema) {
-            const completion = await resp.rawCompletion
-            const extracted = extractJSON(completion)
-            span.addEvent("extracted")
-            span.setAttribute("extracted", extracted || "none")
-            if (!extracted) {
-              throw new Error('no json found in completion')
+        let memory = opts.memory
+        if (opts.schema) {
+          memory = prepareMemoryForJSON(memory)
+        }
+  
+        span.setAttributes({
+          processOptions: JSON.stringify(opts),
+          memory: JSON.stringify(memory),
+        })
+  
+        return backOff(
+          async () => {
+            const resp = await this.execute({
+              ...opts,
+              memory,
+            })
+  
+            // TODO: how do we both return a stream *and* also parse the json and retry?
+            if (opts.schema) {
+              const completion = await resp.rawCompletion
+              const extracted = extractJSON(completion)
+              span.addEvent("extracted")
+              span.setAttribute("extracted", extracted || "none")
+              if (!extracted) {
+                console.error("no json found in completion", completion)
+                throw new Error('no json found in completion')
+              }
+              try {
+                const parsed = opts.schema.parse(JSON.parse(extracted))
+                span.addEvent("parsed")
+                span.end()
+                return {
+                  ...resp,
+                  parsed: Promise.resolve(parsed),
+                }
+              } catch (err: any) {
+                span.recordException(err)
+                const zodError = fromZodError(err as ZodError)
+                console.log("zod error", zodError.toString())
+                memory = memory.concat([
+                  {
+                    role: ChatMessageRoleEnum.Assistant,
+                    content: extracted,
+                  },
+                  {
+                    role: ChatMessageRoleEnum.User,
+                    content: codeBlock`
+                      ## JSON Errors
+                      ${zodError.toString()}.
+                      
+                      Please fix the error(s) and try again, conforming exactly to the provided JSON schema.`
+                  }
+                ])
+                throw err
+              }
+  
             }
-            const parsed = opts.schema.parse(JSON.parse(extracted))
-            span.addEvent("parsed")
-            span.end()
+  
             return {
               ...resp,
-              parsed: Promise.resolve(parsed),
+              parsed: (resp.rawCompletion as Promise<SchemaType>)
             }
-          }
-
-          return {
-            ...resp,
-            parsed: (resp.rawCompletion as Promise<SchemaType>)
-          }
-        },
-        {
-          numOfAttempts: 5,
-          retry: (err) => {
-            span.addEvent("retry")
-            console.error("retrying due to error", err)
-
-            return true
           },
-        })
+          {
+            numOfAttempts: 5,
+            retry: (err) => {
+              span.addEvent("retry")
+              console.error("retrying due to error", err)
+  
+              return true
+            },
+          })
+      } catch (err: any) {
+        console.error("error in process", err)
+        span.recordException(err)
+        span.end()
+        throw err
+      }
     })
 
   }
@@ -154,9 +190,7 @@ export class OpenAIProcessor implements Processor {
             ...this.defaultCompletionParams,
             ...params,
             stream: true,
-            response_format: {
-              type: schema ? "json_object" : "text",
-            }
+            ...(!this.disableResponseFormat && { response_format: { type: schema ? "json_object" : "text" } })
           },
           {
             ...this.defaultRequestOptions,

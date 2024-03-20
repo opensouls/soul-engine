@@ -21,7 +21,6 @@ describe('OpenAIProcessor', function() {
     
     let streamed = ""
     for await (const chunk of response.stream) {
-      console.log("chunk: ", chunk)
       streamed += chunk
     }
     

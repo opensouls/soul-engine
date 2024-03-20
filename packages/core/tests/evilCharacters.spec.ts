@@ -70,7 +70,7 @@ describe("EvilCharacters", () => {
       // console.log("says: ", says.value)
   
       const [action, actions] = await brainstorm(says, `Think up 3 evil things to do next`)
-      console.log("actions: ", actions)
+      // console.log("actions: ", actions)
   
       expect(action.toString()).to.not.include("fulfill that request")
     })
@@ -99,7 +99,6 @@ describe("EvilCharacters", () => {
         }
 
         const [feels, felt] = await internalMonologue(monologue, "Bogus notes how it feels to to be so nicely evil.")
-        console.log("feels: ", felt)
         const [thinks] = await internalMonologue(feels, "Bogus thinks a single sentence.")
         const [says] = await externalDialog(thinks, "What does Bogus says out loud next")
         const [action, rambleOrNot] = await decision(says, {description: "Decide Bogus' next course of action in the dialog. Should he ramble or stop?", choices: BogusAction })
@@ -108,14 +107,13 @@ describe("EvilCharacters", () => {
           const [shouts] = await externalDialog(rambles, "Bogus shouts incredibly loudly with all caps")
           const [exclaims] = await externalDialog(shouts, "Bogus exclaims!")
           const [continues] = await externalDialog(exclaims, "Bogus continues")
-          console.log(continues.toString());
           const [,summary] = await summarize(continues, "Please provide a summary of everything Bogus said")
-          console.log(summary)
+          // console.log(summary)
           expect(summary).to.have.length.greaterThan(10)
         } else {
-          console.log(action.toString())
+          // console.log(action.toString())
           const [, summary] = await summarize(action, "Please provide a summary of everything Bogus said")
-          console.log(summary)
+          // console.log(summary)
           expect(summary).to.have.length.greaterThan(10)
         }
       } catch (err: any) {

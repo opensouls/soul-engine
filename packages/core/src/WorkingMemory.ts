@@ -265,7 +265,7 @@ export class WorkingMemory extends EventEmitter {
       const response = await processor.process<SchemaType>({
         memory: memoryWithCommand,
         schema: (schema as ZodSchema<SchemaType>),
-        signal: opts.signal
+        ...opts,
       })
 
       if (opts.stream) {

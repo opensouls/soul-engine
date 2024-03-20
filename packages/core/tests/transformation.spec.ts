@@ -24,7 +24,7 @@ describe("memory transformations", () => {
 
     const [newMemory, response] = await externalDialog(workingMemory, "Please say hi back to me.")
     expect(response).to.be.a('string')
-    console.log("newMemory", newMemory, "resp: ", response)
+    // console.log("newMemory", newMemory, "resp: ", response)
     expect(newMemory.find(m => m.role === ChatMessageRoleEnum.Assistant)?.content).to.include("testy said:")
   })
 
@@ -110,7 +110,7 @@ describe("memory transformations", () => {
         return memory.transform(opts, transformOpts);
       }
     }
-    
+
     let memory = new WorkingMemory({
       entityName: "Jonathan",
       memories: [{
