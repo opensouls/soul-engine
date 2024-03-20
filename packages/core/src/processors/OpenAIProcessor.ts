@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { RequestOptions } from "openai/core";
 import { trace, context } from "@opentelemetry/api";
 import { encodeChatGenerator, encodeGenerator } from "gpt-tokenizer/model/gpt-4"
 import { registerProcessor } from "./registry.js";
@@ -33,6 +34,8 @@ export const memoryToChatMessage = (memory: Memory): ChatCompletionMessageParam 
 
 interface OpenAIProcessorOpts {
   clientOptions?: Clientconfig
+  defaultCompletionParams?: Partial<OpenAI.Chat.Completions.ChatCompletionCreateParams>
+  defaultRequestOptions?: Partial<RequestOptions>
   singleSystemMessage?: boolean,
   forcedRoleAlternation?: boolean,
 }
@@ -41,7 +44,7 @@ async function* chunkStreamToTextStream(chunkStream: AsyncIterable<OpenAI.Chat.C
   for await (const chunk of chunkStream) {
     yield chunk.choices[0].delta.content || ""
   }
-  console.log("chunk over, returning")
+  // console.log("chunk over, returning")
 }
 
 const DEFAULT_MODEL = "gpt-3.5-turbo-0125"
@@ -53,10 +56,15 @@ export class OpenAIProcessor implements Processor {
   private singleSystemMessage: boolean
   private forcedRoleAlternation: boolean
 
-  constructor({ clientOptions, singleSystemMessage, forcedRoleAlternation }: OpenAIProcessorOpts) {
+  private defaultRequestOptions: Partial<RequestOptions>
+  private defaultCompletionParams: Partial<OpenAI.Chat.Completions.ChatCompletionCreateParams>
+
+  constructor({ clientOptions, singleSystemMessage, forcedRoleAlternation, defaultRequestOptions, defaultCompletionParams }: OpenAIProcessorOpts) {
     this.client = new OpenAI(clientOptions)
     this.singleSystemMessage = singleSystemMessage || false
     this.forcedRoleAlternation = forcedRoleAlternation || false
+    this.defaultRequestOptions = defaultRequestOptions || {}
+    this.defaultCompletionParams = defaultCompletionParams || {}
   }
 
   async process<SchemaType = string>(opts: ProcessOpts<SchemaType>): Promise<ProcessResponse<SchemaType>> {
@@ -69,41 +77,40 @@ export class OpenAIProcessor implements Processor {
       }
 
       span.setAttributes({
-        ...opts,
-        memory: JSON.stringify(opts.memory.memories.map(memoryToChatMessage)),
-        schema: opts.schema ? opts.schema.toString() : undefined,
-        signal: undefined,
+        processOptions: JSON.stringify(opts),
+        memory: JSON.stringify(memory),
       })
 
-      return backOff(async () => {
-        const resp = await this.execute({
-          ...opts,
-          memory,
-        })
+      return backOff(
+        async () => {
+          const resp = await this.execute({
+            ...opts,
+            memory,
+          })
 
-        // TODO: how do we both return a stream *and* also parse the json and retry?
-        if (opts.schema) {
-          const completion = await resp.rawCompletion
-          const extracted = extractJSON(completion)
-          span.addEvent("extracted")
-          span.setAttribute("extracted", extracted || "none")
-          if (!extracted) {
-            throw new Error('no json found in completion')
+          // TODO: how do we both return a stream *and* also parse the json and retry?
+          if (opts.schema) {
+            const completion = await resp.rawCompletion
+            const extracted = extractJSON(completion)
+            span.addEvent("extracted")
+            span.setAttribute("extracted", extracted || "none")
+            if (!extracted) {
+              throw new Error('no json found in completion')
+            }
+            const parsed = opts.schema.parse(JSON.parse(extracted))
+            span.addEvent("parsed")
+            span.end()
+            return {
+              ...resp,
+              parsed: Promise.resolve(parsed),
+            }
           }
-          const parsed = opts.schema.parse(JSON.parse(extracted))
-          span.addEvent("parsed")
-          span.end()
+
           return {
             ...resp,
-            parsed: Promise.resolve(parsed),
+            parsed: (resp.rawCompletion as Promise<SchemaType>)
           }
-        }
-
-        return {
-          ...resp,
-          parsed: (resp.rawCompletion as Promise<SchemaType>)
-        }
-      },
+        },
         {
           numOfAttempts: 5,
           retry: (err) => {
@@ -117,12 +124,20 @@ export class OpenAIProcessor implements Processor {
 
   }
 
-  private async execute<SchemaType = any>({ memory, signal, schema }: ProcessOpts<SchemaType>): Promise<Omit<ProcessResponse<SchemaType>, "parsed">> {
+  private async execute<SchemaType = any>({
+    maxTokens,
+    memory,
+    model: developerSpecifiedModel,
+    schema,
+    signal,
+    timeout
+  }: ProcessOpts<SchemaType>): Promise<Omit<ProcessResponse<SchemaType>, "parsed">> {
     return tracer.startActiveSpan("OpenAIProcessor.execute", async (span) => {
       try {
-        const model = DEFAULT_MODEL
+        const model = developerSpecifiedModel || this.defaultRequestOptions.model || DEFAULT_MODEL
         const messages = this.possiblyFixMessageRoles(memory.memories.map(memoryToChatMessage))
         const params = {
+          ...(maxTokens && { max_tokens: maxTokens }),
           model,
           messages,
         }
@@ -133,6 +148,7 @@ export class OpenAIProcessor implements Processor {
 
         const stream = await this.client.chat.completions.create(
           {
+            ...this.defaultCompletionParams,
             ...params,
             stream: true,
             response_format: {
@@ -140,7 +156,9 @@ export class OpenAIProcessor implements Processor {
             }
           },
           {
+            ...this.defaultRequestOptions,
             signal,
+            timeout: timeout || 10_000,
           }
         )
 
@@ -149,14 +167,14 @@ export class OpenAIProcessor implements Processor {
         const fullContentPromise = new Promise<string>(async (resolve, reject) => {
           try {
             let fullText = ""
-            textStream.onFirst(() => {
-              console.log("First packet received")
-            })
+            // textStream.onFirst(() => {
+            //   console.log("First packet received")
+            // })
             for await (const message of textStream.stream()) {
               span.addEvent("chunk", { length: message.length })
               fullText += message
             }
-            console.log("resolving")
+            // console.log("resolving")
             span.setAttribute("response", fullText)
             resolve(fullText)
           } catch (err) {
@@ -253,15 +271,15 @@ export class OpenAIProcessor implements Processor {
           // If the role is the same, combine the content with the last message in the accumulator
           const lastMessage = acc.messages[acc.messages.length - 1];
           acc.grouped.push(message.content as string)
-          
+
           lastMessage.content = acc.grouped.slice(0, -1).map((str) => {
             return `${message.role} said: ${str}`
           }).concat(acc.grouped.slice(-1)[0]).join("\n\n")
         }
-        
+
         return acc;
-      }, { messages: [], grouped: [] } as { grouped: string[], messages: ChatCompletionMessageParam[] }) 
-    
+      }, { messages: [], grouped: [] } as { grouped: string[], messages: ChatCompletionMessageParam[] })
+
       newMessages = messages
       if (newMessages[0]?.role === ChatMessageRoleEnum.Assistant) {
         newMessages.unshift({
@@ -276,4 +294,4 @@ export class OpenAIProcessor implements Processor {
 
 }
 
-registerProcessor(OpenAIProcessor.label, () => new OpenAIProcessor({}))
+registerProcessor(OpenAIProcessor.label, (opts: Partial<OpenAIProcessorOpts> = {}) => new OpenAIProcessor(opts))

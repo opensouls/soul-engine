@@ -15,10 +15,22 @@ export interface ProcessResponse<SchemaType = string> {
   usage: Promise<UsageNumbers>
 }
 
-export interface ProcessOpts<SchemaType = string> {
+export type Headers = Record<string, string | null | undefined>;
+
+export interface RequestOptions {
+  model?: string
+  maxTokens?: number
+
+  signal?: AbortSignal
+  tags?: Record<string, string>
+  timeout?: number;
+  headers?: Headers;
+  additionalRequestOptions?: Record<string, any>
+}
+
+export interface ProcessOpts<SchemaType = string> extends RequestOptions {
   memory: WorkingMemory,
   schema?: ZodSchema<SchemaType>
-  signal?: AbortSignal
 }
 
 export interface Processor {

@@ -4,6 +4,7 @@ import { EventEmitter } from "eventemitter3"
 import { getProcessor } from "./processors/registry.js"
 import { codeBlock } from "common-tags"
 import { zodToJsonSchema } from "zod-to-json-schema"
+import { ProcessOpts, RequestOptions } from "./processors/Processor.js"
 
 export type StreamProcessor = (workingMemory: WorkingMemory, stream: AsyncIterable<string>) => (AsyncIterable<string> | Promise<AsyncIterable<string>>)
 
@@ -21,10 +22,11 @@ export interface MemoryTransformationOptions<SchemaType = string, PostProcessTyp
 
 export type MemoryTransformation<SchemaType, PostProcessType> = MemoryTransformationOptions<SchemaType, PostProcessType> | ((memory: WorkingMemory, value?: any) => MemoryTransformationOptions<SchemaType, PostProcessType>)
 
-export interface TransformOptions {
-  stream?: boolean
-  signal?: AbortSignal
-}
+export type TransformOptions = 
+  RequestOptions & { 
+    stream?: boolean
+    processor?: ProcessorSpecification
+  }
 
 export enum ChatMessageRoleEnum {
   System = "system",
@@ -73,9 +75,15 @@ export type CognitiveStep<SchemaType, PostProcessType> = (
 
 export type InputMemory = Omit<Memory, "_id" | "_timestamp"> & { _id?: string, _timestamp?: number }
 
+export interface ProcessorSpecification {
+  name: string,
+  options?: Record<string, any>
+}
+
 export interface WorkingMemoryInitOptions {
   entityName: string
   memories?: InputMemory[]
+  processor?: ProcessorSpecification
 }
 
 const defaultPostProcessor = <SchemaType = string>(_workingMemory: WorkingMemory, response: SchemaType): PostProcessReturn<SchemaType> => {
@@ -99,13 +107,18 @@ export class WorkingMemory extends EventEmitter {
   protected lastValue?: any
 
   entityName: string
-  defaultProcessor = "openai"
+  processor: ProcessorSpecification = Object.freeze({
+    name: "openai",
+  })
 
-  constructor({ entityName, memories }: WorkingMemoryInitOptions) {
+  constructor({ entityName, memories, processor }: WorkingMemoryInitOptions) {
     super()
     this.id = nanoid()
     this._memories = this.memoriesFromInputMemories(memories || [])
     this.entityName = entityName
+    if (processor) {
+      this.processor = processor
+    }
   }
 
   get memories() {
@@ -125,7 +138,7 @@ export class WorkingMemory extends EventEmitter {
       entityName: this.entityName,
       memories: replacementMemories || this._memories
     })
-    newMemory.defaultProcessor = this.defaultProcessor
+    newMemory.processor = this.processor
     return newMemory
   }
 
@@ -224,7 +237,6 @@ export class WorkingMemory extends EventEmitter {
     }
     try {
       const {
-        processor: processorName = this.defaultProcessor,
         postProcess = defaultPostProcessor<SchemaType>,
         command,
         schema,
@@ -232,7 +244,9 @@ export class WorkingMemory extends EventEmitter {
         streamProcessor,
       } = transformation
 
-      const processor = getProcessor(processorName)
+      const processorSpec = opts.processor || this.processor
+
+      const processor = getProcessor(processorSpec.name, processorSpec.options)
 
       const commandMemory = typeof command === "string" ? {
         role: ChatMessageRoleEnum.System,
