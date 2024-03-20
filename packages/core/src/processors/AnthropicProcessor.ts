@@ -1,9 +1,9 @@
-import OpenAI from "openai";
-import { RequestOptions } from "openai/core";
+import Anthropic from '@anthropic-ai/sdk';
+import { MessageStream } from "@anthropic-ai/sdk/lib/MessageStream";
 import { trace, context } from "@opentelemetry/api";
 import { encodeChatGenerator, encodeGenerator } from "gpt-tokenizer/model/gpt-4"
 import { registerProcessor } from "./registry.js";
-import { Memory } from "../WorkingMemory.js";
+import { ChatMessageRoleEnum, Memory } from "../WorkingMemory.js";
 import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { ReusableStream } from "../ReusableStream.js";
 import {
@@ -16,14 +16,26 @@ import {
 } from "./Processor.js";
 import { backOff } from "exponential-backoff";
 import { ChatMessage } from "gpt-tokenizer/GptEncoding";
-import { fixMessageRoles } from "./messageRoleFixer.js";
+import { fixMessageRoles } from './messageRoleFixer.js';
 
 const tracer = trace.getTracer(
   'open-souls-OpenAIProcessor',
   '0.0.1',
 );
 
-type Clientconfig = ConstructorParameters<typeof OpenAI>[0];
+interface AnthropicMessage {
+  content: string
+  role: ChatMessageRoleEnum.Assistant | ChatMessageRoleEnum.User
+}
+
+type Clientconfig = ConstructorParameters<typeof Anthropic>[0]
+
+type CompletionParams = Anthropic["messages"]["stream"]["arguments"][0]
+type RequestOptions = Anthropic["messages"]["stream"]["arguments"][1]
+
+type DefaultCompletionParams = CompletionParams & {
+  model: CompletionParams["model"] | string;
+};
 
 export const memoryToChatMessage = (memory: Memory): ChatCompletionMessageParam => {
   return {
@@ -33,36 +45,75 @@ export const memoryToChatMessage = (memory: Memory): ChatCompletionMessageParam 
   } as ChatCompletionMessageParam
 }
 
-export interface OpenAIProcessorOpts {
+export interface AnthropicProcessorOpts {
   clientOptions?: Clientconfig
-  defaultCompletionParams?: Partial<OpenAI.Chat.Completions.ChatCompletionCreateParams>
+  defaultCompletionParams?: Partial<DefaultCompletionParams>
   defaultRequestOptions?: Partial<RequestOptions>
-  singleSystemMessage?: boolean,
   forcedRoleAlternation?: boolean,
 }
 
-async function* chunkStreamToTextStream(chunkStream: AsyncIterable<OpenAI.Chat.Completions.ChatCompletionChunk>) {
-  for await (const chunk of chunkStream) {
-    yield chunk.choices[0].delta.content || ""
+const openAiToAnthropicMessages = (openAiMessages: ChatCompletionMessageParam[]): { system?: string, messages: AnthropicMessage[] } => {
+  let systemMessage: string | undefined
+
+  const messages = openAiMessages.map((m) => {
+    if (m.role === ChatMessageRoleEnum.System) {
+      if (openAiMessages.length > 1) {
+        systemMessage ||= ""
+        systemMessage += m.content + "\n"
+        return undefined
+      }
+
+      return {
+        content: m.content,
+        role: ChatMessageRoleEnum.User,
+      } as AnthropicMessage
+    }
+    return {
+      content: m.content,
+      role: m.role
+    } as AnthropicMessage
+  }).filter(Boolean) as AnthropicMessage[]
+
+  // claude requires the first message to be user.
+  if (messages[0]?.role === ChatMessageRoleEnum.Assistant) {
+    messages.unshift({
+      content: "...",
+      role: ChatMessageRoleEnum.User
+    })
+  }
+
+  return { system: systemMessage, messages: messages }
+}
+
+async function* chunkStreamToTextStream(chunkStream: MessageStream) {
+
+  for await (const evt of chunkStream) {
+    if (evt.type === "message_start") {
+      continue
+    }
+
+    if (evt.type !== "content_block_delta") {
+      continue
+    }
+
+    yield evt.delta.text;
   }
   // console.log("chunk over, returning")
 }
 
-const DEFAULT_MODEL = "gpt-3.5-turbo-0125"
+const DEFAULT_MODEL = "claude-3-opus-20240229"
 
-export class OpenAIProcessor implements Processor {
-  static label = "openai"
-  private client: OpenAI
+export class AnthropicProcessor implements Processor {
+  static label = "anthropic"
+  private client: Anthropic
 
-  private singleSystemMessage: boolean
   private forcedRoleAlternation: boolean
 
   private defaultRequestOptions: Partial<RequestOptions>
-  private defaultCompletionParams: Partial<OpenAI.Chat.Completions.ChatCompletionCreateParams>
+  private defaultCompletionParams: Partial<DefaultCompletionParams>
 
-  constructor({ clientOptions, singleSystemMessage, forcedRoleAlternation, defaultRequestOptions, defaultCompletionParams }: OpenAIProcessorOpts) {
-    this.client = new OpenAI(clientOptions)
-    this.singleSystemMessage = singleSystemMessage || false
+  constructor({ clientOptions, forcedRoleAlternation, defaultRequestOptions, defaultCompletionParams }: AnthropicProcessorOpts) {
+    this.client = new Anthropic(clientOptions)
     this.forcedRoleAlternation = forcedRoleAlternation || false
     this.defaultRequestOptions = defaultRequestOptions || {}
     this.defaultCompletionParams = defaultCompletionParams || {}
@@ -134,12 +185,15 @@ export class OpenAIProcessor implements Processor {
     timeout,
     temperature,
   }: ProcessOpts<SchemaType>): Promise<Omit<ProcessResponse<SchemaType>, "parsed">> {
-    return tracer.startActiveSpan("OpenAIProcessor.execute", async (span) => {
+    return tracer.startActiveSpan("AnthropicProcessor.execute", async (span) => {
       try {
         const model = developerSpecifiedModel || this.defaultCompletionParams.model || DEFAULT_MODEL
-        const messages = this.possiblyFixMessageRoles(memory.memories.map(memoryToChatMessage))
+
+        const { system, messages } = openAiToAnthropicMessages(this.possiblyFixMessageRoles(memory.memories.map(memoryToChatMessage)))
+
         const params = {
-          ...(maxTokens && { max_tokens: maxTokens }),
+          system,
+          max_tokens: maxTokens || this.defaultCompletionParams.max_tokens || 512,
           model,
           messages,
           temperature: temperature || 0.8,
@@ -149,14 +203,10 @@ export class OpenAIProcessor implements Processor {
           outgoingParams: JSON.stringify(params),
         })
 
-        const stream = await this.client.chat.completions.create(
+        const stream = await this.client.messages.stream(
           {
             ...this.defaultCompletionParams,
             ...params,
-            stream: true,
-            response_format: {
-              type: schema ? "json_object" : "text",
-            }
           },
           {
             ...this.defaultRequestOptions,
@@ -238,8 +288,9 @@ export class OpenAIProcessor implements Processor {
   }
 
   private possiblyFixMessageRoles(messages: (ChatMessage | ChatCompletionMessageParam)[]): ChatCompletionMessageParam[] {
-    return fixMessageRoles({ singleSystemMessage: this.singleSystemMessage, forcedRoleAlternation: this.forcedRoleAlternation }, messages)
+    return fixMessageRoles({ singleSystemMessage: true, forcedRoleAlternation: this.forcedRoleAlternation }, messages)
   }
+
 }
 
-registerProcessor(OpenAIProcessor.label, (opts: Partial<OpenAIProcessorOpts> = {}) => new OpenAIProcessor(opts))
+registerProcessor(AnthropicProcessor.label, (opts: Partial<AnthropicProcessorOpts> = {}) => new AnthropicProcessor(opts))

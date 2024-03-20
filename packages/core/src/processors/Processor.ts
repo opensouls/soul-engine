@@ -19,6 +19,7 @@ export type Headers = Record<string, string | null | undefined>;
 
 export interface RequestOptions {
   model?: string
+  temperature?: number
   maxTokens?: number
 
   signal?: AbortSignal
