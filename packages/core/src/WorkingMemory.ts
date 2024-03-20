@@ -190,6 +190,16 @@ export class WorkingMemory extends EventEmitter {
     return newMemory.doTransform<SchemaType, PostProcessType>(transformation, opts)
   }
 
+  toString() {
+    return codeBlock`
+      Working Memory (${this.id}): ${this.entityName}
+      Memories:
+      ${this._memories.map((memory) => {
+        return JSON.stringify(memory)
+      }).join("\n")}
+    `
+  }
+
   protected markPending() {
     if (this.pending) {
       throw new Error("attempting to mark pending a working memory already marked as pending")

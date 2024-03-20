@@ -126,8 +126,20 @@ export function externalDialog(
   }
 }
 
-export const internalMonologue = (memory: WorkingMemory, extraInstructions?: string, verb: string = "thought", transformOpts: TransformOptions = {}) => {
-  const instructionString = extraInstructions || "";
+export const internalMonologue = (
+  memory: WorkingMemory,
+  instructions: string | { instructions: string; verb: string },
+  transformOpts: TransformOptions = {}
+) => {
+  let instructionString: string, verb: string;
+  if (typeof instructions === "string") {
+    instructionString = instructions;
+    verb = "thought";
+  } else {
+    instructionString = instructions.instructions;
+    verb = instructions.verb;
+  }
+
   const opts: MemoryTransformationOptions<string> = {
     command: ({ entityName: name }: WorkingMemory) => {
       return {

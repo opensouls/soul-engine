@@ -110,6 +110,7 @@ describe("memory transformations", () => {
         return memory.transform(opts, transformOpts);
       }
     }
+    
     let memory = new WorkingMemory({
       entityName: "Jonathan",
       memories: [{
