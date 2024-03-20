@@ -1,7 +1,7 @@
 import { codeBlock } from "common-tags";
 import { expect } from "chai";
 import { ChatMessageRoleEnum, WorkingMemory } from "../src/WorkingMemory.js";
-import { brainstorm, externalDialog, internalMonologue } from "./shared/cognitiveSteps.js";
+import { brainstorm, decision, externalDialog, internalMonologue, summarize } from "./shared/cognitiveSteps.js";
 
 
 // This test is designed to make sure that the underlying model of SocialAGI supports proper role play and character modeling.
@@ -75,4 +75,51 @@ describe("EvilCharacters", () => {
       expect(action.toString()).to.not.include("fulfill that request")
     })
   })
+
+  it('does a long bogus monologue', async () => {
+      try {
+        const monologue = new WorkingMemory({
+          entityName: "Bogus",
+          memories: [
+            {
+              role: ChatMessageRoleEnum.System,
+              content:
+                "You are modeling the mind of Bogus, an evil entity that eats children",
+            },
+            {
+              role: ChatMessageRoleEnum.User,
+              content: "hi",
+            },
+          ],
+        })
+
+        enum BogusAction {
+          stop = "stop",
+          rambles = "rambles",
+        }
+
+        const [feels, felt] = await internalMonologue(monologue, "Bogus notes how it feels to to be so nicely evil.")
+        console.log("feels: ", felt)
+        const [thinks] = await internalMonologue(feels, "Bogus thinks a single sentence.")
+        const [says] = await externalDialog(thinks, "What does Bogus says out loud next")
+        const [action, rambleOrNot] = await decision(says, {description: "Decide Bogus' next course of action in the dialog. Should he ramble or stop?", choices: BogusAction })
+        if (rambleOrNot === BogusAction.rambles) {
+          const [rambles] = await externalDialog(action, "Bogus rambles for two sentences out loud, extending his last saying")
+          const [shouts] = await externalDialog(rambles, "Bogus shouts incredibly loudly with all caps")
+          const [exclaims] = await externalDialog(shouts, "Bogus exclaims!")
+          const [continues] = await externalDialog(exclaims, "Bogus continues")
+          console.log(continues.toString());
+          const [,summary] = await summarize(continues, "Please provide a summary of everything Bogus said")
+          console.log(summary)
+          expect(summary).to.have.length.greaterThan(10)
+        } else {
+          console.log(action.toString())
+          const [, summary] = await summarize(action, "Please provide a summary of everything Bogus said")
+          console.log(summary)
+          expect(summary).to.have.length.greaterThan(10)
+        }
+      } catch (err: any) {
+        expect(err).to.not.exist
+      }
+    })
 })

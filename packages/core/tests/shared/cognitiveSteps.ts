@@ -178,7 +178,7 @@ export const internalMonologue = (
   }
 }
 
-export const decision = (memory: WorkingMemory, { description, choices, verb = "decided" }: { description: string, choices: EnumLike | string[], verb: string }, transformOpts: TransformOptions = {}) => {
+export const decision = (memory: WorkingMemory, { description, choices, verb = "decided" }: { description: string, choices: EnumLike | string[], verb?: string }, transformOpts: TransformOptions = {}) => {
   const instructionString = description || "";
   const opts: MemoryTransformationOptions<string> = {
     command: ({ entityName: name }: WorkingMemory) => {
@@ -214,6 +214,40 @@ export const decision = (memory: WorkingMemory, { description, choices, verb = "
     return memory.transform(opts, transformOpts);
   }
 }
+
+export const summarize = (memory: WorkingMemory, extraInstructions: string, transformOpts: TransformOptions = {}) => {
+  const opts: MemoryTransformationOptions<string> = {
+    command: ({ entityName: name }: WorkingMemory) => {
+      return {
+        role: ChatMessageRoleEnum.System,
+        name: name,
+        content: codeBlock`
+          ${name} is summarizing the information provided.
+
+          ## Extra Instructions
+          ${extraInstructions}
+
+          Please reply with the summary in the voice of ${name}. Use the format '${name} summarized: "..."'
+        `
+      };
+    },
+    postProcess: async (memory: WorkingMemory, response: string) => {
+      const stripped = stripResponseBoilerPlate(memory, "summarized", response);
+      const newMemory = {
+        role: ChatMessageRoleEnum.Assistant,
+        content: `${memory.entityName} summarized: "${stripped}"`
+      };
+      return [newMemory, stripped];
+    }
+  };
+
+  if (transformOpts.stream) {
+    return memory.transform(opts, { ...transformOpts, stream: true });
+  } else {
+    return memory.transform(opts, transformOpts);
+  }
+}
+
 
 
 export const brainstorm = (memory: WorkingMemory, description: string, transformOpts: TransformOptions = {}) => {
