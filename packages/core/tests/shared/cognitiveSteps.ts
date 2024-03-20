@@ -120,168 +120,184 @@ export function externalDialog(
   };
 
   if (transformOpts.stream) {
+    return memory.transform(opts, { ...transformOpts, stream: true });
+  } else {
+    return memory.transform(opts, transformOpts);
+  }
+}
+
+export const internalMonologue = (memory: WorkingMemory, extraInstructions?: string, verb: string = "thought", transformOpts: TransformOptions = {}) => {
+  const instructionString = extraInstructions || "";
+  const opts: MemoryTransformationOptions<string> = {
+    command: ({ entityName: name }: WorkingMemory) => {
+      return {
+        role: ChatMessageRoleEnum.System,
+        name: name,
+        content: codeBlock`
+          Model the mind of ${name}.
+
+          ## Description
+          ${instructionString}
+
+          ## Rules
+          * Internal monologue thoughts should match the speaking style of ${name}.
+          * Only respond with the format '${name} ${verb}: "..."', no additional commentary or text.
+          * Follow the Description when creating the internal thought!
+
+          Please reply with the next internal monologue thought of ${name}. Use the format '${name} ${verb}: "..."'
+        `
+      };
+    },
+    streamProcessor: boilerPlateStreamProcessor,
+    postProcess: async (memory: WorkingMemory, response: string) => {
+      const stripped = stripResponseBoilerPlate(memory, verb, response);
+      const newMemory = {
+        role: ChatMessageRoleEnum.Assistant,
+        content: `${memory.entityName} ${verb}: "${stripped}"`
+      };
+      return [newMemory, stripped];
+    }
+  };
+
+  if (transformOpts.stream) {
+    return memory.transform(opts, { ...transformOpts, stream: true });
+  } else {
+    return memory.transform(opts, transformOpts);
+  }
+}
+
+export const decision = (memory: WorkingMemory, { description, choices, verb = "decided" }: { description: string, choices: EnumLike | string[], verb: string }, transformOpts: TransformOptions = {}) => {
+  const instructionString = description || "";
+  const opts: MemoryTransformationOptions<string> = {
+    command: ({ entityName: name }: WorkingMemory) => {
+      return {
+        role: ChatMessageRoleEnum.System,
+        name: name,
+        content: codeBlock`
+          ${name} is deciding between the following options:
+          ${Array.isArray(choices) ? choices.map((c) => `* ${c}`).join('\n') : JSON.stringify(choices, null, 2)}
+
+          ## Description
+          ${instructionString}
+
+          ## Rules
+          * ${name} must decide on one of the options. Return ${name}'s decision.
+        `
+      };
+    },
+    streamProcessor: boilerPlateStreamProcessor,
+    postProcess: async (memory: WorkingMemory, response: string) => {
+      const stripped = stripResponseBoilerPlate(memory, verb, response);
+      const newMemory = {
+        role: ChatMessageRoleEnum.Assistant,
+        content: `${memory.entityName} ${verb}: "${stripped}"`
+      };
+      return [newMemory, stripped];
+    }
+  };
+
+  if (transformOpts.stream) {
     return memory.transform(opts, { stream: true });
   } else {
     return memory.transform(opts, transformOpts);
   }
 }
 
-// export const internalMonologue = (extraInstructions?: string, verb = "thought") => {
-//   const opts: CognitiveStepOptions<string> = {
-//     command: ({ entityName: name }: WorkingMemory) => {
-//       return {
-//         role: ChatMessageRoleEnum.System,
-//         name: name,
-//         content: codeBlock`
-//           Model the mind of ${name}.
 
-//           ## Description
-//           ${extraInstructions}
+export const brainstorm = (memory: WorkingMemory, description: string, transformOpts: TransformOptions = {}) => {
+  const params = z.object({
+    newIdeas: z.array(z.string()).describe(`The new brainstormed ideas.`)
+  });
 
-//           ## Rules
-//           * Internal monologue thoughts should match the speaking style of ${name}.
-//           * Only respond with the format '${name} ${verb}: "..."', no additional commentary or text.
-//           * Follow the Description when creating the internal thought!
+  const opts: MemoryTransformationOptions<z.infer<typeof params>, string[]> = {
+    command: ({ entityName: name }: WorkingMemory) => {
+      return {
+        role: ChatMessageRoleEnum.System,
+        name: name,
+        content: codeBlock`
+          ${name} is brainstorming new ideas.
 
-//           Please reply with the next internal monologue thought of ${name}. Use the format '${name} ${verb}: "..."'
-//         `
-//       }
-//     },
-//     streamProcessor: boilerPlateStreamProcessor,
-//     postProcess: (memory: WorkingMemory, response: string) => {
-//       const stripped = stripResponseBoilerPlate(memory, verb, response)
-//       const newMemory = [{
-//         role: ChatMessageRoleEnum.Assistant,
-//         content: `${memory.entityName} ${verb}: "${stripped}"`
-//       }]
-//       return Promise.resolve({ memories: newMemory, value: stripped })
-//     },
-//   }
+          ## Idea Description
+          ${description}
 
-//   return opts
-// }
+          Reply with the new ideas that ${name} brainstormed.
+        `
+      };
+    },
+    schema: params,
+    postProcess: async (memory: WorkingMemory, response: z.output<typeof params>) => {
+      const newIdeas = response.newIdeas;
+      const newMemory = {
+        role: ChatMessageRoleEnum.Assistant,
+        content: `${memory.entityName} brainstormed: ${newIdeas.join("\n")}`
+      };
+      return [newMemory, newIdeas];
+    }
+  };
 
-// export const decision = (description: string, choices: EnumLike | string[]) => {
+  if (transformOpts.stream) {
+    return memory.transform(opts, { ...transformOpts, stream: true });
+  } else {
+    return memory.transform(opts, transformOpts);
+  }
+}
 
-//   const params = z.object({
-//     decision: z.nativeEnum(choices as EnumLike).describe(description)
-//   })
+export const mentalQuery = (memory: WorkingMemory, statement: string, transformOpts: TransformOptions = {}) => {
+  const params = z.object({
+    isStatementTrue: z.boolean().describe(`Is the statement true or false?`),
+  });
 
-//   const opts: CognitiveStepOptions<z.infer<typeof params>, z.infer<typeof params>["decision"]> = {
-//     command: ({ entityName: name }: WorkingMemory) => {
-//       return {
-//         role: ChatMessageRoleEnum.System,
-//         name: name,
-//         content: codeBlock`
-//             ${name} is deciding between the following options:
-//             ${Array.isArray(choices) ? choices.map((c) => `* ${c}`).join('\n') : JSON.stringify(choices, null, 2)}
+  const opts: MemoryTransformationOptions<z.infer<typeof params>, boolean> = {
+    command: ({ entityName: name }: WorkingMemory) => {
+      return {
+        role: ChatMessageRoleEnum.System,
+        name: name,
+        content: codeBlock`
+          ${name} reasons about the veracity of the following statement.
+          > ${statement}
 
-//             ## Description
-//             ${description}
+          Please reply with if ${name} believes the statement is true or false.
+        `,
+      };
+    },
+    schema: params,
+    postProcess: async (memory: WorkingMemory, response: z.output<typeof params>) => {
+      const newMemory = {
+        role: ChatMessageRoleEnum.Assistant,
+        content: `${memory.entityName} evaluated: \`${statement}\` and decided that the statement is ${response}`
+      };
+      return [newMemory, response.isStatementTrue];
+    }
+  };
 
-//             ## Rules
-//             * ${name} must decide on one of the options. Return ${name}'s decision.
-//           `
-//       }
-//     },
-//     schema: params,
-//     postProcess: (memory: WorkingMemory, response: z.output<typeof params>) => {
-//       return Promise.resolve({
-//         memories: [{
-//           role: ChatMessageRoleEnum.Assistant,
-//           content: `${memory.entityName} decided: ${response.decision}`
-//         }],
-//         value: response.decision
-//       })
-//     }
-//   }
+  if (transformOpts.stream) {
+    return memory.transform(opts, { ...transformOpts, stream: true });
+  } else {
+    return memory.transform(opts, transformOpts);
+  }
+}
 
-//   return opts
+export const instruction = (memory: WorkingMemory, command: string, transformOpts: TransformOptions = {}) => {
+  const opts: MemoryTransformationOptions<string, string> = {
+    command: ({ entityName: name }: WorkingMemory) => {
+      return {
+        role: ChatMessageRoleEnum.System,
+        name: name, // Utilizing entityName from WorkingMemory for name
+        content: command,
+      };
+    },
+    postProcess: async (memory: WorkingMemory, response: string) => {
+      const newMemory = {
+        role: ChatMessageRoleEnum.Assistant,
+        content: `${memory.entityName} executed command: ${command} with response: ${response}`
+      };
+      return [newMemory, response];
+    }
+  };
 
-// }
-
-
-// export const brainstorm = (description: string) => {
-//   const params = z.object({
-//     newIdeas: z.array(z.string()).describe(`The new brainstormed ideas.`)
-//   })
-
-//   const opts: CognitiveStepOptions<z.infer<typeof params>, Array<string>> = {
-
-//     command: ({ entityName: name }: WorkingMemory) => {
-//       return {
-//         role: ChatMessageRoleEnum.System,
-//         name: name,
-//         content: codeBlock`
-//           ${name} is brainstorming new ideas.
-
-//           ## Idea Description
-//           ${description}
-
-//           Reply with the new ideas that ${name} brainstormed.
-//         `
-//       }
-//     },
-//     schema: params,
-//     postProcess: (memory: WorkingMemory, response: z.output<typeof params>) => {
-//       return Promise.resolve({
-//         value: response.newIdeas,
-//         memories: [{
-//           role: ChatMessageRoleEnum.Assistant,
-//           content: `${memory.entityName} brainstormed: ${response.newIdeas.join("\n")}`
-//         }]
-//       })
-//     }
-//   };
-
-//   return opts;
-// }
-
-// export const mentalQuery = (statement: string): CognitiveStepOptions<boolean> => {
-//   // *first* we create an internal thought that we'll use to guide the decision making process.
-//   const params = z.boolean().describe(`Is the statement true or false?`)
-
-//   return {
-//     command: ({ entityName: name }: WorkingMemory) => {
-//       return {
-//         role: ChatMessageRoleEnum.System,
-//         name: name,
-//         content: codeBlock`
-//           ${name} reasons about the veracity of the following statement.
-//           > ${statement}
-
-//           Please reply with if ${name} believes the statement is true or false.
-//         `,
-//       }
-//     },
-//     postProcess: async (memory: WorkingMemory, response: z.infer<typeof params>) => {
-//       return {
-//         value: response,
-//         memories: [{
-//           content: `${memory.entityName} evaluated: \`${statement}\` and decided that the statement is ${response}`,
-//           role: ChatMessageRoleEnum.Assistant
-//         }],
-//       }
-//     }
-//   }
-
-// }
-
-// export const instruction = (command: string) => {
-//   const opts: CognitiveStepOptions<string> = {
-//     command: () => {
-//       return {
-//         role: ChatMessageRoleEnum.System,
-//         name: '', // Assuming name is not required or can be empty for this case
-//         content: command,
-//       }
-//     },
-//     // Assuming no streamProcessor is needed for this simple command
-//     postProcess: (memory: WorkingMemory, response: string) => {
-//       // Assuming the response does not need to be modified before being returned
-//       return Promise.resolve({ memories: [], value: response });
-//     },
-//   };
-
-//   return opts;
-// }
+  if (transformOpts.stream) {
+    return memory.transform(opts, { ...transformOpts, stream: true });
+  } else {
+    return memory.transform(opts, transformOpts);
+  }
+}
