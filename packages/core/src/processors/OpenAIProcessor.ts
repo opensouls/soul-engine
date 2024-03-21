@@ -19,7 +19,7 @@ import {
   ProcessResponse
 } from "./Processor.js";
 import { fixMessageRoles } from "./messageRoleFixer.js";
-import { codeBlock } from "common-tags";
+import { indentNicely } from "../utils.js";
 
 const tracer = trace.getTracer(
   'open-souls-OpenAIProcessor',
@@ -83,19 +83,19 @@ export class OpenAIProcessor implements Processor {
         if (opts.schema) {
           memory = prepareMemoryForJSON(memory)
         }
-  
+
         span.setAttributes({
           processOptions: JSON.stringify(opts),
           memory: JSON.stringify(memory),
         })
-  
+
         return backOff(
           async () => {
             const resp = await this.execute({
               ...opts,
               memory,
             })
-  
+
             // TODO: how do we both return a stream *and* also parse the json and retry?
             if (opts.schema) {
               const completion = await resp.rawCompletion
@@ -125,18 +125,19 @@ export class OpenAIProcessor implements Processor {
                   },
                   {
                     role: ChatMessageRoleEnum.User,
-                    content: codeBlock`
+                    content: indentNicely`
                       ## JSON Errors
                       ${zodError.toString()}.
                       
-                      Please fix the error(s) and try again, conforming exactly to the provided JSON schema.`
+                      Please fix the error(s) and try again, conforming exactly to the provided JSON schema.
+                    `
                   }
                 ])
                 throw err
               }
-  
+
             }
-  
+
             return {
               ...resp,
               parsed: (resp.rawCompletion as Promise<SchemaType>)
@@ -147,7 +148,7 @@ export class OpenAIProcessor implements Processor {
             retry: (err) => {
               span.addEvent("retry")
               console.error("retrying due to error", err)
-  
+
               return true
             },
           })

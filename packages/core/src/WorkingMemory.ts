@@ -2,10 +2,10 @@ import { nanoid } from "nanoid"
 import { ZodSchema } from "zod"
 import { EventEmitter } from "eventemitter3"
 import { getProcessor } from "./processors/registry.js"
-import { codeBlock } from "common-tags"
 import { zodToJsonSchema } from "zod-to-json-schema"
 import { UsageNumbers } from "./processors/Processor.js"
 import { MemoryTransformationOptions, PostProcessReturn, TransformOptions, TransformReturnNonStreaming, TransformReturnStreaming } from "./cognitiveStep.js"
+import { indentNicely } from "./utils.js"
 
 /**
  * This file defines the structure and operations on working memory within the OPEN SOULS soul-engine.
@@ -58,7 +58,7 @@ export interface ProcessorSpecification {
 }
 
 export interface WorkingMemoryInitOptions {
-  entityName: string
+  soulName: string
   memories?: InputMemory[]
   processor?: ProcessorSpecification
 }
@@ -85,16 +85,16 @@ export class WorkingMemory extends EventEmitter {
 
   protected lastValue?: any
 
-  entityName: string
+  soulName: string
   processor: ProcessorSpecification = Object.freeze({
     name: "openai",
   })
 
-  constructor({ entityName, memories, processor }: WorkingMemoryInitOptions) {
+  constructor({ soulName, memories, processor }: WorkingMemoryInitOptions) {
     super()
     this.id = nanoid()
     this._memories = this.memoriesFromInputMemories(memories || [])
-    this.entityName = entityName
+    this.soulName = soulName
     if (processor) {
       this.processor = processor
     }
@@ -122,7 +122,7 @@ export class WorkingMemory extends EventEmitter {
 
   clone(replacementMemories?: InputMemory[]) {
     const newMemory = new WorkingMemory({
-      entityName: this.entityName,
+      soulName: this.soulName,
       memories: replacementMemories || this._memories,
       processor: this.processor,
     })
@@ -191,12 +191,12 @@ export class WorkingMemory extends EventEmitter {
   }
 
   toString() {
-    return codeBlock`
-      Working Memory (${this.id}): ${this.entityName}
+    return indentNicely`
+      Working Memory (${this.id}): ${this.soulName}
       Memories:
       ${this._memories.map((memory) => {
-      return JSON.stringify(memory)
-    }).join("\n")}
+        return JSON.stringify(memory)
+      }).join("\n")}
     `
   }
 
@@ -241,7 +241,7 @@ export class WorkingMemory extends EventEmitter {
       } : command(this)
 
       if (schema && !skipAutoSchemaAddition) {
-        commandMemory.content += "\n\n" + codeBlock`
+        commandMemory.content += "\n\n" + indentNicely`
           Respond *only* in JSON, conforming to the following JSON schema:
           ${JSON.stringify(zodToJsonSchema(schema), null, 2)}
         `

@@ -5,6 +5,7 @@ import { expect } from "chai";
 import { z } from "zod";
 import { externalDialog } from "./shared/cognitiveSteps.js";
 import { createCognitiveStep } from "../src/cognitiveStep.js";
+import { indentNicely } from "../src/utils.js";
 
 
 const queryMemory = createCognitiveStep((query: string) => {
@@ -12,11 +13,11 @@ const queryMemory = createCognitiveStep((query: string) => {
     answer: z.string().describe(`The answer to the question.`)
   })
   return {
-    command: ({ entityName: name }: WorkingMemory) => {
+    command: ({ soulName: name }: WorkingMemory) => {
       return {
         role: ChatMessageRoleEnum.System,
         name: name,
-        content: codeBlock`
+        content: indentNicely`
           ${name} is querying the following:
           > ${query}
 
@@ -28,7 +29,7 @@ const queryMemory = createCognitiveStep((query: string) => {
     postProcess: async (memory: WorkingMemory, response: z.output<typeof params>) => {
       const newMemory = {
         role: ChatMessageRoleEnum.Assistant,
-        content: `${memory.entityName} queried: \`${query}\` and found that the answer is ${response.answer}`
+        content: `${memory.soulName} queried: \`${query}\` and found that the answer is ${response.answer}`
       };
       return [newMemory, response.answer];
     }
@@ -39,7 +40,7 @@ describe("memory transformations", () => {
 
   it('allows simple externalDialog implementation', async () => {
     const workingMemory = new WorkingMemory({
-      entityName: 'testy',
+      soulName: 'testy',
       memories: [
         {
           role: ChatMessageRoleEnum.System,
@@ -60,7 +61,7 @@ describe("memory transformations", () => {
 
   it('streams a simple externalDialog implementation', async () => {
     const workingMemory = new WorkingMemory({
-      entityName: 'testy',
+      soulName: 'testy',
       memories: [
         {
           role: ChatMessageRoleEnum.System,
@@ -83,7 +84,7 @@ describe("memory transformations", () => {
 
   it('returns a new memory that can be used right away even if stream is not finished', async () => {
     const workingMemory = new WorkingMemory({
-      entityName: 'testy',
+      soulName: 'testy',
       memories: [
         {
           role: ChatMessageRoleEnum.System,
@@ -108,7 +109,7 @@ describe("memory transformations", () => {
   it("runs example from readme", async () => {
 
     let memory = new WorkingMemory({
-      entityName: "Jonathan",
+      soulName: "Jonathan",
       memories: [{
         role: ChatMessageRoleEnum.System,
         content: "The name you are looking for is Jonathan"
@@ -121,7 +122,7 @@ describe("memory transformations", () => {
 
   it("switches the model per transformation", async () => {
     const workingMemory = new WorkingMemory({
-      entityName: 'testy',
+      soulName: 'testy',
       memories: [
         {
           role: ChatMessageRoleEnum.System,
@@ -152,7 +153,7 @@ describe("memory transformations", () => {
           },
         }
       },
-      entityName: 'testy',
+      soulName: 'testy',
       memories: [
         {
           role: ChatMessageRoleEnum.System,

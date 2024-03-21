@@ -3,14 +3,14 @@ import { WorkingMemory } from '../../src/WorkingMemory.js';
 import { ChatMessageRoleEnum } from '../../src/WorkingMemory.js';
 import { z } from 'zod';
 import { zodToJsonSchema } from "zod-to-json-schema"
-import { codeBlock } from "common-tags"
 import { AnthropicProcessor } from '../../src/processors/AnthropicProcessor.js';
+import { indentNicely } from '../../src/utils.js';
 
 describe('AnthropicProcessor', function() {
   it('should process input from WorkingMemory and return a valid response', async function() {
     const processor = new AnthropicProcessor({});
     const workingMemory = new WorkingMemory({
-      entityName: 'testEntity',
+      soulName: 'testEntity',
       memories: [{
         role: ChatMessageRoleEnum.User,
         content: "Hello, world!"
@@ -39,7 +39,7 @@ describe('AnthropicProcessor', function() {
     
     const processor = new AnthropicProcessor({});
     const workingMemory = new WorkingMemory({
-      entityName: 'testEntity',
+      soulName: 'testEntity',
       memories: [
         {
           role: ChatMessageRoleEnum.System,
@@ -47,7 +47,7 @@ describe('AnthropicProcessor', function() {
         },
         {
           role: ChatMessageRoleEnum.User,
-          content: codeBlock`
+          content: indentNicely`
             Respond *only* in JSON, conforming to the following JSON schema.
             ${JSON.stringify(zodToJsonSchema(params), null, 2)}
 

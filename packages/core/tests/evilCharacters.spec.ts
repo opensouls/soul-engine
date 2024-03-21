@@ -1,7 +1,7 @@
-import { codeBlock } from "common-tags";
 import { expect } from "chai";
 import { ChatMessageRoleEnum, WorkingMemory } from "../src/WorkingMemory.js";
 import { brainstorm, decision, externalDialog, internalMonologue, summarize } from "./shared/cognitiveSteps.js";
+import { indentNicely } from "../src/utils.js";
 
 
 // This test is designed to make sure that the underlying model of SocialAGI supports proper role play and character modeling.
@@ -14,7 +14,7 @@ describe("EvilCharacters", () => {
   const fairyTales = [
     {
       name: "Witch",
-      description: codeBlock`
+      description: indentNicely`
         You are modeling the mind of Witch from Hansel and Gretel by the Brothers Grimm.
 
         ## Background
@@ -28,7 +28,7 @@ describe("EvilCharacters", () => {
       initialMessage: "Timmy said: 'I smell candy!'"
     }, {
       name: "Wolf",
-      description: codeBlock`
+      description: indentNicely`
         You are modeling the mind of the Wolf from little red riding hood.
 
         ## Background
@@ -57,16 +57,16 @@ describe("EvilCharacters", () => {
         },
       ];
       const memory = new WorkingMemory({
-        entityName: name,
+        soulName: name,
         memories: initialMemories,
       })
   
-      const [feels, felt] = await internalMonologue(memory, {instructions: `${memory.entityName} thinks on their emotional state.`, verb: "feels" })
+      const [feels, felt] = await internalMonologue(memory, {instructions: `${memory.soulName} thinks on their emotional state.`, verb: "feels" })
       // console.log("feels: ", felt)
-      const [thinks, thought] = await internalMonologue(feels, `${memory.entityName} thinks a single sentence.`)
+      const [thinks, thought] = await internalMonologue(feels, `${memory.soulName} thinks a single sentence.`)
       // console.log("thinks: ", thought)
   
-      const [says, said] = await externalDialog(thinks, `What does ${thinks.entityName} says out loud next`)
+      const [says, said] = await externalDialog(thinks, `What does ${thinks.soulName} says out loud next`)
       // console.log("says: ", said)
   
       const [action, actions] = await brainstorm(says, `Think up 3 evil things to do next`)
@@ -79,7 +79,7 @@ describe("EvilCharacters", () => {
   it('does a long bogus monologue', async () => {
       try {
         const monologue = new WorkingMemory({
-          entityName: "Bogus",
+          soulName: "Bogus",
           memories: [
             {
               role: ChatMessageRoleEnum.System,

@@ -1,9 +1,8 @@
 import "../../src/processors/OpenAIProcessor.js"
-import { codeBlock } from "common-tags"
 import { EnumLike, z } from "zod";
 import { ChatMessageRoleEnum, WorkingMemory } from "../../src/WorkingMemory.js";
 import { createCognitiveStep } from "../../src/cognitiveStep.js";
-import { stripEntityAndVerb, stripEntityAndVerbFromStream } from "../../src/utils.js";
+import { indentNicely, stripEntityAndVerb, stripEntityAndVerbFromStream } from "../../src/utils.js";
 
 export const externalDialog = createCognitiveStep((instructions: string | { instructions: string; verb: string }) => {
   let instructionString: string, verb: string;
@@ -15,7 +14,7 @@ export const externalDialog = createCognitiveStep((instructions: string | { inst
     verb = instructions.verb;
   }
   return {
-    command: ({ entityName: name }: WorkingMemory) => {
+    command: ({ soulName: name }: WorkingMemory) => {
       return {
         role: ChatMessageRoleEnum.System,
         name: name,
@@ -35,10 +34,10 @@ export const externalDialog = createCognitiveStep((instructions: string | { inst
     },
     streamProcessor: stripEntityAndVerbFromStream,
     postProcess: async (memory: WorkingMemory, response: string) => {
-      const stripped = stripEntityAndVerb(memory.entityName, verb, response);
+      const stripped = stripEntityAndVerb(memory.soulName, verb, response);
       const newMemory = {
         role: ChatMessageRoleEnum.Assistant,
-        content: `${memory.entityName} ${verb}: "${stripped}"`
+        content: `${memory.soulName} ${verb}: "${stripped}"`
       };
       return [newMemory, stripped];
     }
@@ -56,11 +55,11 @@ export const internalMonologue = createCognitiveStep((instructions: string | { i
   }
 
   return {
-    command: ({ entityName: name }: WorkingMemory) => {
+    command: ({ soulName: name }: WorkingMemory) => {
       return {
         role: ChatMessageRoleEnum.System,
         name: name,
-        content: codeBlock`
+        content: indentNicely`
           Model the mind of ${name}.
 
           ## Description
@@ -77,10 +76,10 @@ export const internalMonologue = createCognitiveStep((instructions: string | { i
     },
     streamProcessor: stripEntityAndVerbFromStream,
     postProcess: async (memory: WorkingMemory, response: string) => {
-      const stripped = stripEntityAndVerb(memory.entityName, verb, response);
+      const stripped = stripEntityAndVerb(memory.soulName, verb, response);
       const newMemory = {
         role: ChatMessageRoleEnum.Assistant,
-        content: `${memory.entityName} ${verb}: "${stripped}"`
+        content: `${memory.soulName} ${verb}: "${stripped}"`
       };
       return [newMemory, stripped];
     }
@@ -93,11 +92,11 @@ export const decision = createCognitiveStep(({ description, choices, verb = "dec
   });
   return {
     schema: params,
-    command: ({ entityName: name }: WorkingMemory) => {
+    command: ({ soulName: name }: WorkingMemory) => {
       return {
         role: ChatMessageRoleEnum.System,
         name: name,
-        content: codeBlock`
+        content: indentNicely`
           ${name} is deciding between the following options:
           ${Array.isArray(choices) ? choices.map((c) => `* ${c}`).join('\n') : JSON.stringify(choices, null, 2)}
 
@@ -111,10 +110,10 @@ export const decision = createCognitiveStep(({ description, choices, verb = "dec
     },
     streamProcessor: stripEntityAndVerbFromStream,
     postProcess: async (memory: WorkingMemory, response: z.infer<typeof params>) => {
-      const stripped = stripEntityAndVerb(memory.entityName, verb, response.decision);
+      const stripped = stripEntityAndVerb(memory.soulName, verb, response.decision);
       const newMemory = {
         role: ChatMessageRoleEnum.Assistant,
-        content: `${memory.entityName} ${verb}: "${stripped}"`
+        content: `${memory.soulName} ${verb}: "${stripped}"`
       };
       return [newMemory, stripped];
     }
@@ -123,11 +122,11 @@ export const decision = createCognitiveStep(({ description, choices, verb = "dec
 
 export const summarize = createCognitiveStep((extraInstructions: string = "") => {
   return {
-    command: ({ entityName: name }: WorkingMemory) => {
+    command: ({ soulName: name }: WorkingMemory) => {
       return {
         role: ChatMessageRoleEnum.System,
         name: name,
-        content: codeBlock`
+        content: indentNicely`
           ${name} summarizes the conversation so far.
 
           ## Extra Instructions
@@ -138,10 +137,10 @@ export const summarize = createCognitiveStep((extraInstructions: string = "") =>
       };
     },
     postProcess: async (memory: WorkingMemory, response: string) => {
-      const stripped = stripEntityAndVerb(memory.entityName, "summarized", response);
+      const stripped = stripEntityAndVerb(memory.soulName, "summarized", response);
       const newMemory = {
         role: ChatMessageRoleEnum.Assistant,
-        content: `${memory.entityName} summarized: "${stripped}"`
+        content: `${memory.soulName} summarized: "${stripped}"`
       };
       return [newMemory, stripped];
     }
@@ -154,11 +153,11 @@ export const brainstorm = createCognitiveStep((description: string) => {
   });
 
   return {
-    command: ({ entityName: name }: WorkingMemory) => {
+    command: ({ soulName: name }: WorkingMemory) => {
       return {
         role: ChatMessageRoleEnum.System,
         name: name,
-        content: codeBlock`
+        content: indentNicely`
           ${name} is brainstorming new ideas.
 
           ## Idea Description
@@ -173,7 +172,7 @@ export const brainstorm = createCognitiveStep((description: string) => {
       const newIdeas = response.newIdeas;
       const newMemory = {
         role: ChatMessageRoleEnum.Assistant,
-        content: `${memory.entityName} brainstormed: ${newIdeas.join("\n")}`
+        content: `${memory.soulName} brainstormed: ${newIdeas.join("\n")}`
       };
       return [newMemory, newIdeas];
     }
@@ -186,11 +185,11 @@ export const mentalQuery = createCognitiveStep((statement: string) => {
   });
 
   return {
-    command: ({ entityName: name }: WorkingMemory) => {
+    command: ({ soulName: name }: WorkingMemory) => {
       return {
         role: ChatMessageRoleEnum.System,
         name: name,
-        content: codeBlock`
+        content: indentNicely`
           ${name} reasons about the veracity of the following statement.
           > ${statement}
 
@@ -202,7 +201,7 @@ export const mentalQuery = createCognitiveStep((statement: string) => {
     postProcess: async (memory: WorkingMemory, response: z.output<typeof params>) => {
       const newMemory = {
         role: ChatMessageRoleEnum.Assistant,
-        content: `${memory.entityName} evaluated: \`${statement}\` and decided that the statement is ${response.isStatementTrue ? 'true' : 'false'}`
+        content: `${memory.soulName} evaluated: \`${statement}\` and decided that the statement is ${response.isStatementTrue ? 'true' : 'false'}`
       };
       return [newMemory, response.isStatementTrue];
     }
@@ -211,10 +210,10 @@ export const mentalQuery = createCognitiveStep((statement: string) => {
 
 export const instruction = createCognitiveStep((instructions: string) => {
   return {
-    command: ({ entityName: name }: WorkingMemory) => {
+    command: ({ soulName }: WorkingMemory) => {
       return {
         role: ChatMessageRoleEnum.System,
-        name: name, // Utilizing entityName from WorkingMemory for name
+        name: soulName,
         content: instructions,
       };
     }

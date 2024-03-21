@@ -3,9 +3,9 @@ import { ChatMessageRoleEnum, WorkingMemory } from "../../src/WorkingMemory.js";
 import { brainstorm, decision, externalDialog } from "../shared/cognitiveSteps.js";
 import { registerProcessor } from "../../src/processors/registry.js";
 import { OpenAIProcessor, OpenAIProcessorOpts } from "../../src/processors/OpenAIProcessor.js";
-import { codeBlock } from "common-tags";
 import { z } from "zod";
 import { createCognitiveStep } from "../../src/cognitiveStep.js";
+import { indentNicely } from "../../src/utils.js";
 
 registerProcessor("fireworks", (opts: Partial<OpenAIProcessorOpts> = {}) => {
   return new OpenAIProcessor({
@@ -101,11 +101,11 @@ const unnecessarilyComplexReturn = createCognitiveStep((extraInstructions: strin
   })
 
   return {
-    command: ({ entityName: name }: WorkingMemory) => {
+    command: ({ soulName: name }: WorkingMemory) => {
       return {
         role: ChatMessageRoleEnum.System,
         name: name,
-        content: codeBlock`
+        content: indentNicely`
           We need to categorize your internal knowledge into complex objects for further inquiry.
 
           ## Description
@@ -127,7 +127,7 @@ describe("OpenAICompatibleProcessors", () => {
     }
 
     const workingMemory = new WorkingMemory({
-      entityName: 'FIREMAN',
+      soulName: 'FIREMAN',
       memories: [
         {
           role: ChatMessageRoleEnum.System,
@@ -155,7 +155,7 @@ describe("OpenAICompatibleProcessors", () => {
     }
 
     const workingMemory = new WorkingMemory({
-      entityName: 'Jung',
+      soulName: 'Jung',
       memories: [
         {
           role: ChatMessageRoleEnum.System,
@@ -186,7 +186,7 @@ describe("OpenAICompatibleProcessors", () => {
     }
 
     const workingMemory = new WorkingMemory({
-      entityName: 'Mistral',
+      soulName: 'Mistral',
       memories: [
         {
           role: ChatMessageRoleEnum.System,

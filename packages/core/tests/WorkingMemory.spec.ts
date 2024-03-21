@@ -5,11 +5,11 @@ import { WorkingMemory } from "../src/WorkingMemory.js"
 describe("WorkingMemory", () => {
   it("concats two working memories into a new working memory", () => {
     const memories1 = new WorkingMemory({
-      entityName: "test",
+      soulName: "test",
     }).withMonolouge("Topper tested #1")
 
     const memories2 = new WorkingMemory({
-      entityName: "test",
+      soulName: "test",
     }).withMonolouge("Topper tested #2")
 
     const memories3 = memories1.concat(memories2)
@@ -28,7 +28,7 @@ describe("WorkingMemory", () => {
 
   it("maps over memories", () => {
     const memories = new WorkingMemory({
-      entityName: "test",
+      soulName: "test",
     }).withMonolouge("Topper tested #1")
 
     const newMemories = memories.map(memory => ({
@@ -42,7 +42,7 @@ describe("WorkingMemory", () => {
 
   it("filters memories based on a condition", () => {
     const memories = new WorkingMemory({
-      entityName: "test",
+      soulName: "test",
     }).withMonolouge("Topper tested #1")
      .withMonolouge("Another test #2")
      .withMonolouge("Final test #3")
@@ -55,7 +55,7 @@ describe("WorkingMemory", () => {
 
   it("checks if any memory meets a condition", () => {
     const memories = new WorkingMemory({
-      entityName: "test",
+      soulName: "test",
     }).withMonolouge("Topper tested #1")
      .withMonolouge("Another test #2")
 
@@ -68,7 +68,7 @@ describe("WorkingMemory", () => {
 
   it("finds a memory by content", () => {
     const memories = new WorkingMemory({
-      entityName: "test",
+      soulName: "test",
     }).withMonolouge("Topper tested #1")
      .withMonolouge("Another test #2")
 
@@ -81,7 +81,7 @@ describe("WorkingMemory", () => {
 
   it("transforms memories asynchronously", async () => {
     const memories = new WorkingMemory({
-      entityName: "test",
+      soulName: "test",
     }).withMonolouge("Async test #1")
      .withMonolouge("Async test #2")
 
@@ -97,7 +97,7 @@ describe("WorkingMemory", () => {
 
   it("slices", () => {
     const memories = new WorkingMemory({
-      entityName: "test",
+      soulName: "test",
     }).withMonolouge("Slice test #1")
      .withMonolouge("Slice test #2")
      .withMonolouge("Slice test #3")
@@ -111,7 +111,7 @@ describe("WorkingMemory", () => {
 
   it("transforms memories asynchronously", async () => {
     const memories = new WorkingMemory({
-      entityName: "test",
+      soulName: "test",
     }).withMonolouge("Async map test #1")
      .withMonolouge("Async map test #2")
 

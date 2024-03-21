@@ -1,16 +1,19 @@
 import { WorkingMemory } from "./WorkingMemory.js";
+import { codeBlock } from "common-tags"
 
-export const stripEntityAndVerb = (entityName: string, _verb: string, response: string) => {
+export const indentNicely = codeBlock
+
+export const stripEntityAndVerb = (soulName: string, _verb: string, response: string) => {
   // sometimes the LLM will respond with something like "Bogus said with a sinister smile: "I'm going to eat you!" (adding more words)
   // so we just strip any of those
-  let strippedResponse = response.replace(new RegExp(`${entityName}.*?:`, "i"), "").trim();
+  let strippedResponse = response.replace(new RegExp(`${soulName}.*?:`, "i"), "").trim();
   // get rid of the quotes
   strippedResponse = strippedResponse.replace(/^["']|["']$/g, '').trim();
   return strippedResponse
 }
 
-export const stripEntityAndVerbFromStream = async ({ entityName }: WorkingMemory, stream: AsyncIterable<string>): Promise<AsyncIterable<string>> => {
-  const prefix = new RegExp(`^${entityName}.*?:\\s*["']*`, "i")
+export const stripEntityAndVerbFromStream = async ({ soulName }: WorkingMemory, stream: AsyncIterable<string>): Promise<AsyncIterable<string>> => {
+  const prefix = new RegExp(`^${soulName}.*?:\\s*["']*`, "i")
   const suffix = /["']$/
 
   let isStreaming = !prefix
