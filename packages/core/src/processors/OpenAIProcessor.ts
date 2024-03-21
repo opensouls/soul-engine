@@ -175,10 +175,12 @@ export class OpenAIProcessor implements Processor {
         const model = developerSpecifiedModel || this.defaultCompletionParams.model || DEFAULT_MODEL
         const messages = this.possiblyFixMessageRoles(memory.memories.map(memoryToChatMessage))
         const params = {
+          ...this.defaultCompletionParams,
           ...(maxTokens && { max_tokens: maxTokens }),
           model,
           messages,
           temperature: temperature || 0.8,
+          stream: true,
         }
 
         span.setAttributes({
@@ -187,7 +189,6 @@ export class OpenAIProcessor implements Processor {
 
         const stream = await this.client.chat.completions.create(
           {
-            ...this.defaultCompletionParams,
             ...params,
             stream: true,
             ...(!this.disableResponseFormat && { response_format: { type: schema ? "json_object" : "text" } })

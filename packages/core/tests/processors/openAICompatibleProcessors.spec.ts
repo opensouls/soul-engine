@@ -31,10 +31,11 @@ registerProcessor("together", (opts: Partial<OpenAIProcessorOpts> = {}) => {
     },
     singleSystemMessage: true,
     forcedRoleAlternation: true,
+    disableResponseFormat: true,
     defaultCompletionParams: {
       model: "teknium/OpenHermes-2p5-Mistral-7B",
       // model: "mistralai/Mistral-7B-Instruct-v0.2",
-      max_tokens: 1600,
+      max_tokens: 4000,
     },
     ...opts,
   })  
@@ -119,7 +120,7 @@ const unnecessarilyComplexReturn = createCognitiveStep((extraInstructions: strin
 
 describe("OpenAICompatibleProcessors", () => {
 
-  it("works with fireworks", async () => {
+  it("works with together", async () => {
     if (!process.env.FIREWORKS_API_KEY) {
       console.log("No FIREWORKS_API_KEY, skipping test")
       return
@@ -138,7 +139,7 @@ describe("OpenAICompatibleProcessors", () => {
         }
       ],
       processor: {
-        name: "fireworks",
+        name: "together",
       }
     });
 
