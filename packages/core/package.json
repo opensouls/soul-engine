@@ -17,7 +17,7 @@
     "README.md"
   ],
   "author": "",
-  "license": "UNLICENSED",
+  "license": "LGPL-3.0-only",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/opensouls/soul-engine.git"
