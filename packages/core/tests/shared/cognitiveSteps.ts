@@ -18,7 +18,7 @@ export const externalDialog = createCognitiveStep((instructions: string | { inst
       return {
         role: ChatMessageRoleEnum.System,
         name: name,
-        content: `
+        content: indentNicely`
             Model the mind of ${name}.
     
             ## Instructions
