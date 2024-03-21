@@ -1,15 +1,17 @@
 import "../src/processors/OpenAIProcessor.js"
 import { codeBlock } from "common-tags"
-import { ChatMessageRoleEnum, MemoryTransformationOptions, WorkingMemory, TransformOptions } from "../src/WorkingMemory.js"
+import { ChatMessageRoleEnum, WorkingMemory } from "../src/WorkingMemory.js"
 import { expect } from "chai";
 import { z } from "zod";
 import { externalDialog } from "./shared/cognitiveSteps.js";
+import { createCognitiveStep } from "../src/cognitiveStep.js";
 
-const params = z.object({
-  answer: z.string().describe(`The answer to the question.`)
-})
-const queryMemory = (memory: WorkingMemory, query: string, transformOpts: TransformOptions = {}) => {
-  const opts: MemoryTransformationOptions<z.infer<typeof params>, string> = {
+
+const queryMemory = createCognitiveStep((query: string) => {
+  const params = z.object({
+    answer: z.string().describe(`The answer to the question.`)
+  })
+  return {
     command: ({ entityName: name }: WorkingMemory) => {
       return {
         role: ChatMessageRoleEnum.System,
@@ -30,14 +32,8 @@ const queryMemory = (memory: WorkingMemory, query: string, transformOpts: Transf
       };
       return [newMemory, response.answer];
     }
-  };
-
-  if (transformOpts.stream) {
-    return memory.transform(opts, { ...transformOpts, stream: true });
-  } else {
-    return memory.transform(opts, transformOpts);
   }
-}
+})
 
 describe("memory transformations", () => {
 
@@ -138,8 +134,8 @@ describe("memory transformations", () => {
       ]
     })
 
-    let newMemory, stream, response;
-    [newMemory, stream, response] = await externalDialog(workingMemory, "Please say hi back to me.", { model: "gpt-4-turbo-preview" });
+    let newMemory
+    [newMemory] = await externalDialog(workingMemory, "Please say hi back to me.", { model: "gpt-4-turbo-preview" });
     await newMemory.finished
     expect(newMemory.usage.model).to.equal("gpt-4-turbo-preview")
     expect(newMemory.usage.input).to.be.greaterThan(0)
@@ -169,8 +165,8 @@ describe("memory transformations", () => {
       ]
     })
 
-    let newMemory, stream, response;
-    [newMemory, stream, response] = await externalDialog(workingMemory, "Please say hi back to me.");
+    let newMemory, response;
+    [newMemory, response] = await externalDialog(workingMemory, "Please say hi back to me.");
     await newMemory.finished
     expect(newMemory.usage.model).to.equal("gpt-4-turbo-preview")
     expect(newMemory.usage.input).to.be.greaterThan(0)

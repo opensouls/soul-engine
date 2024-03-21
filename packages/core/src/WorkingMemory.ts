@@ -4,29 +4,8 @@ import { EventEmitter } from "eventemitter3"
 import { getProcessor } from "./processors/registry.js"
 import { codeBlock } from "common-tags"
 import { zodToJsonSchema } from "zod-to-json-schema"
-import { RequestOptions, UsageNumbers } from "./processors/Processor.js"
-
-export type StreamProcessor = (workingMemory: WorkingMemory, stream: AsyncIterable<string>) => (AsyncIterable<string> | Promise<AsyncIterable<string>>)
-
-export type PostProcessReturn<SchemaType> = [InputMemory, SchemaType]
-
-export interface MemoryTransformationOptions<SchemaType = string, PostProcessType = SchemaType> {
-  command: string | ((workingMemory: WorkingMemory) => InputMemory)
-
-  processor?: string
-  schema?: ZodSchema<SchemaType>
-  postProcess?: (originalMemory: WorkingMemory, response: SchemaType) => (Promise<PostProcessReturn<PostProcessType>> | PostProcessReturn<PostProcessType>)
-  streamProcessor?: StreamProcessor
-  skipAutoSchemaAddition?: boolean
-}
-
-export type MemoryTransformation<SchemaType, PostProcessType> = MemoryTransformationOptions<SchemaType, PostProcessType> | ((memory: WorkingMemory, value?: any) => MemoryTransformationOptions<SchemaType, PostProcessType>)
-
-export type TransformOptions = 
-  RequestOptions & { 
-    stream?: boolean
-    processor?: ProcessorSpecification
-  }
+import { UsageNumbers } from "./processors/Processor.js"
+import { MemoryTransformationOptions, PostProcessReturn, TransformOptions, TransformReturnNonStreaming, TransformReturnStreaming } from "./cognitiveStep.js"
 
 export enum ChatMessageRoleEnum {
   System = "system",
@@ -63,15 +42,6 @@ export interface Memory<MetaDataType = Record<string, unknown>> {
   _metadata?: MetaDataType;
 }
 
-export type TransformReturnStreaming<PostProcessType> = [WorkingMemory, AsyncIterable<string>, Promise<PostProcessType>]
-export type TransformReturn<PostProcessType> = [WorkingMemory, PostProcessType]
-
-export type CognitiveStep<_SchemaType, PostProcessType> = (
-  memory: WorkingMemory,
-  value: any,
-  options: TransformOptions
-) => Promise<typeof options['stream'] extends true ? TransformReturnStreaming<PostProcessType> : TransformReturn<PostProcessType>>;
-
 
 export type InputMemory = Omit<Memory, "_id" | "_timestamp"> & { _id?: string, _timestamp?: number }
 
@@ -86,6 +56,8 @@ export interface WorkingMemoryInitOptions {
   processor?: ProcessorSpecification
 }
 
+export type MemoryListOrWorkingMemory = InputMemory[] | WorkingMemory
+
 const defaultPostProcessor = <SchemaType = string>(_workingMemory: WorkingMemory, response: SchemaType): PostProcessReturn<SchemaType> => {
   const memory = {
     role: ChatMessageRoleEnum.Assistant,
@@ -94,8 +66,6 @@ const defaultPostProcessor = <SchemaType = string>(_workingMemory: WorkingMemory
 
   return [memory, response]
 }
-
-export type MemoryListOrWorkingMemory = InputMemory[] | WorkingMemory
 
 export class WorkingMemory extends EventEmitter {
   readonly id
@@ -163,8 +133,8 @@ export class WorkingMemory extends EventEmitter {
     return this.clone(newMemories)
   }
 
-  withMemories(memories: MemoryListOrWorkingMemory) {
-    return this.concat(this.normalizeMemoryListOrWorkingMemory(memories))
+  withMemory(memory: InputMemory) {
+    return this.concat(this.normalizeMemoryListOrWorkingMemory([memory]))
   }
 
   filter(callback: (memory: Memory) => boolean) {
@@ -197,19 +167,15 @@ export class WorkingMemory extends EventEmitter {
     }]))
   }
 
-  async transform<SchemaType, PostProcessType>(transformation: MemoryTransformation<SchemaType, PostProcessType>, opts: { stream: true } & TransformOptions): Promise<TransformReturnStreaming<PostProcessType>>;
-  async transform<SchemaType, PostProcessType>(transformation: MemoryTransformation<SchemaType, PostProcessType>, opts?: Omit<TransformOptions, 'stream'>): Promise<TransformReturn<PostProcessType>>;
-  async transform<SchemaType, PostProcessType>(transformation: MemoryTransformation<SchemaType, PostProcessType>, opts?: { stream: false } & Omit<TransformOptions, 'stream'>): Promise<TransformReturn<PostProcessType>>;
-  async transform<SchemaType, PostProcessType>(transformation: MemoryTransformation<SchemaType, PostProcessType>, opts: TransformOptions = {}) {
+  async transform<SchemaType, PostProcessType>(transformation: MemoryTransformationOptions<SchemaType, PostProcessType>, opts: { stream: true } & TransformOptions): Promise<TransformReturnStreaming<PostProcessType>>;
+  async transform<SchemaType, PostProcessType>(transformation: MemoryTransformationOptions<SchemaType, PostProcessType>, opts?: Omit<TransformOptions, 'stream'>): Promise<TransformReturnNonStreaming<PostProcessType>>;
+  async transform<SchemaType, PostProcessType>(transformation: MemoryTransformationOptions<SchemaType, PostProcessType>, opts?: { stream: false } & Omit<TransformOptions, 'stream'>): Promise<TransformReturnNonStreaming<PostProcessType>>;
+  async transform<SchemaType, PostProcessType>(transformation: MemoryTransformationOptions<SchemaType, PostProcessType>, opts: TransformOptions = {}) {
     if (this.pending) {
       await this.pending
     }
     const newMemory = this.clone()
     newMemory.markPending()
-
-    if (typeof transformation === "function") {
-      transformation = transformation(newMemory, this.lastValue)
-    }
 
     return newMemory.doTransform<SchemaType, PostProcessType>(transformation, opts)
   }
@@ -271,7 +237,7 @@ export class WorkingMemory extends EventEmitter {
         `
       }
 
-      const memoryWithCommand = this.withMemories([commandMemory])
+      const memoryWithCommand = this.withMemory(commandMemory)
 
       const response = await processor.process<SchemaType>({
         memory: memoryWithCommand,

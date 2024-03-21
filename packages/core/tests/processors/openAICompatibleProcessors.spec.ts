@@ -1,10 +1,11 @@
 import { expect } from "chai";
-import { ChatMessageRoleEnum, MemoryTransformationOptions, TransformOptions, WorkingMemory } from "../../src/WorkingMemory.js";
+import { ChatMessageRoleEnum, WorkingMemory } from "../../src/WorkingMemory.js";
 import { brainstorm, decision, externalDialog } from "../shared/cognitiveSteps.js";
 import { registerProcessor } from "../../src/processors/registry.js";
 import { OpenAIProcessor, OpenAIProcessorOpts } from "../../src/processors/OpenAIProcessor.js";
 import { codeBlock } from "common-tags";
 import { z } from "zod";
+import { createCognitiveStep } from "../../src/cognitiveStep.js";
 
 registerProcessor("fireworks", (opts: Partial<OpenAIProcessorOpts> = {}) => {
   return new OpenAIProcessor({
@@ -56,7 +57,7 @@ registerProcessor("mistral", (opts: Partial<OpenAIProcessorOpts> = {}) => {
   
 })
 
-export const unnecessarilyComplexReturn = (memory: WorkingMemory, extraInstructions: string, transformOpts: TransformOptions = {}) => {
+const unnecessarilyComplexReturn = createCognitiveStep((extraInstructions: string) => {
 
   const params = z.object({
     itemsOfKnowledge: z.array(
@@ -98,7 +99,7 @@ export const unnecessarilyComplexReturn = (memory: WorkingMemory, extraInstructi
     // })
   })
 
-  const opts: MemoryTransformationOptions<z.infer<typeof params>> = {
+  return {
     command: ({ entityName: name }: WorkingMemory) => {
       return {
         role: ChatMessageRoleEnum.System,
@@ -113,13 +114,7 @@ export const unnecessarilyComplexReturn = (memory: WorkingMemory, extraInstructi
     },
     schema: params
   };
-
-  if (transformOpts.stream) {
-    return memory.transform(opts, { ...transformOpts, stream: true });
-  } else {
-    return memory.transform(opts, transformOpts);
-  }
-}
+})
 
 
 describe("OpenAICompatibleProcessors", () => {
@@ -210,5 +205,4 @@ describe("OpenAICompatibleProcessors", () => {
 
     expect(said).to.be.a('string')
   })
-
 })
