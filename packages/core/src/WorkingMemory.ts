@@ -44,10 +44,10 @@ export interface Memory<MetaDataType = Record<string, unknown>> {
   role: ChatMessageRoleEnum;
   content: ChatMessageContent;
   name?: string;
+  metadata?: MetaDataType;
 
   _id: string;
   _timestamp: number;
-  _metadata?: MetaDataType;
 }
 
 export type InputMemory = Omit<Memory, "_id" | "_timestamp"> & { _id?: string, _timestamp?: number }
