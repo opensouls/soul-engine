@@ -37,7 +37,7 @@ type DefaultCompletionParams = CompletionParams & {
   model: CompletionParams["model"] | string;
 };
 
-export const memoryToChatMessage = (memory: Memory): ChatCompletionMessageParam => {
+const memoryToChatMessage = (memory: Memory): ChatCompletionMessageParam => {
   return {
     role: memory.role,
     content: memory.content,

@@ -54,7 +54,7 @@ const textFromContent = (content: ChatMessageContent) => {
   return textContent.text
 }
 
-const JSON_MESSAGE = "You only speak JSON. Respond only with JSON properly conforming to the provided schema, with no other content."
+const JSON_MESSAGE = "You only speak JSON. Respond only with JSON properly conforming to the provided schema (but not returning the schema itself), with no other content."
 
 export const prepareMemoryForJSON = (workingMemory: WorkingMemory, jsonMessage = JSON_MESSAGE) => {
   // get the system memory

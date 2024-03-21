@@ -7,6 +7,14 @@ import { zodToJsonSchema } from "zod-to-json-schema"
 import { UsageNumbers } from "./processors/Processor.js"
 import { MemoryTransformationOptions, PostProcessReturn, TransformOptions, TransformReturnNonStreaming, TransformReturnStreaming } from "./cognitiveStep.js"
 
+/**
+ * This file defines the structure and operations on working memory within the OPEN SOULS soul-engine.
+ * Additionally, it provides interfaces for processor specifications and the handling of memory transformations and cognitive steps.
+ * WorkingMemory is crucial for managing the state and interactions within the soul-engine, facilitating the processing and transformation of memory items.
+ * See cognitiveStep.ts for more information on cognitive steps and memory transformations.
+ */
+
+
 export enum ChatMessageRoleEnum {
   System = "system",
   User = "user",

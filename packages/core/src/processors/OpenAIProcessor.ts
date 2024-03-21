@@ -28,7 +28,7 @@ const tracer = trace.getTracer(
 
 type Clientconfig = ConstructorParameters<typeof OpenAI>[0];
 
-export const memoryToChatMessage = (memory: Memory): ChatCompletionMessageParam => {
+const memoryToChatMessage = (memory: Memory): ChatCompletionMessageParam => {
   return {
     role: memory.role,
     content: memory.content,
