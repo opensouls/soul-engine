@@ -2,7 +2,7 @@
   "name": "@opensouls/core",
   "version": "0.0.1",
   "type": "module",
-  "description": "The core functionality of the soul-engine",
+  "description": "The core functionality of the OPEN SOULS soul-engine",
   "main": "dist/index.js",
   "scripts": {
     "test": "mocha tests/*.spec.ts tests/**/*.spec.ts"
