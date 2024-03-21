@@ -5,7 +5,7 @@
   "description": "The core functionality of the OPEN SOULS soul-engine",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
-  "typings": "dist/index.d.ts",
+  "typings": "dist/types.d.ts",
   "scripts": {
     "test": "mocha tests/*.spec.ts tests/**/*.spec.ts",
     "build": "tsx scripts/build.ts"

@@ -30,11 +30,11 @@ interface AnthropicMessage {
 
 export type AnthropicClientConfig = ConstructorParameters<typeof Anthropic>[0]
 
-type CompletionParams = Anthropic["messages"]["stream"]["arguments"][0]
-type RequestOptions = Anthropic["messages"]["stream"]["arguments"][1]
+export type AnthropicCompletionParams = Anthropic["messages"]["stream"]["arguments"][0]
+export type AnthropicRequestOptions = Anthropic["messages"]["stream"]["arguments"][1]
 
-type DefaultCompletionParams = CompletionParams & {
-  model: CompletionParams["model"] | string;
+export type AnthropicDefaultCompletionParams = AnthropicCompletionParams & {
+  model: AnthropicCompletionParams["model"] | string;
 };
 
 const memoryToChatMessage = (memory: Memory): ChatCompletionMessageParam => {
@@ -47,8 +47,8 @@ const memoryToChatMessage = (memory: Memory): ChatCompletionMessageParam => {
 
 export interface AnthropicProcessorOpts {
   clientOptions?: AnthropicClientConfig
-  defaultCompletionParams?: Partial<DefaultCompletionParams>
-  defaultRequestOptions?: Partial<RequestOptions>
+  defaultCompletionParams?: Partial<AnthropicDefaultCompletionParams>
+  defaultRequestOptions?: Partial<AnthropicRequestOptions>
   forcedRoleAlternation?: boolean,
 }
 
@@ -109,8 +109,8 @@ export class AnthropicProcessor implements Processor {
 
   private forcedRoleAlternation: boolean
 
-  private defaultRequestOptions: Partial<RequestOptions>
-  private defaultCompletionParams: Partial<DefaultCompletionParams>
+  private defaultRequestOptions: Partial<AnthropicRequestOptions>
+  private defaultCompletionParams: Partial<AnthropicDefaultCompletionParams>
 
   constructor({ clientOptions, forcedRoleAlternation, defaultRequestOptions, defaultCompletionParams }: AnthropicProcessorOpts) {
     this.client = new Anthropic(clientOptions)
