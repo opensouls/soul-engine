@@ -94,5 +94,35 @@ describe("WorkingMemory", () => {
     expect(asyncTransformedMemories.memories[0].content).to.equal("Async test #1 transformed")
     expect(asyncTransformedMemories.memories[1].content).to.equal("Async test #2 transformed")
   })
+
+  it("slices", () => {
+    const memories = new WorkingMemory({
+      entityName: "test",
+    }).withMonolouge("Slice test #1")
+     .withMonolouge("Slice test #2")
+     .withMonolouge("Slice test #3")
+
+    const slicedMemories = memories.slice(1, 3)
+
+    expect(slicedMemories.memories).to.have.lengthOf(2)
+    expect(slicedMemories.memories[0].content).to.equal("Slice test #2")
+    expect(slicedMemories.memories[1].content).to.equal("Slice test #3")
+  })
+
+  it("transforms memories asynchronously", async () => {
+    const memories = new WorkingMemory({
+      entityName: "test",
+    }).withMonolouge("Async map test #1")
+     .withMonolouge("Async map test #2")
+
+    const asyncMappedMemories = await memories.asyncMap(async memory => ({
+      ...memory,
+      content: `${memory.content} async mapped`
+    }))
+
+    expect(asyncMappedMemories.memories).to.have.lengthOf(2)
+    expect(asyncMappedMemories.memories[0].content).to.equal("Async map test #1 async mapped")
+    expect(asyncMappedMemories.memories[1].content).to.equal("Async map test #2 async mapped")
+  })
   
 })

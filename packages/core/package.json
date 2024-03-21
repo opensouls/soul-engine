@@ -9,6 +9,7 @@
   },
   "author": "",
   "license": "UNLICENSED",
+  "repository": "https://github.com/opensouls/soul-engine",
   "dependencies": {
     "@opentelemetry/api": "^1.8.0",
     "common-tags": "^1.8.2",

@@ -61,13 +61,13 @@ describe("EvilCharacters", () => {
         memories: initialMemories,
       })
   
-      const [feels] = await internalMonologue(memory, {instructions: `${memory.entityName} thinks on their emotional state.`, verb: "feels" })
-      // console.log("feels: ", feels.value)
-      const [thinks] = await internalMonologue(feels, `${memory.entityName} thinks a single sentence.`)
-      // console.log("thinks: ", thinks.value)
+      const [feels, felt] = await internalMonologue(memory, {instructions: `${memory.entityName} thinks on their emotional state.`, verb: "feels" })
+      // console.log("feels: ", felt)
+      const [thinks, thought] = await internalMonologue(feels, `${memory.entityName} thinks a single sentence.`)
+      // console.log("thinks: ", thought)
   
-      const [says] = await externalDialog(thinks, `What does ${thinks.entityName} says out loud next`)
-      // console.log("says: ", says.value)
+      const [says, said] = await externalDialog(thinks, `What does ${thinks.entityName} says out loud next`)
+      // console.log("says: ", said)
   
       const [action, actions] = await brainstorm(says, `Think up 3 evil things to do next`)
       // console.log("actions: ", actions)
@@ -98,7 +98,7 @@ describe("EvilCharacters", () => {
           rambles = "rambles",
         }
 
-        const [feels, felt] = await internalMonologue(monologue, "Bogus notes how it feels to to be so nicely evil.")
+        const [feels] = await internalMonologue(monologue, "Bogus notes how it feels to to be so nicely evil.")
         const [thinks] = await internalMonologue(feels, "Bogus thinks a single sentence.")
         const [says] = await externalDialog(thinks, "What does Bogus says out loud next")
         const [action, rambleOrNot] = await decision(says, {description: "Decide Bogus' next course of action in the dialog. Should he ramble or stop?", choices: BogusAction })

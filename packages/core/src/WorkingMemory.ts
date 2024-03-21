@@ -42,7 +42,6 @@ export interface Memory<MetaDataType = Record<string, unknown>> {
   _metadata?: MetaDataType;
 }
 
-
 export type InputMemory = Omit<Memory, "_id" | "_timestamp"> & { _id?: string, _timestamp?: number }
 
 export interface ProcessorSpecification {
@@ -113,7 +112,6 @@ export class WorkingMemory extends EventEmitter {
     return this.pending
   }
 
-  // TODO: capture everything other option too
   clone(replacementMemories?: InputMemory[]) {
     const newMemory = new WorkingMemory({
       entityName: this.entityName,
@@ -131,6 +129,10 @@ export class WorkingMemory extends EventEmitter {
   async asyncMap(callback: (memory: Memory) => Promise<InputMemory>) {
     const newMemories = await Promise.all(this._memories.map(callback))
     return this.clone(newMemories)
+  }
+
+  slice(start: number, end?: number) {
+    return this.clone(this._memories.slice(start, end))
   }
 
   withMemory(memory: InputMemory) {
@@ -185,8 +187,8 @@ export class WorkingMemory extends EventEmitter {
       Working Memory (${this.id}): ${this.entityName}
       Memories:
       ${this._memories.map((memory) => {
-        return JSON.stringify(memory)
-      }).join("\n")}
+      return JSON.stringify(memory)
+    }).join("\n")}
     `
   }
 
