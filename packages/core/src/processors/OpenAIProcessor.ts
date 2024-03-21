@@ -26,7 +26,7 @@ const tracer = trace.getTracer(
   '0.0.1',
 );
 
-type Clientconfig = ConstructorParameters<typeof OpenAI>[0];
+export type OpenAIClientConfig = ConstructorParameters<typeof OpenAI>[0];
 
 const memoryToChatMessage = (memory: Memory): ChatCompletionMessageParam => {
   return {
@@ -37,7 +37,7 @@ const memoryToChatMessage = (memory: Memory): ChatCompletionMessageParam => {
 }
 
 export interface OpenAIProcessorOpts {
-  clientOptions?: Clientconfig
+  clientOptions?: OpenAIClientConfig
   defaultCompletionParams?: Partial<OpenAI.Chat.Completions.ChatCompletionCreateParams>
   defaultRequestOptions?: Partial<RequestOptions>
   singleSystemMessage?: boolean,

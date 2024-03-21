@@ -28,7 +28,7 @@ interface AnthropicMessage {
   role: ChatMessageRoleEnum.Assistant | ChatMessageRoleEnum.User
 }
 
-type Clientconfig = ConstructorParameters<typeof Anthropic>[0]
+export type AnthropicClientConfig = ConstructorParameters<typeof Anthropic>[0]
 
 type CompletionParams = Anthropic["messages"]["stream"]["arguments"][0]
 type RequestOptions = Anthropic["messages"]["stream"]["arguments"][1]
@@ -46,7 +46,7 @@ const memoryToChatMessage = (memory: Memory): ChatCompletionMessageParam => {
 }
 
 export interface AnthropicProcessorOpts {
-  clientOptions?: Clientconfig
+  clientOptions?: AnthropicClientConfig
   defaultCompletionParams?: Partial<DefaultCompletionParams>
   defaultRequestOptions?: Partial<RequestOptions>
   forcedRoleAlternation?: boolean,
