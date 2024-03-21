@@ -1,6 +1,6 @@
 # Types
 
-## Working example type system
+## This is a simple reference type system to use as a guide for the larger system.
 
 ```typescript
 
