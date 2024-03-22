@@ -1,0 +1,53 @@
+{
+  "name": "@opensouls/soul",
+  "version": "0.0.1",
+  "type": "module",
+  "description": "The client code for interacting with a soul on the OPEN SOULS soul engine.",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "typings": "dist/types.d.ts",
+  "scripts": {
+    "test": "mocha tests/*.spec.ts tests/**/*.spec.ts",
+    "build": "tsx scripts/build.ts"
+  },
+  "files": [
+    "bin",
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opensouls/soul-engine.git"
+  },
+  "keywords": [
+    "opensouls",
+    "soulengine",
+    "soul-engine",
+    "AI",
+    "framework"
+  ],
+  "author": "",
+  "license": "LGPL-3.0-only",
+  "bugs": {
+    "url": "https://github.com/opensouls/soul-engine/issues"
+  },
+  "homepage": "https://github.com/opensouls/soul-engine#readme",
+  "dependencies": {
+    "@hocuspocus/provider": "^2.9.0",
+    "@opensouls/core": "^0.0.3",
+    "@syncedstore/core": "^0.6.0"
+  },
+  "devDependencies": {
+    "@microsoft/api-extractor": "^7.43.0",
+    "@types/chai": "^4.3.12",
+    "@types/mocha": "^10.0.6",
+    "chai": "^5.1.0",
+    "dotenv": "^16.4.5",
+    "esbuild": "0.20.2",
+    "execa": "^8.0.1",
+    "mocha": "^10.3.0",
+    "tsx": "^4.7.1",
+    "typescript": "^5.4.2"
+  }
+}
