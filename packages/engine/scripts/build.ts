@@ -40,6 +40,7 @@ const defaultParams:esbuild.BuildOptions = {
   packages: "external",
   target: "node18",
   outdir: 'dist',
+  outExtension: { ".js": ".cjs" },
 }
 
 await esbuild.build({
@@ -58,7 +59,8 @@ await esbuild.build({
   ...defaultParams,
   entryPoints: ['src/cli/index.ts'],
   outdir: 'dist/cli',
-  format: 'cjs',
+  format: 'esm',
+  outExtension: { ".js": ".mjs" },
 })
 
 await $`rm -rf lib temp`
