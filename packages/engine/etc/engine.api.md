@@ -5,7 +5,7 @@
 ```ts
 
 import { CognitiveEvent } from '@opensouls/core';
-import { CortexStep } from 'socialagi';
+import { CortexStep } from '@opensouls/core';
 import { DeveloperInteractionRequest } from '@opensouls/core';
 import { Json } from '@opensouls/core';
 import { MentalProcess } from '@opensouls/core';
