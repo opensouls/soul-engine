@@ -1,11 +1,12 @@
 import { nanoid } from "nanoid"
-import { ZodSchema } from "zod"
+import type { ZodSchema } from "zod"
 import { EventEmitter } from "eventemitter3"
 import { getProcessor } from "./processors/registry.js"
 import { zodToJsonSchema } from "zod-to-json-schema"
-import { UsageNumbers } from "./processors/Processor.js"
-import { MemoryTransformationOptions, PostProcessReturn, TransformOptions, TransformReturnNonStreaming, TransformReturnStreaming } from "./cognitiveStep.js"
+import type { UsageNumbers } from "./processors/Processor.js"
+import type { MemoryTransformationOptions, PostProcessReturn, TransformOptions, TransformReturnNonStreaming, TransformReturnStreaming } from "./cognitiveStep.js"
 import { indentNicely } from "./utils.js"
+import { ChatMessageRoleEnum, InputMemory, Memory } from "./Memory.js"
 
 /**
  * This file defines the structure and operations on working memory within the OPEN SOULS soul-engine.
@@ -13,44 +14,6 @@ import { indentNicely } from "./utils.js"
  * WorkingMemory is crucial for managing the state and interactions within the soul-engine, facilitating the processing and transformation of memory items.
  * See cognitiveStep.ts for more information on cognitive steps and memory transformations.
  */
-
-
-export enum ChatMessageRoleEnum {
-  System = "system",
-  User = "user",
-  Assistant = "assistant",
-  Function = "function",
-}
-
-export interface ImageURL {
-  /**
-   * Either a URL of the image or the base64 encoded image data.
-   */
-  url: string;
-
-  /**
-   * Specifies the detail level of the image. Learn more in the
-   * [Vision guide](https://platform.openai.com/docs/guides/vision/low-or-high-fidelity-image-understanding).
-   */
-  detail?: 'auto' | 'low' | 'high';
-}
-
-export type ContentText = { type: "text", text: string }
-export type ContentImage = { type: "image_url", image_url: ImageURL }
-
-export type ChatMessageContent = string | (ContentText | ContentImage)[]
-
-export interface Memory<MetaDataType = Record<string, unknown>> {
-  role: ChatMessageRoleEnum;
-  content: ChatMessageContent;
-  name?: string;
-  metadata?: MetaDataType;
-
-  _id: string;
-  _timestamp: number;
-}
-
-export type InputMemory = Omit<Memory, "_id" | "_timestamp"> & { _id?: string, _timestamp?: number }
 
 export interface ProcessorSpecification {
   name: string,

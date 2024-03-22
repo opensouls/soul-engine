@@ -1,5 +1,6 @@
 import { expect } from "chai"
-import { ChatMessageRoleEnum, WorkingMemory } from "../src/WorkingMemory.js"
+import { WorkingMemory } from "../src/WorkingMemory.js"
+import { ChatMessageRoleEnum } from "../src/Memory.js"
 
 
 describe("WorkingMemory", () => {

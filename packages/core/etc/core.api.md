@@ -51,7 +51,7 @@ export type AnthropicRequestOptions = Anthropic["messages"]["stream"]["arguments
 // @public (undocumented)
 export type ChatMessageContent = string | (ContentText | ContentImage)[];
 
-// @public
+// @public (undocumented)
 export enum ChatMessageRoleEnum {
     // (undocumented)
     Assistant = "assistant",
@@ -313,7 +313,7 @@ export interface ProcessorCreationOpts {
 // @public (undocumented)
 export type ProcessorFactory = (opts?: ProcessorCreationOpts) => Processor;
 
-// @public (undocumented)
+// @public
 export interface ProcessorSpecification {
     // (undocumented)
     name: string;

@@ -1,7 +1,8 @@
 import { expect } from "chai";
-import { ChatMessageRoleEnum, WorkingMemory } from "../src/WorkingMemory.js";
+import { WorkingMemory } from "../src/WorkingMemory.js";
 import { brainstorm, decision, externalDialog, internalMonologue, summarize } from "./shared/cognitiveSteps.js";
 import { indentNicely } from "../src/utils.js";
+import { ChatMessageRoleEnum } from "../src/Memory.js";
 
 
 // This test is designed to make sure that the underlying model of SocialAGI supports proper role play and character modeling.

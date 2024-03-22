@@ -1,6 +1,6 @@
 {
   "name": "@opensouls/engine",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "bin": {
     "soul-engine": "./bin/run.js"
   },

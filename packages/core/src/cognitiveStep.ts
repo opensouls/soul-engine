@@ -1,6 +1,7 @@
-import { ZodSchema } from "zod"
-import { InputMemory, ProcessorSpecification, WorkingMemory } from "./WorkingMemory.js"
-import { RequestOptions } from "./processors/Processor.js"
+import type { ZodSchema } from "zod"
+import type { ProcessorSpecification, WorkingMemory } from "./WorkingMemory.js"
+import type { RequestOptions } from "./processors/Processor.js"
+import { InputMemory } from "./Memory.js"
 
 export type StreamProcessor = (workingMemory: WorkingMemory, stream: AsyncIterable<string>) => (AsyncIterable<string> | Promise<AsyncIterable<string>>)
 

@@ -1,5 +1,6 @@
 import { ZodSchema } from "zod"
-import { ChatMessageContent, ChatMessageRoleEnum, ContentText, WorkingMemory } from "../WorkingMemory.js"
+import { WorkingMemory } from "../WorkingMemory.js"
+import { ChatMessageContent, ChatMessageRoleEnum, ContentText } from "../Memory.js"
 
 export interface UsageNumbers {
   model: string,

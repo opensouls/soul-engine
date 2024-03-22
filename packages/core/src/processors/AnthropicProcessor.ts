@@ -3,7 +3,7 @@ import { MessageStream } from "@anthropic-ai/sdk/lib/MessageStream";
 import { trace, context } from "@opentelemetry/api";
 import { encodeChatGenerator, encodeGenerator } from "gpt-tokenizer/model/gpt-4"
 import { registerProcessor } from "./registry.js";
-import { ChatMessageRoleEnum, Memory } from "../WorkingMemory.js";
+import { ChatMessageRoleEnum, Memory } from "../Memory.js";
 import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { ReusableStream } from "../ReusableStream.js";
 import {
