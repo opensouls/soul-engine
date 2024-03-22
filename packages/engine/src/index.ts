@@ -3,9 +3,23 @@ import { MentalProcess, CognitiveEvent, DeveloperInteractionRequest, Json, Perce
 import { CortexStep } from "socialagi"
 import * as soul from "@opensouls/core"
 
-export { ALLOWED_RAG_FILE_EXTENSIONS } from './cli/rag/rag-file-poster.js'
 export * from "@opensouls/core"
 export { soul }
+
+export const ALLOWED_RAG_FILE_EXTENSIONS = [
+  ".js",
+  ".ts",
+  ".mdx",
+  ".md",
+  ".txt",
+  ".json",
+  ".yml",
+  ".xml",
+  ".html",
+  ".tsx",
+  ".jsx",
+  ".py",
+]
 
 // these are added to the global scope when executing in the SOUL ENGINE
 // $$ is a convenience method using Mustache to access the soul.env variables.

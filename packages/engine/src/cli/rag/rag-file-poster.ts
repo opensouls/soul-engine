@@ -4,7 +4,7 @@ import { join, relative } from "node:path";
 
 import { FileWatcher } from "../fileSystem/file-watcher.js";
 import { readDirRecursive } from "../fileSystem/recursive-reader.js";
-import { RagConfigfile, RagIngestionBody, defaultRagBucketName } from "../../index.js";
+import { ALLOWED_RAG_FILE_EXTENSIONS, RagConfigfile, RagIngestionBody, defaultRagBucketName } from "../../index.js";
 
 interface RagPosterOpts {
   apiKey?: string
@@ -27,21 +27,6 @@ interface CreateWithDefaultConfigOpts {
 interface PackageJsonWithName {
   name: string
 }
-
-export const ALLOWED_RAG_FILE_EXTENSIONS = [
-  ".js",
-  ".ts",
-  ".mdx",
-  ".md",
-  ".txt",
-  ".json",
-  ".yml",
-  ".xml",
-  ".html",
-  ".tsx",
-  ".jsx",
-  ".py",
-]
 
 const parsedPackageJson = (): PackageJsonWithName => {
   const packageJsonPath = join(".", "package.json")
