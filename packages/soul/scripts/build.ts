@@ -3,10 +3,7 @@ import esbuild from 'esbuild'
 import { Extractor, ExtractorConfig, ExtractorResult } from '@microsoft/api-extractor';
 import { join } from 'path';
 
-// import path from 'node:path'
-
 await $`rm -rf dist lib temp`
-// await $`rm -rf cache/tmp`
 await $`mkdir dist`
 await $`npx tsc -p tsconfig.build.json`
 
