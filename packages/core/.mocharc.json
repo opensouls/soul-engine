@@ -1,0 +1,9 @@
+{
+  "extension": ["tsx"],
+  "file": ["tests/shared/dotenv.ts"],
+  "timeout": 120000,
+  "node-option": [
+		"experimental-specifier-resolution=node",
+		"import=tsx"
+	]
+}
