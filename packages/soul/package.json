@@ -1,12 +1,17 @@
 {
   "name": "@opensouls/soul",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "type": "module",
   "description": "The client code for interacting with a soul on the OPEN SOULS soul engine.",
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
-  "typings": "dist/types.d.ts",
+  "main": "dist/index.mjs",
+  "types": "dist/types.d.ts",
+  "exports": {
+    "import": "./dist/index.mjs",
+    "require": "./dist/index.js",
+    "types": "./dist/types.d.ts"
+  },
   "scripts": {
+    "prepublish": "npm run build",
     "test": "mocha tests/*.spec.ts tests/**/*.spec.ts",
     "build": "tsx scripts/build.ts"
   },
@@ -35,7 +40,7 @@
   "homepage": "https://github.com/opensouls/soul-engine#readme",
   "dependencies": {
     "@hocuspocus/provider": "^2.9.0",
-    "@opensouls/core": "^0.0.4",
+    "@opensouls/core": "^0.0.5",
     "@syncedstore/core": "^0.6.0"
   },
   "devDependencies": {

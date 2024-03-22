@@ -1,7 +1,10 @@
 import { getConfig } from "./config.js"
-import inquirer from "inquirer"
+import readline from 'node:readline/promises';
+import { stdin as input, stdout as output } from 'node:process';
 
 export const handleLogin = async (local: boolean, force = false) => {
+  const rl = readline.createInterface({ input, output });
+
   const globalConfig = await getConfig(local)
 
   if (globalConfig.get("apiKey") && !force) {
@@ -15,11 +18,12 @@ export const handleLogin = async (local: boolean, force = false) => {
 
 
   console.log(`Opening ${url} in your browser. If the browser does not open, then please visit manually.`)
-  const responses = await inquirer.prompt({
-    name: 'configInput',
-    message: 'Please login to the soul engine and then paste the config here',
-    type: 'input'
-  },)
+
+
+  const configInput = await rl.question('Please login to the soul engine and then paste the config here: ');
+  rl.close();
+
+  const responses = { configInput };
 
   const pasted = responses.configInput
   const pastedConfig = JSON.parse(Buffer.from(pasted, "base64").toString("utf8"))

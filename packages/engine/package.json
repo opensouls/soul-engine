@@ -1,16 +1,20 @@
 {
   "name": "@opensouls/engine",
-  "private": false,
-  "version": "0.0.4",
+  "version": "0.0.5",
   "bin": {
     "soul-engine": "./bin/run.js"
   },
   "type": "module",
   "description": "Write your own souls to run on the OPEN SOULS soul-engine",
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
-  "typings": "dist/types.d.ts",
+  "main": "dist/index.mjs",
+  "types": "dist/types.d.ts",
+  "exports": {
+    "import": "./dist/index.mjs",
+    "require": "./dist/index.js",
+    "types": "./dist/types.d.ts"
+  },
   "scripts": {
+    "prepublish": "npm run build",
     "test": "mocha tests/*.spec.ts tests/**/*.spec.ts",
     "build": "tsx scripts/build.ts"
   },
@@ -28,14 +32,13 @@
   },
   "dependencies": {
     "@hocuspocus/provider": "^2.9.0",
-    "@opensouls/core": "^0.0.4",
-    "@opensouls/soul": "^0.0.4",
+    "@opensouls/core": "^0.0.5",
+    "@opensouls/soul": "^0.0.5",
     "commander": "^12.0.0",
     "conf": "^12.0.0",
     "cross-fetch": "^4.0.0",
     "execa": "^8.0.1",
     "glob": "^10.3.10",
-    "inquirer": "^9.2.16",
     "open": "^10.1.0"
   },
   "devDependencies": {
