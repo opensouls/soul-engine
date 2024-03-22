@@ -170,7 +170,7 @@ export class WorkingMemory extends EventEmitter {
     return this.clone(otherMemory._memories.concat(this._memories))
   }
 
-  withMonolouge(content: string) {
+  withMonologue(content: string) {
     return this.clone((this.memories as InputMemory[]).concat([{
       role: ChatMessageRoleEnum.Assistant,
       content,
