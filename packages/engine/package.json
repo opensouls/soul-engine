@@ -1,7 +1,7 @@
 {
   "name": "@opensouls/engine",
   "private": false,
-  "version": "0.0.3",
+  "version": "0.0.4",
   "bin": {
     "soul-engine": "./bin/run.js"
   },
@@ -28,8 +28,8 @@
   },
   "dependencies": {
     "@hocuspocus/provider": "^2.9.0",
-    "@opensouls/core": "^0.0.3",
-    "@opensouls/soul": "^0.0.1",
+    "@opensouls/core": "^0.0.4",
+    "@opensouls/soul": "^0.0.4",
     "commander": "^12.0.0",
     "conf": "^12.0.0",
     "cross-fetch": "^4.0.0",
