@@ -5,7 +5,6 @@
 ```ts
 
 import Anthropic from '@anthropic-ai/sdk';
-import { CortexStep } from './cortexStep.d.ts';
 import { EventEmitter } from 'eventemitter3';
 import OpenAI from 'openai';
 import { RequestOptions as RequestOptions_2 } from 'openai/core';
@@ -64,31 +63,6 @@ export enum ChatMessageRoleEnum {
 }
 
 // @public (undocumented)
-export type CognitiveEvent = CognitiveEventAbsolute | CognitiveEventOffset;
-
-// @public (undocumented)
-export interface CognitiveEventAbsolute extends CognitiveEventBase {
-    // (undocumented)
-    when: Date;
-}
-
-// @public (undocumented)
-export interface CognitiveEventBase {
-    // (undocumented)
-    params?: Json;
-    // (undocumented)
-    perception: Omit<InternalPerception, "_id" | "_kind" | "_pending" | "_timestamp" | "internal">;
-    // (undocumented)
-    process: MentalProcess<any>;
-}
-
-// @public (undocumented)
-export interface CognitiveEventOffset extends CognitiveEventBase {
-    // (undocumented)
-    in: number;
-}
-
-// @public (undocumented)
 export type CognitiveStep<PostProcessReturnType> = {
     (memory: WorkingMemory, userArgs: any, transformOpts: TransformOptions & {
         stream: true;
@@ -110,8 +84,6 @@ export type ContentText = {
     type: "text";
     text: string;
 };
-
-export { CortexStep }
 
 // @public
 export const createCognitiveStep: <SchemaType, PostProcessType>(transformationOptionsGenerator: (singleArg?: any) => MemoryTransformationOptions<SchemaType, PostProcessType>) => CognitiveStep<PostProcessType>;
@@ -236,19 +208,6 @@ export interface MemoryTransformationOptions<SchemaType = string, PostProcessTyp
     skipAutoSchemaAddition?: boolean;
     // (undocumented)
     streamProcessor?: StreamProcessor;
-}
-
-// @public (undocumented)
-export type MentalProcess<ParamType = Record<number | string, any>> = (args: MentalProcessArguments<ParamType>) => Promise<CortexStep<any> | WorkingMemory>;
-
-// @public (undocumented)
-export interface MentalProcessArguments<ParamType> {
-    // (undocumented)
-    params: ParamType;
-    // (undocumented)
-    step: CortexStep<any>;
-    // (undocumented)
-    workingMemory: WorkingMemory;
 }
 
 // @public (undocumented)

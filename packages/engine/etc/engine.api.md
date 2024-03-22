@@ -4,15 +4,14 @@
 
 ```ts
 
-import { CognitiveEvent } from '@opensouls/core';
-import { CortexStep } from '@opensouls/core';
 import { DeveloperInteractionRequest } from '@opensouls/core';
+import { InternalPerception } from '@opensouls/core';
 import { Json } from '@opensouls/core';
-import { MentalProcess } from '@opensouls/core';
 import { mentalQuery } from 'socialagi';
 import { Perception } from '@opensouls/core';
-import * as soul_2 from '@opensouls/core';
+import * as soul_2 from '@opensouls/soul';
 import { SoulEnvironment } from '@opensouls/core';
+import { WorkingMemory } from '@opensouls/core';
 
 // @public (undocumented)
 export const ALLOWED_RAG_FILE_EXTENSIONS: string[];
@@ -35,7 +34,30 @@ export interface Blueprint {
     subprocesses?: MentalProcess<any>[];
 }
 
-export { CortexStep }
+// @public (undocumented)
+export type CognitiveEvent = CognitiveEventAbsolute | CognitiveEventOffset;
+
+// @public (undocumented)
+export interface CognitiveEventAbsolute extends CognitiveEventBase {
+    // (undocumented)
+    when: Date;
+}
+
+// @public (undocumented)
+export interface CognitiveEventBase {
+    // (undocumented)
+    params?: Json;
+    // (undocumented)
+    perception: Omit<InternalPerception, "_id" | "_kind" | "_pending" | "_timestamp" | "internal">;
+    // (undocumented)
+    process: MentalProcess<any>;
+}
+
+// @public (undocumented)
+export interface CognitiveEventOffset extends CognitiveEventBase {
+    // (undocumented)
+    in: number;
+}
 
 // @public (undocumented)
 export interface DefaultActions {
@@ -56,6 +78,19 @@ export const defaultRagBucketName: (blueprint: string) => string;
 
 // @public (undocumented)
 export type Embedding = number[];
+
+// @public (undocumented)
+export type MentalProcess<ParamType = Record<number | string, any>, CortexStepType = any> = (args: MentalProcessArguments<ParamType, CortexStepType>) => Promise<CortexStepType | WorkingMemory>;
+
+// @public (undocumented)
+export interface MentalProcessArguments<ParamType, CortexStepType = any> {
+    // (undocumented)
+    params: ParamType;
+    // (undocumented)
+    step: CortexStepType;
+    // (undocumented)
+    workingMemory: WorkingMemory;
+}
 
 export { mentalQuery }
 
@@ -127,7 +162,7 @@ export interface SoulHooks {
     // (undocumented)
     useRag(bucketName?: string): {
         search: (opts: RagSearchOpts) => Promise<VectorRecordWithSimilarity[]>;
-        withRagContext: <T>(step: CortexStep<T>, opts?: WithRagContextOpts) => Promise<CortexStep<T>>;
+        withRagContext: <T = any>(step: T, opts?: WithRagContextOpts) => Promise<T>;
     };
     // (undocumented)
     useSoulMemory: <T = null>(name: string, initialValue?: T) => {

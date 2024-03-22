@@ -61,6 +61,4 @@ await esbuild.build({
   outExtension: { ".js": ".mjs" },
 })
 
-await $`cp src/sharedTypes/cortexStep.d.ts dist/`
-
 await $`rm -rf lib temp`

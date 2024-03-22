@@ -1,9 +1,13 @@
 /* eslint-disable arrow-body-style */
-import { CortexStep, MentalProcess, CognitiveEvent, DeveloperInteractionRequest, Json, Perception, SoulEnvironment } from '@opensouls/core';
-import * as soul from "@opensouls/core"
+import { InternalPerception } from '@opensouls/core';
+import { DeveloperInteractionRequest, Json, Perception, SoulEnvironment } from '@opensouls/core';
+import { MentalProcess } from './mentalProcess.js'
+import * as soul from "@opensouls/soul"
 
+export * from "./mentalProcess.js"
 export * from "@opensouls/core"
-export { soul, CortexStep }
+export { soul }
+
 
 export const ALLOWED_RAG_FILE_EXTENSIONS = [
   ".js",
@@ -20,6 +24,8 @@ export const ALLOWED_RAG_FILE_EXTENSIONS = [
   ".py",
 ]
 
+
+
 // these are added to the global scope when executing in the SOUL ENGINE
 // $$ is a convenience method using Mustache to access the soul.env variables.
 declare global {
@@ -34,6 +40,23 @@ declare global {
  * @deprecated Use `mentalQuery` from "socialagi" instead.
  */
 export { mentalQuery } from "socialagi";
+
+export interface CognitiveEventBase {
+  process: MentalProcess<any>
+  perception: Omit<InternalPerception, "_id" | "_kind" | "_pending" | "_timestamp" | "internal">
+  params?: Json
+}
+
+export interface CognitiveEventAbsolute extends CognitiveEventBase {
+  when: Date
+}
+
+export interface CognitiveEventOffset extends CognitiveEventBase {
+  in: number // seconds from now
+}
+
+export type CognitiveEvent = CognitiveEventAbsolute | CognitiveEventOffset
+
 
 export interface DefaultActions {
   /*
@@ -137,7 +160,7 @@ export interface SoulHooks {
   useSoulMemory: <T = null>(name: string, initialValue?: T) => { current: T }
   useRag(bucketName?: string): {
     search: (opts: RagSearchOpts) => Promise<VectorRecordWithSimilarity[]>
-    withRagContext: <T>(step: CortexStep<T>, opts?: WithRagContextOpts) => Promise<CortexStep<T>>
+    withRagContext: <T = any>(step: T, opts?: WithRagContextOpts) => Promise<T>
   }
 }
 

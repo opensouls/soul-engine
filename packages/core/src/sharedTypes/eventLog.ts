@@ -1,5 +1,3 @@
-import type { MentalProcess } from "./mentalProcess.js"
-
 export enum SoulEventKinds {
   Perception = "perception",
   InteractionRequest = "interactionRequest",
@@ -61,22 +59,6 @@ export type DeveloperInteractionRequest = Omit<InteractionRequest, "_id" | "_kin
 export interface SystemEvent extends SoulEvent {
   _kind: SoulEventKinds.System
 }
-
-export interface CognitiveEventBase {
-  process: MentalProcess<any>
-  perception: Omit<InternalPerception, "_id" | "_kind" | "_pending" | "_timestamp" | "internal">
-  params?: Json
-}
-
-export interface CognitiveEventAbsolute extends CognitiveEventBase {
-  when: Date
-}
-
-export interface CognitiveEventOffset extends CognitiveEventBase {
-  in: number // seconds from now
-}
-
-export type CognitiveEvent = CognitiveEventAbsolute | CognitiveEventOffset
 
 export type SoulEnvironment = Record<string, Json> | undefined
 
