@@ -5,10 +5,10 @@ import { join } from 'path';
 
 // import path from 'node:path'
 
-await $`rm -rf dist etc lib temp`
+await $`rm -rf dist lib temp`
 // await $`rm -rf cache/tmp`
 await $`mkdir dist`
-await $`mkdir etc`
+// await $`mkdir etc`
 await $`npx tsc -p tsconfig.build.json`
 
 

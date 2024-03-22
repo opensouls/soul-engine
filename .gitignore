@@ -15,7 +15,7 @@ node_modules
 # production
 /build
 dist
-etc
+lib
 temp
 
 # misc

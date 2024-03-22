@@ -1,9 +1,11 @@
 /* eslint-disable arrow-body-style */
-export { ALLOWED_RAG_FILE_EXTENSIONS } from './cli/rag/rag-file-poster.js'
 import { MentalProcess, CognitiveEvent, DeveloperInteractionRequest, Json, Perception, SoulEnvironment } from '@opensouls/core';
 import { CortexStep } from "socialagi"
+import * as soul from "@opensouls/core"
 
+export { ALLOWED_RAG_FILE_EXTENSIONS } from './cli/rag/rag-file-poster.js'
 export * from "@opensouls/core"
+export { soul }
 
 // these are added to the global scope when executing in the SOUL ENGINE
 // $$ is a convenience method using Mustache to access the soul.env variables.
