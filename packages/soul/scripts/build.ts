@@ -52,6 +52,7 @@ await esbuild.build({
 await esbuild.build({
   ...defaultParams,
   format: 'cjs',
+  outExtension: { ".js": ".cjs" },
 })
 
 await $`rm -rf lib temp`

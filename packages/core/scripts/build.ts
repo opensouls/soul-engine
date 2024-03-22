@@ -51,6 +51,7 @@ await esbuild.build({
 await esbuild.build({
   ...defaultParams,
   format: 'cjs',
+  outExtension: { ".js": ".cjs" },
 })
 
 await $`cp src/sharedTypes/cortexStep.d.ts dist/`
