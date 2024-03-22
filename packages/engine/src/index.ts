@@ -1,6 +1,5 @@
 /* eslint-disable arrow-body-style */
-import { MentalProcess, CognitiveEvent, DeveloperInteractionRequest, Json, Perception, SoulEnvironment } from '@opensouls/core';
-import { CortexStep } from "socialagi"
+import { CortexStep, MentalProcess, CognitiveEvent, DeveloperInteractionRequest, Json, Perception, SoulEnvironment } from '@opensouls/core';
 import * as soul from "@opensouls/core"
 
 export * from "@opensouls/core"
