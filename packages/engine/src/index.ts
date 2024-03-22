@@ -4,7 +4,7 @@ import { CortexStep } from "socialagi"
 import * as soul from "@opensouls/core"
 
 export * from "@opensouls/core"
-export { soul }
+export { soul, CortexStep }
 
 export const ALLOWED_RAG_FILE_EXTENSIONS = [
   ".js",
