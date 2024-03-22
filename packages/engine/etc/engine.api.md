@@ -35,6 +35,8 @@ export interface Blueprint {
     subprocesses?: MentalProcess<any>[];
 }
 
+export { CortexStep }
+
 // @public (undocumented)
 export interface DefaultActions {
     // (undocumented)
