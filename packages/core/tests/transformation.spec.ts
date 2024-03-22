@@ -1,11 +1,11 @@
 import "../src/processors/OpenAIProcessor.js"
-import { codeBlock } from "common-tags"
-import { ChatMessageRoleEnum, WorkingMemory } from "../src/WorkingMemory.js"
+import { WorkingMemory } from "../src/WorkingMemory.js"
 import { expect } from "chai";
 import { z } from "zod";
 import { externalDialog } from "./shared/cognitiveSteps.js";
 import { createCognitiveStep } from "../src/cognitiveStep.js";
 import { indentNicely } from "../src/utils.js";
+import { ChatMessageRoleEnum } from "../src/Memory.js";
 
 
 const queryMemory = createCognitiveStep((query: string) => {
