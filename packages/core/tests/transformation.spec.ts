@@ -166,9 +166,8 @@ describe("memory transformations", () => {
       ]
     })
 
-    let newMemory, response;
-    [newMemory, response] = await externalDialog(workingMemory, "Please say hi back to me.");
-    await newMemory.finished
+    let newMemory;
+    [newMemory] = await externalDialog(workingMemory, "Please say hi back to me.");
     expect(newMemory.usage.model).to.equal("gpt-4-turbo-preview")
     expect(newMemory.usage.input).to.be.greaterThan(0)
     expect(newMemory.usage.output).to.be.greaterThan(0);

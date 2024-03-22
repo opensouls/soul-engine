@@ -148,7 +148,7 @@ describe("OpenAICompatibleProcessors", () => {
     expect(said).to.be.a('string')
   })
 
-  it("works with together and complex json", async () => {
+  it("works with fireworks and complex json", async () => {
     if (!process.env.TOGETHER_API_KEY) {
       console.log("No TOGETHER_API_KEY, skipping test")
       return

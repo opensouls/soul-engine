@@ -1,16 +1,16 @@
 import { expect } from "chai"
-import { WorkingMemory } from "../src/WorkingMemory.js"
+import { ChatMessageRoleEnum, WorkingMemory } from "../src/WorkingMemory.js"
 
 
 describe("WorkingMemory", () => {
   it("concats two working memories into a new working memory", () => {
     const memories1 = new WorkingMemory({
       soulName: "test",
-    }).withMonolouge("Topper tested #1")
+    }).withMonologue("Topper tested #1")
 
     const memories2 = new WorkingMemory({
       soulName: "test",
-    }).withMonolouge("Topper tested #2")
+    }).withMonologue("Topper tested #2")
 
     const memories3 = memories1.concat(memories2)
 
@@ -29,7 +29,7 @@ describe("WorkingMemory", () => {
   it("maps over memories", () => {
     const memories = new WorkingMemory({
       soulName: "test",
-    }).withMonolouge("Topper tested #1")
+    }).withMonologue("Topper tested #1")
 
     const newMemories = memories.map(memory => ({
       ...memory,
@@ -43,9 +43,9 @@ describe("WorkingMemory", () => {
   it("filters memories based on a condition", () => {
     const memories = new WorkingMemory({
       soulName: "test",
-    }).withMonolouge("Topper tested #1")
-     .withMonolouge("Another test #2")
-     .withMonolouge("Final test #3")
+    }).withMonologue("Topper tested #1")
+      .withMonologue("Another test #2")
+      .withMonologue("Final test #3")
 
     const filteredMemories = memories.filter(memory => (memory.content as string).includes("#2"))
 
@@ -56,8 +56,8 @@ describe("WorkingMemory", () => {
   it("checks if any memory meets a condition", () => {
     const memories = new WorkingMemory({
       soulName: "test",
-    }).withMonolouge("Topper tested #1")
-     .withMonolouge("Another test #2")
+    }).withMonologue("Topper tested #1")
+      .withMonologue("Another test #2")
 
     const hasTest1 = memories.some(memory => (memory.content as string).includes("#1"))
     const hasTest3 = memories.some(memory => (memory.content as string).includes("#3"))
@@ -69,8 +69,8 @@ describe("WorkingMemory", () => {
   it("finds a memory by content", () => {
     const memories = new WorkingMemory({
       soulName: "test",
-    }).withMonolouge("Topper tested #1")
-     .withMonolouge("Another test #2")
+    }).withMonologue("Topper tested #1")
+      .withMonologue("Another test #2")
 
     const foundMemory = memories.find(memory => (memory.content as string).includes("#2"))
     expect(foundMemory).to.exist
@@ -82,8 +82,8 @@ describe("WorkingMemory", () => {
   it("transforms memories asynchronously", async () => {
     const memories = new WorkingMemory({
       soulName: "test",
-    }).withMonolouge("Async test #1")
-     .withMonolouge("Async test #2")
+    }).withMonologue("Async test #1")
+      .withMonologue("Async test #2")
 
     const asyncTransformedMemories = await memories.asyncMap(async memory => ({
       ...memory,
@@ -98,9 +98,9 @@ describe("WorkingMemory", () => {
   it("slices", () => {
     const memories = new WorkingMemory({
       soulName: "test",
-    }).withMonolouge("Slice test #1")
-     .withMonolouge("Slice test #2")
-     .withMonolouge("Slice test #3")
+    }).withMonologue("Slice test #1")
+      .withMonologue("Slice test #2")
+      .withMonologue("Slice test #3")
 
     const slicedMemories = memories.slice(1, 3)
 
@@ -112,8 +112,8 @@ describe("WorkingMemory", () => {
   it("transforms memories asynchronously", async () => {
     const memories = new WorkingMemory({
       soulName: "test",
-    }).withMonolouge("Async map test #1")
-     .withMonolouge("Async map test #2")
+    }).withMonologue("Async map test #1")
+      .withMonologue("Async map test #2")
 
     const asyncMappedMemories = await memories.asyncMap(async memory => ({
       ...memory,
@@ -124,5 +124,34 @@ describe("WorkingMemory", () => {
     expect(asyncMappedMemories.memories[0].content).to.equal("Async map test #1 async mapped")
     expect(asyncMappedMemories.memories[1].content).to.equal("Async map test #2 async mapped")
   })
+
   
+  it("applies postProcess to transform WorkingMemory", () => {
+    // This test is a trivial example to test functionality. The system is designed so library developers
+    // can add their own hooks to working memory (for instance, prevent access to certain methods, or log usage, etc).
+    
+    const postProcess = (wm: WorkingMemory) => {
+      const transformedMemories = wm.memories.map(memory => ({
+        ...memory,
+        content: `${memory.content} post-processed`
+      }));
+      return new WorkingMemory({ soulName: wm.soulName, memories: transformedMemories });
+    };
+
+    const memories = new WorkingMemory({
+      soulName: "test",
+      postProcess,
+      memories: [
+        {
+          role: ChatMessageRoleEnum.System,
+          content: "Test #1"
+        },
+      ]
+    }).withMonologue("Test #2")
+
+    expect(memories.memories).to.have.lengthOf(2);
+    expect(memories.memories[0].content).to.equal("Test #1 post-processed");
+    expect(memories.memories[1].content).to.equal("Test #2 post-processed");
+  });
+
 })

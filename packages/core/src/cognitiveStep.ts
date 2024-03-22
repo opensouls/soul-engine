@@ -38,33 +38,35 @@ export type CognitiveStep<PostProcessReturnType> = {
  * This function is pivotal in the cognitive processing pipeline, allowing for dynamic
  * transformation of working memory based on user-defined logic and conditions.
  *
- * @param cb A callback function that takes a single argument and returns a `MemoryTransformationOptions` object.
- *           This callback defines the transformation logic to be applied in the cognitive step.
+ * @param transformationOptionsGenerator A callback function that takes a single argument and returns a `MemoryTransformationOptions` object.
+ *           This callback defines the transformation logic applied in the cognitive step.
  *           The single argument can be any user-defined data structure or value that the callback
  *           uses to determine the transformation logic.
  * @returns A `CognitiveStep` function that takes a `WorkingMemory` instance, user arguments, and
- *          transformation options. It applies the transformation logic defined by the `cb` callback
+ *          request options. It applies the transformation logic defined by the `transformationOptionsGenerator` callback
  *          to the working memory and returns the transformed memory along with any post-processing results.
- *          The function supports both streaming and non-streaming modes based on the provided options.
+ *          The function supports both streaming and non-streaming modes based on the provided request options.
  *
  * Trivial exmaple:
- * It defines a CognitiveStep that answers a user's question in a single word.
+ * Defines a CognitiveStep that answers a user's question in a single word.
  * The transformation logic includes a command as a string, a schema to validate the response using Zod, and a post-processing function that converts the response to uppercase.
  * This cognitive step is then used to transform the working memory based on user arguments and transformation options, supporting both streaming and non-streaming modes.
  * ```
  * const myCognitiveStep = createCognitiveStep((singleArg) => ({
- *   command: 'Answer the user's question in a single word.',
+ *   command: "Answer the user's question in a single word.",
  *   schema: z.object({ answer: z.string() }),
  *   postProcess: async (originalMemory, response) => [originalMemory, response.toUpperCase()],
  * }));
  *
  * // To use the cognitive step:
- * const [newMemory, result] = await myCognitiveStep(workingMemory, userArgs, { stream: false });
+ * const [newMemory, result] = await myCognitiveStep(workingMemory, userArgs);
+ * // or
+ * const [newMemory, stream, resultPromise] = await myCognitiveStep(workingMemory, userArgs, { stream: true })
  * ```
  */
-export const createCognitiveStep = <SchemaType, PostProcessType>(cb: (singleArg: any) => MemoryTransformationOptions<SchemaType, PostProcessType>): CognitiveStep<PostProcessType> => {
+export const createCognitiveStep = <SchemaType, PostProcessType>(transformationOptionsGenerator: (singleArg?: any) => MemoryTransformationOptions<SchemaType, PostProcessType>): CognitiveStep<PostProcessType> => {
   return (async (workingMemory: WorkingMemory, singleArg: any, opts: TransformOptions = {}) => {
-    const transformOpts = cb(singleArg)
+    const transformOpts = transformationOptionsGenerator(singleArg)
     return workingMemory.transform(transformOpts, opts)
   }) as CognitiveStep<PostProcessType>
 }

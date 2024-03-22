@@ -61,6 +61,10 @@ export interface WorkingMemoryInitOptions {
   soulName: string
   memories?: InputMemory[]
   processor?: ProcessorSpecification
+  /*
+   *  postProcess is a hook for library developers who want to shape a working memory or provide hooks or defaults on every return of a new working memory. 
+   */
+  postProcess?: (workingMemory: WorkingMemory) => WorkingMemory
 }
 
 export type MemoryListOrWorkingMemory = InputMemory[] | WorkingMemory
@@ -85,12 +89,14 @@ export class WorkingMemory extends EventEmitter {
 
   protected lastValue?: any
 
+  private postProcess: (workingMemory: WorkingMemory) => WorkingMemory
+
   soulName: string
   processor: ProcessorSpecification = Object.freeze({
     name: "openai",
   })
 
-  constructor({ soulName, memories, processor }: WorkingMemoryInitOptions) {
+  constructor({ soulName, memories, postProcess, processor }: WorkingMemoryInitOptions) {
     super()
     this.id = nanoid()
     this._memories = this.memoriesFromInputMemories(memories || [])
@@ -98,6 +104,7 @@ export class WorkingMemory extends EventEmitter {
     if (processor) {
       this.processor = processor
     }
+    this.postProcess = postProcess || ((workingMemory) => workingMemory)
     this._usage = {
       model: "",
       input: 0,
@@ -124,9 +131,10 @@ export class WorkingMemory extends EventEmitter {
     const newMemory = new WorkingMemory({
       soulName: this.soulName,
       memories: replacementMemories || this._memories,
+      postProcess: this.postProcess,
       processor: this.processor,
     })
-    return newMemory
+    return this.postProcess(newMemory)
   }
 
   map(callback: (memory: Memory) => InputMemory) {
@@ -171,10 +179,10 @@ export class WorkingMemory extends EventEmitter {
   }
 
   withMonologue(content: string) {
-    return this.clone((this.memories as InputMemory[]).concat([{
+    return this.withMemory({
       role: ChatMessageRoleEnum.Assistant,
       content,
-    }]))
+    })
   }
 
   async transform<SchemaType, PostProcessType>(transformation: MemoryTransformationOptions<SchemaType, PostProcessType>, opts: { stream: true } & TransformOptions): Promise<TransformReturnStreaming<PostProcessType>>;

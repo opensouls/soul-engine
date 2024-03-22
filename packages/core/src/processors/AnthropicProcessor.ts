@@ -220,9 +220,6 @@ export class AnthropicProcessor implements Processor {
         const fullContentPromise = new Promise<string>(async (resolve, reject) => {
           try {
             let fullText = ""
-            // textStream.onFirst(() => {
-            //   console.log("First packet received")
-            // })
             for await (const message of textStream.stream()) {
               span.addEvent("chunk", { length: message.length })
               fullText += message
@@ -237,7 +234,6 @@ export class AnthropicProcessor implements Processor {
 
         const usagePromise = new Promise<UsageNumbers>(async (resolve, reject) => {
           try {
-            // TODO: get the real numbers using the encodeGenerator
             const fullContent = await fullContentPromise
 
             const messageIterator = (messages as ChatMessage[])[Symbol.iterator]();
@@ -247,8 +243,8 @@ export class AnthropicProcessor implements Processor {
 
             const countTokens = async (tokenGen: Generator<any>): Promise<number> => {
               let count = 0;
-              for await (const _ of tokenGen) {
-                count++;
+              for await (const chunk of tokenGen) {
+                count += chunk.length;
               }
               return count;
             };
