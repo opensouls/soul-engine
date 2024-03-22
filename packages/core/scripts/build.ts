@@ -58,4 +58,6 @@ await esbuild.build({
   format: 'cjs',
 })
 
+await $`cp src/sharedTypes/cortexStep.d.ts dist/`
+
 await $`rm -rf lib temp`
