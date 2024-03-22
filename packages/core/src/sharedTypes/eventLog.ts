@@ -86,7 +86,7 @@ export interface EventLogMetadata {
   environment?: SoulEnvironment,
 }
 
-const eventLogShape = {
+export const eventLogShape = {
   events: [] as SoulEvent[],
   metadata: {} as EventLogMetadata,
 }
