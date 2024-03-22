@@ -27,11 +27,15 @@
     "url": "git+https://github.com/opensouls/soul-engine.git"
   },
   "dependencies": {
+    "@hocuspocus/provider": "^2.9.0",
     "@opensouls/core": "^0.0.3",
     "commander": "^12.0.0",
+    "conf": "^12.0.0",
+    "cross-fetch": "^4.0.0",
     "execa": "^8.0.1",
     "glob": "^10.3.10",
-    "inquirer": "^9.2.16"
+    "inquirer": "^9.2.16",
+    "open": "^10.1.0"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.43.0",
@@ -45,5 +49,11 @@
     "mocha": "^10.3.0",
     "tsx": "^4.7.1",
     "typescript": "^5.4.2"
+  },
+  "optionalDependencies": {
+    "ws": "^8.16.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
