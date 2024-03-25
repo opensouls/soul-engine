@@ -4,7 +4,7 @@ The `MentalProcess` API gives a powerful and functional way to specify stateful 
 
 ## Main thread process
 
-Importantly, a soul only ever has a single (main-threaded) active `MentalProcess`, which defines the current behavior set. When a `MentalProcess` executes, it operates on the current `step` of the `WorkingMemory`, returning a new `step` of the `WorkingMemory`.
+Importantly, a soul only ever has a single (main-threaded) active `MentalProcess`, which defines the current behavior set. When a `MentalProcess` executes, it operates on the current `WorkingMemory`, returning a new `WorkingMemory`.
 
 import { Callout } from 'nextra/components'
  
@@ -17,18 +17,17 @@ During operation on the `WorkingMemory`'s current step (a [SocialAGI CortexStep]
 Every mental process needs to be defined and exported as its own file:
 
 ```typescript filename="mentalProcesses/exampleProcess.ts"
-import { MentalProcess } from "soul-engine"
+import { MentalProcess } from "@opensouls/engine"
 
-const exampleProcess: MentalProcess = async ({ step: initialStep, params }) => {
-  let step = initialStep
+const exampleProcess: MentalProcess = async ({ workingMemory, params }) => {
   // operations on the working memory step ...
 
-  return step
+  return workingMemory
 }
 
 export default exampleProcess
 ```
 
 *Parameters*:
-- `step`: a instance of a `CortexStep` representing the current state of the `WorkingMemory`, containing the latest `Perception` for operation on
+- `workingMemory`: the current instance of `WorkingMemory`, containing the latest `Perception` to operate on
 - `params`: static props passed into the `MentalProcess`, e.g. `{ wasProvoked: true }`

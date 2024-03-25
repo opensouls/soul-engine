@@ -26,9 +26,9 @@ soul.dispatch({
 And that metadata is useable from your `MentalProcess` as part of both the step's memory _metadata *and* the invokingPerception metadata.
 
 ```typescript filename="exampleProcess.ts"
-import { usePerceptions, useActions } from "soul-engine"
+import { usePerceptions, useActions } from "@opensouls/engine"
 
-const exampleProcess: MentalProcess = async ({ step: initialStep }) => {
+const exampleProcess: MentalProcess = async ({ workingMemory }) => {
   import { log } from useActions()
   // get information about the incoming perceptions
   const { invokingPerception, pendingPerceptions } = usePerceptions()
@@ -37,7 +37,7 @@ const exampleProcess: MentalProcess = async ({ step: initialStep }) => {
 
   // rest of the mental process
   // ...
-  return step
+  return workingMemory
 }
 
 export default exampleProcess
@@ -49,9 +49,9 @@ Your `MentalProcess` can dispatch _metadata as well..
 
 
 ```typescript filename="heartReactor.ts"
-import { usePerceptions, useActions } from "soul-engine"
+import { usePerceptions, useActions } from "@opensouls/engine"
 
-const heartReactor: MentalProcess = async ({ step: initialStep }) => {
+const heartReactor: MentalProcess = async ({ workingMemory }) => {
   import { log, dispatch } from useActions()
   // get information about the incoming perceptions
   const { invokingPerception, pendingPerceptions } = usePerceptions()
@@ -64,7 +64,7 @@ const heartReactor: MentalProcess = async ({ step: initialStep }) => {
     },
   })
 
-  return step
+  return workingMemory
 }
 
 export default heartReactor
@@ -74,7 +74,7 @@ This is useable on the Soul client side through an ActionEvent:
 
 
 ```typescript
-import { ActionEvent, Soul, SoulEvent } from "soul-engine/soul";
+import { ActionEvent, Soul, SoulEvent } from "@opensouls/soul";
 
 // ... the rest of your app
 

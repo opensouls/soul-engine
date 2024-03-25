@@ -8,66 +8,82 @@ A set of `MentalProcess` functions can be launched to run continuously in the ba
 As an example, consider a `MentalProcess` that continuously learns about the user the soul is speaking with:
 
 ```typescript filename="subprocesses/learnsAboutTheUser.ts"
-import { html } from "common-tags";
-import { ChatMessageRoleEnum, CortexStep, internalMonologue, mentalQuery } from "socialagi";
-import { MentalProcess, useActions, useProcessMemory } from "soul-engine";
+import { ChatMessageRoleEnum, createCognitiveStep, indentNicely, MentalProcess, useActions, useProcessMemory, WorkingMemory } from "@opensouls/engine";
 
-// Write a custom cognitive function for SocialAGI that will keep notes about a user
-const userNotes = () => () => ({
-  command: ({ entityName: name }: CortexStep) => {
-    return html`
-      Model the mind of ${name}.
-      
-      ## Description
-      Write an updated and clear set of notes on the user that ${name} would want to remember.
+// Write a custom cognitive function that will keep notes about a user
+const userNotes = createCognitiveStep(() => {
+  return {
+    command: ({ soulName: name}: WorkingMemory) => {
+      return {
+        role: ChatMessageRoleEnum.System,
+        content: indentNicely`
+          Model the mind of ${name}.
 
-      ## Rules
-      * Keep descriptions as bullet points
-      * Keep relevant bullet points from before
-      * Use abbreviated language to keep the notes short
-      * Do not write any notes about ${name}
+          ## Description
+          Write an updated and clear set of notes on the user that ${name} would want to remember.
 
-      Please reply with the updated notes on the user:'
-  `},
-  process: (_step: CortexStep<any>, response: string) => {
-    return {
-      value: response,
-      memories: [{
-        role: ChatMessageRoleEnum.Assistant,
-        content: response
-      }],
+          ## Rules
+          * Keep descriptions as bullet points
+          * Keep relevant bullet points from before
+          * Use abbreviated language to keep the notes short
+          * Do not write any notes about ${name}
+
+          Please reply with the updated notes on the user:
+        `,
+      }
+    },
+    postProcess: async (_step, response: string) => {
+      return [
+        {
+          role: ChatMessageRoleEnum.Assistant,
+          content: response
+        },   
+        response
+      ]
     }
   }
 })
 
-const learnsAboutTheUser: MentalProcess = async ({ step: initialStep }) => {
-  // track a model of the user
+const learnsAboutTheUser: MentalProcess = async ({ workingMemory: initialStep }) => {
   const userModel = useProcessMemory("Unkown User")
   const { log } = useActions()
 
   let step = initialStep
   let finalStep = initialStep
 
-  // add the existing model to memory
-  step = step.withMemory([{
+  step = step.withMemory({
     role: ChatMessageRoleEnum.Assistant,
-    content: html`
-    ${step.entityName} remembers:
+    content: indentNicely`
+      ${step.soulName} remembers:
 
-    # User model
+      ## User model
 
-    ${userModel.current}
-  `
-  }])
+      ${userModel.current}
+    `
+  })
 
-  // compute the new model
-  step = await step.next(
-    internalMonologue("What have I learned specifically about the user from the last few messages?", "noted"),
-    { model: "quality" }
+  const [,learnedSomethingNew] = await mentalQuery(
+    step,
+    `${step.soulName} has learned something new and they need to update the mental model of the user.`
   )
-  
-  // save the model
-  userModel.current = await step.compute(userNotes(), { model: "quality"})
+
+  log("Update model?", learnedSomethingNew)
+  if (learnedSomethingNew) {
+    let monologue
+    [step, monologue] = await internalMonologue(step,
+      {
+        instructions: "What have I learned specifically about the user from the last few messages?",
+        verb: "noted"
+      }
+    )
+    log("User Learnings:", monologue)
+    const [, notes] = await userNotes(step)
+    userModel.current = notes
+  }
+
+  const [, needsToChange] = await mentalQuery(step,
+    `${step.soulName} thinks they to make changes to their behavior.`
+  )
 
   return finalStep
 }

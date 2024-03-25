@@ -3,9 +3,9 @@
 The `useSoulMemory` hook returns a soul-wide reference to a memory container, accessed by key, as a way to persist information across the soul. It's usage is very similar to `useProcessMemory`, but is scoped to soul-wide data.
 
 ```typescript filename="exampleProcess.ts" {1,5-10}
-import { useSoulMemory } from "soul-engine"
+import { useSoulMemory } from "@opensouls/engine"
 
-const exampleProcess: MentalProcess = async ({ step: initialStep }) => {
+const exampleProcess: MentalProcess = async ({ workingMemory }) => {
   // create a persistent memory container scoped to the soul
   const wasProvoked = useSoulMemory("wasProvoked", false)
 
@@ -16,7 +16,7 @@ const exampleProcess: MentalProcess = async ({ step: initialStep }) => {
 
   // do other stuff ...
 
-  return step
+  return workingMemory
 }
 
 export default exampleProcess

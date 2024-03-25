@@ -3,15 +3,15 @@
 The `useActions` hook contains all available actions for the Soul to take.
 
 ```typescript filename="exampleProcess.ts" {1,5}
-import { useActions } from "soul-engine"
+import { useActions } from "@opensouls/engine"
 
-const exampleProcess: MentalProcess = async ({ step: initialStep }) => {
+const exampleProcess: MentalProcess = async ({ workingMemory }) => {
   // get the soul's available actions
   const { expire, log, speak, dispatch, scheduleEvent } = useActions()
 
   // rest of the mental process
   // ...
-  return step
+  return workingMemory
 }
 
 export default exampleProcess

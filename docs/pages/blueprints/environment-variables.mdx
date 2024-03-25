@@ -8,14 +8,14 @@ import { Callout } from 'nextra/components'
 The Soul Engine supports templated environment variables, either directly from the environment via the global `soul.env` or templated via the convience method `$$(...)`. These can be used anywhere in a soul's Blueprint
 
 ```typescript {4-6}
-import { useActions } from "soul-engine"
+import { useActions } from "@opensouls/engine"
 
-const provesEnvironmentVariablesWork: MentalProcess = async ({ step: initialStep }) => {
+const provesEnvironmentVariablesWork: MentalProcess = async ({ workingMemory }) => {
   log("liked things: " + JSON.stringify(soul.env.likedThings))
 
   speak($$("I like {{likedThings}}."))
 
-  return initialStep
+  return workingMemory
 }
 ```
 

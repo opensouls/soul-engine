@@ -3,18 +3,19 @@
 The `useRag` hook makes integrating RAG into your soul incredibly simple. The hook returns a `withRagContext` function that transforms the working memory into a shape that pulls relevant context.
 
 ```typescript filename="speaksWithRag.ts" {6,8}
-import { useActions, useRag } from "soul-engine"
+import { externalDialog } from "./lib/cognitiveFunctions.js"
+import { useActions, useRag } from "@opensouls/engine"
 
-const speaksWithRag: MentalProcess = async ({ step: initialStep }) => {
+const speaksWithRag: MentalProcess = async ({ workingMemory }) => {
   const { speak, log  } = useActions()
   const { withRagContext } = useRag()
   // pull in the RAG context to the working memory
-  const step = await withRagContext(initialStep)
+  workingMemory = await withRagContext(workingMemory)
   // generate some new speech having the RAG context
-  const { stream, nextStep } = await step.next(
-    externalDialog(standardMessage),
-    { stream: true, model: "quality" }
-  );
+
+  let stream;
+  [workingMemory, stream] = await externalDialog(workingMemory, standardMessage, { stream: true, model: "quality" })
+
   speak(stream);
 
   return nextStep
