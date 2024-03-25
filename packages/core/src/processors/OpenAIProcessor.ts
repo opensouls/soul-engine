@@ -256,8 +256,6 @@ export class OpenAIProcessor implements Processor {
           }
         })
 
-        // TODO: schema
-
         return {
           rawCompletion: fullContentPromise,
           stream: textStream.stream(),
