@@ -1,0 +1,34 @@
+The Soul Engine
+=================
+
+The **Soul Engine** is a powerful tool for creating, developing, and deploying AI souls. Souls are dynamic, agentic, and stateful entities that are steerable by the developer, enabling the creation of engaging user and player experiences interacting with the souls.
+
+At a high level, the **Soul Engine** is a:
+1. **Framework** for programming souls
+1. **Debugger** for programming souls
+1. **Hosted** service for managing connections with souls.
+
+Let's get started!
+
+# QuickStart
+
+To get started, clone our template [Soul Blueprint](/blueprints) to your local machine as *samantha* (or any other name!)
+
+```bash copy
+npx soul-engine init samantha
+```
+
+Finally, navigate to the root directory of your cloned soul and run
+
+```bash
+cd samantha
+npx soul-engine dev
+```
+
+which will connect your soul to the engine and open the Soul Engine web interface.
+
+import { Callout } from 'nextra/components'
+
+<Callout type="info" emoji="ℹ️">
+  When your soul is connected to the engine, any file changes are watched and pushed to the engine. The soul is then continually hosted live behind our [souls API](/souls)
+</Callout>

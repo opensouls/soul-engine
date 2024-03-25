@@ -1,0 +1,65 @@
+# useSoulStore
+
+The `useSoulStore` provides a convenient persistent memory store with embedded vector search.
+
+Here is a basic usage of the store.
+
+```typescript filename="exampleProcess.ts" {1,5-9}
+import { useSoulStore } from "soul-engine"
+
+const exampleProcess: MentalProcess = async ({ step: initialStep }) => {
+  // access a soul-wide vector store
+  const { get, set } = useSoulStore()
+
+  const count = get("count") || 0
+  // do stuff ...
+  set("count", count + 1)
+
+  // rest of the mental process
+  // ...
+  return step
+}
+
+export default exampleProcess
+```
+
+Whenever a piece of content is added to the store, it is lazily embedded afterwards. Here's an example demonstrating trivial vector search post embedding:
+
+```typescript filename="vectorIntro.ts" {4-25}
+import { useActions, useProcessManager, useSoulStore } from "soul-engine"
+
+const vectorIntro: MentalProcess = async ({ step: initialStep }) => {
+  const { speak, log } = useActions()
+  const { invocationCount, wait } = useProcessManager()
+  const { set, get, search } = useSoulStore()
+
+  if (invocationCount === 0) {
+    // this does a lazy embedding - so we need to wait a moment
+    set("test-key", "I just love pumpkins.", { test: "metadata" })
+    await wait(1000)
+  }
+
+  const testKey = get("test-key")
+
+  // perform vector search
+  searched = await search("I love pumpkins")
+
+  log("searched", searched)
+  // [{
+  //   key: "test-key"
+  //   content: "I just love pumpkins"
+  //   similarity: 0.8
+  //   metadata: { // ...  }
+  // }]
+  
+  const step = await initialStep.next(externalDialog(`Communicate the following: ${testKey}`))
+  speak(step.value)
+  return step
+}
+```
+
+Additionally, `useSoulStore` has two more useful methods:
+- `delete: (key: string) => Promise<void>`
+- `createEmbedding: (content: string) => Promise<Embedding`
+
+And metadata about an object can be accessed via `get("key", { includeMetadata: true })`.

@@ -1,0 +1,76 @@
+# Subprocesses
+
+A set of `MentalProcess` functions can be launched to run continuously in the background following each run of the main-thread `MentalProcess` by placing them in the `subprocesses` directory of the sou. The behavior of `subprocesses` is the following:
+- They operate on the `WorkingMemory`, identical to the main-threaded process
+- Each subprocess runs in order of the `subprocesses` directory (alphabetical).
+- Any new incoming `Perception` terminates execution of the entire `subprocesses` execution.
+
+As an example, consider a `MentalProcess` that continuously learns about the user the soul is speaking with:
+
+```typescript filename="subprocesses/learnsAboutTheUser.ts"
+import { html } from "common-tags";
+import { ChatMessageRoleEnum, CortexStep, internalMonologue, mentalQuery } from "socialagi";
+import { MentalProcess, useActions, useProcessMemory } from "soul-engine";
+
+// Write a custom cognitive function for SocialAGI that will keep notes about a user
+const userNotes = () => () => ({
+  command: ({ entityName: name }: CortexStep) => {
+    return html`
+      Model the mind of ${name}.
+      
+      ## Description
+      Write an updated and clear set of notes on the user that ${name} would want to remember.
+
+      ## Rules
+      * Keep descriptions as bullet points
+      * Keep relevant bullet points from before
+      * Use abbreviated language to keep the notes short
+      * Do not write any notes about ${name}
+
+      Please reply with the updated notes on the user:'
+  `},
+  process: (_step: CortexStep<any>, response: string) => {
+    return {
+      value: response,
+      memories: [{
+        role: ChatMessageRoleEnum.Assistant,
+        content: response
+      }],
+    }
+  }
+})
+
+const learnsAboutTheUser: MentalProcess = async ({ step: initialStep }) => {
+  // track a model of the user
+  const userModel = useProcessMemory("Unkown User")
+  const { log } = useActions()
+
+  let step = initialStep
+  let finalStep = initialStep
+
+  // add the existing model to memory
+  step = step.withMemory([{
+    role: ChatMessageRoleEnum.Assistant,
+    content: html`
+    ${step.entityName} remembers:
+
+    # User model
+
+    ${userModel.current}
+  `
+  }])
+
+  // compute the new model
+  step = await step.next(
+    internalMonologue("What have I learned specifically about the user from the last few messages?", "noted"),
+    { model: "quality" }
+  )
+  
+  // save the model
+  userModel.current = await step.compute(userNotes(), { model: "quality"})
+
+  return finalStep
+}
+
+export default learnsAboutTheUser
+```

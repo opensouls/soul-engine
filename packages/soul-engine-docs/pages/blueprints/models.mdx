@@ -1,0 +1,16 @@
+# Models
+
+The engine supports two different GPT-based models for steps taken with SocialAGI `CortexStep`:
+
+- `"fast"`
+- `"quality"`
+
+Right now, these map onto particular freezes of OpenAI models, but over time will change. We're experimenting with using OSS models for `"fast"` internally.
+
+By default, `"fast"` is chosen, but the choice can be explicit via:
+
+```javascript
+step = await step.next(..., { model: "quality" })
+```
+
+Generally we recommend using `"fast"` for many internal thought processes and `"quality"` for the generation that a user or player interacts with.

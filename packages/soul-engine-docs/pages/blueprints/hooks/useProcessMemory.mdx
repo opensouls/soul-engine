@@ -1,0 +1,29 @@
+# useProcessMemory
+
+The `useProcessMemory` hook returns a local memory container as a way to persist information outside the `WorkingMemory` across invocations of a `MentalProcess`.
+
+```typescript filename="exampleProcess.ts" {1,5-10}
+import { useProcessMemory } from "soul-engine"
+
+const exampleProcess: MentalProcess = async ({ step: initialStep }) => {
+  // create a persistent memory container scoped to this mental process
+  const wasProvoked = useProcessMemory(false)
+
+  console.log("current value of wasProvoked", wasProvoked.current)
+
+  // set the current value immediately
+  wasProvoked.current = true
+
+  // do other stuff ...
+
+  return step
+}
+
+export default exampleProcess
+```
+
+import { Callout } from 'nextra/components'
+ 
+<Callout type="info" emoji="ℹ️">
+Process memories persist while a `MentalProcess` is continually invoked, but reset when the process changes.
+</Callout>

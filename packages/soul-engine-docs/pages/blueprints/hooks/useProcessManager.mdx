@@ -1,0 +1,83 @@
+# useProcessManager
+
+The `useProcessManager` hook provides access to an API for managing the current `MentalProcess` of the soul.
+
+```typescript filename="exampleProcess.ts" {1,5}
+import { useProcessManager } from "soul-engine"
+
+const exampleProcess: MentalProcess = async ({ step: initialStep }) => {
+  // access the internal MentalProcess API
+  const { invocationCount, setNextProcess, wait } = useProcessManager()
+
+  // rest of the mental process
+  // ...
+  return step
+}
+
+export default exampleProcess
+```
+
+## invocationCount
+
+The `invocationCount` is a number that represents the count of invocations of a mental process
+
+import { Callout } from 'nextra/components'
+ 
+<Callout type="info" emoji="ℹ️">
+The invocation count resets whenever the soul transitions to a new `MentalProcess`.
+</Callout>
+
+## setNextProcess
+
+`setNextProcess` is a core tool for driving the internal state machine of a soul. Specifically, `setNextProcess(process: MentalProcess, params?: PropType)` schedules the next `MentalProcess` that will run on the next `Perception` in the perception queue. Optionally, parameters can be passed to the next `MentalProcess` via the `params`, e.g. `{ wasProvoked: true }`
+
+```javascript
+// schedule the next mental process
+setNextProcess(playsVictim)
+// or schedule the next mental process with params
+setNextProcess(playsVictim, { wasProvoked: true, })
+```
+
+## wait
+
+`wait` simply waits the process some specified number of ms.
+
+```javascript
+await wait(1000) // wait 1 second
+```
+
+## Putting it all together
+
+Here's an example process that makes use of the `invocationCount` and `setNextProcess` in order to define a compelling stateful behavior:
+
+```javascript filename="provokesSpeaker.js"
+import { ChatMessageRoleEnum, brainstorm, decision, externalDialog } from "socialagi";
+import { MentalProcess, mentalQuery, useProcessManager, useActions } from "soul-engine";
+import playsVictim from "./playsVictim.js";
+
+const provokesSpeaker: MentalProcess = async ({ step: initialStep}) => {
+  const { speak } = useActions()
+  const { invocationCount, setNextProcess } = useProcessManager()
+
+  let step = initialStep
+  // compute a line of dialog
+  step = await initialStep.next(externalDialog("Try to provoke the speaker"));
+  speak(step.value)
+
+  // decide if it's time to move on
+  const provocationDecision = await step.compute(
+    mentalQuery("Has Samantha successfully provoked the speaker?")
+  )
+  // move to a new mental process if the soul decides it's time to move on
+  // and it's not the first invocation
+  if (provocationDecision && invocationCount > 0) {
+    // schedule the next mental process via reference to playsVictim
+    setNextProcess(playsVictim)
+    return step
+  }
+
+  return step
+}
+
+export default provokesSpeaker
+```

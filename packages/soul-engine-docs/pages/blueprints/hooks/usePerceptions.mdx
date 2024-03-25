@@ -1,0 +1,78 @@
+# usePerceptions
+
+The `usePerceptions` hook contains access to information about the soul's recent incoming perceptions.
+
+```typescript filename="exampleProcess.ts" {1,5}
+import { usePerceptions } from "soul-engine"
+
+const exampleProcess: MentalProcess = async ({ step: initialStep }) => {
+  // get information about the incoming perceptions
+  const { invokingPerception, pendingPerceptions } = usePerceptions()
+
+  // rest of the mental process
+  // ...
+  return step
+}
+
+export default exampleProcess
+```
+
+## invokingPerception
+
+The `invokingPerception` variable contains a copy of the perception that invoked the current mental process to run.
+
+```javascript
+interface perception {
+  action: string
+  content: string
+  name?: string,
+  internal?: boolean,
+  // other internal properties...
+}
+```
+
+Internal perceptions are generated when a [cognitive event is scheduled](/blueprints/hooks/useActions#scheduleevent).
+
+It's common to use the `invokingPerception` to control different types of execution flow in a mental process.
+
+```javascript copy
+const { invokingPerception } = usePerceptions()
+
+if (invokingPerception.action === "reacted") {
+  // do stuff
+} else if (invokingPerception.action === "felt") {
+  // do other stuff
+}
+```
+
+## pendingPerceptions
+
+The `pendingPerceptions` object contains a continuously updating copy of all inbound perceptions that have been generated since the current mental process started running.
+
+```javascript
+interface pendingPerceptions {
+  current: Perception[]
+}
+```
+
+A mental process can be cancelled or exited to model a behavior like being interrupted by an incoming text using the pendingPerceptions array
+
+```javascript filename="exampleProcess.ts" {5-9}
+const exampleProcess: MentalProcess = async ({ step: initialStep, subroutine: { usePerceptions } }) => {
+  let step = initialStep
+  // operations on the working memory step ...
+
+  const { pendingPerceptions } = usePerceptions()
+
+  // if any new perceptions came in since the process started, abort by returning the initial step
+  if (pendingPerceptions.current.length > 0) {
+    return initialStep
+  }
+
+  // do the rest of the stuff ...
+
+  return step
+}
+
+export default exampleProcess
+```

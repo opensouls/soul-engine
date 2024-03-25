@@ -1,0 +1,29 @@
+# useSoulMemory
+
+The `useSoulMemory` hook returns a soul-wide reference to a memory container, accessed by key, as a way to persist information across the soul. It's usage is very similar to `useProcessMemory`, but is scoped to soul-wide data.
+
+```typescript filename="exampleProcess.ts" {1,5-10}
+import { useSoulMemory } from "soul-engine"
+
+const exampleProcess: MentalProcess = async ({ step: initialStep }) => {
+  // create a persistent memory container scoped to the soul
+  const wasProvoked = useSoulMemory("wasProvoked", false)
+
+  console.log("current value of wasProvoked", wasProvoked.current)
+
+  // set the current value immediately
+  wasProvoked.current = true
+
+  // do other stuff ...
+
+  return step
+}
+
+export default exampleProcess
+```
+
+import { Callout } from 'nextra/components'
+ 
+<Callout type="info" emoji="ℹ️">
+The memory container created here can be accessed in *any* mental process, and persists for the life of the soul.
+</Callout>
