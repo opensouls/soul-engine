@@ -2,12 +2,10 @@
 import { InternalPerception } from '@opensouls/core';
 import { DeveloperInteractionRequest, Json, Perception, SoulEnvironment } from '@opensouls/core';
 import { MentalProcess } from './mentalProcess.js'
-import * as soul from "@opensouls/soul"
 
 export * from "./mentalProcess.js"
 export * from "@opensouls/core"
-export { soul }
-
+export * from "@opensouls/soul"
 
 export const ALLOWED_RAG_FILE_EXTENSIONS = [
   ".js",
@@ -23,8 +21,6 @@ export const ALLOWED_RAG_FILE_EXTENSIONS = [
   ".jsx",
   ".py",
 ]
-
-
 
 // these are added to the global scope when executing in the SOUL ENGINE
 // $$ is a convenience method using Mustache to access the soul.env variables.

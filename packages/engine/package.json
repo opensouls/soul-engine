@@ -9,9 +9,11 @@
   "main": "dist/index.mjs",
   "types": "dist/types.d.ts",
   "exports": {
-    "import": "./dist/index.mjs",
-    "require": "./dist/index.cjs",
-    "types": "./dist/types.d.ts"
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs",
+      "types": "./dist/types.d.ts"
+    }
   },
   "scripts": {
     "prepublishOnly": "npm run build",
@@ -32,8 +34,8 @@
   },
   "dependencies": {
     "@hocuspocus/provider": "=2.9.0",
-    "@opensouls/core": "^0.0.15",
-    "@opensouls/soul": "^0.0.15",
+    "@opensouls/core": "^0.0.17",
+    "@opensouls/soul": "^0.0.17",
     "commander": "^12.0.0",
     "conf": "^12.0.0",
     "cross-fetch": "^4.0.0",
@@ -45,7 +47,6 @@
   "devDependencies": {
     "@microsoft/api-extractor": "^7.43.0",
     "@types/chai": "^4.3.12",
-    "@types/inquirer": "^9.0.7",
     "@types/mocha": "^10.0.6",
     "@types/ws": "^8.5.10",
     "chai": "^5.1.0",

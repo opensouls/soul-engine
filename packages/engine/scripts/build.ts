@@ -12,15 +12,10 @@ const apiExtractorJsonPath: string = join(process.cwd(), "config/api-extractor.j
 // Load and parse the api-extractor.json file
 const extractorConfig: ExtractorConfig = ExtractorConfig.loadFileAndPrepare(apiExtractorJsonPath);
 
-
 // Invoke API Extractor
 const extractorResult: ExtractorResult = Extractor.invoke(extractorConfig, {
-  // Equivalent to the "--local" command-line parameter
   localBuild: true,
-
-  // Equivalent to the "--verbose" command-line parameter
   showVerboseMessages: true,
-  
 });
 
 if (extractorResult.succeeded) {
@@ -54,7 +49,7 @@ await esbuild.build({
   format: 'cjs',
 })
 
-//build the commands
+// build the CLI/commands
 await esbuild.build({
   ...defaultParams,
   entryPoints: ['src/cli/index.ts'],
