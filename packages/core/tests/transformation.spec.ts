@@ -179,5 +179,44 @@ describe("memory transformations", () => {
     expect(newMemory.usage.output).to.be.greaterThan(0);
   })
 
+  it("works with vision models", async () => {
+    const url = "https://shop-pawness.com/wp-content/uploads/2019/12/LIVING-THE-HAPPY-LIFE.jpg"
+
+    const workingMemory = new WorkingMemory({
+      processor: {
+        name: "openai",
+        options: {
+          defaultCompletionParams: {
+            model: "gpt-4-vision-preview"
+          },
+        }
+      },
+      soulName: 'testy',
+      memories: [
+        {
+          role: ChatMessageRoleEnum.System,
+          content: "You are modeling the mind of Testy, a super testy QA robot with a nack for vision."
+        },
+        {
+          role: ChatMessageRoleEnum.User,
+          content: [
+            {
+              type: "text",
+              text: "What is this?",
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: url,
+              },
+            }
+          ]
+        }
+      ]
+    })
+
+    const [, response] = await externalDialog(workingMemory, "What is in that image?");
+    expect(response.toLowerCase()).to.include("dog")
+  })
 
 })

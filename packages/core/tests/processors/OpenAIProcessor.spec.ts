@@ -65,4 +65,45 @@ describe('OpenAIProcessor', function() {
     expect(await response.parsed).to.deep.equal({ text: (await response.parsed).text });
   })
 
+  it('executes a vision model', async () => {
+    const url = "https://shop-pawness.com/wp-content/uploads/2019/12/LIVING-THE-HAPPY-LIFE.jpg"
+    const processor = new OpenAIProcessor({});
+
+  
+    const memory = new WorkingMemory({
+      soulName: 'MrVision',
+      memories: [
+        {
+          role: ChatMessageRoleEnum.System,
+          content: "You are modeling the mind of MrVision, an AI designed to understand images."
+        },
+        {
+          role: ChatMessageRoleEnum.User,
+          content: [
+            {
+              type: "text",
+              text: "What is this?",
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: url,
+              },
+            }
+          ]
+        }
+      ],
+    });
+
+    const response = await processor.process({
+      memory: memory,
+      model: "gpt-4-vision-preview"
+    });
+    expect(await response.rawCompletion).to.have.length.greaterThan(0);
+    expect((await response.usage).input).to.be.greaterThan(0);
+    expect((await response.usage).output).to.be.greaterThan(0);
+    expect((await response.usage).model).to.equal("gpt-4-vision-preview");
+    expect((await response.parsed).toLowerCase()).to.include("dog")
+  })
+
 });

@@ -7,7 +7,7 @@ import { ChatMessage } from "gpt-tokenizer/GptEncoding";
 import { ZodError, fromZodError } from 'zod-validation-error';
 
 import { registerProcessor } from "./registry.js";
-import { ChatMessageRoleEnum, Memory } from "../Memory.js";
+import { ChatMessageRoleEnum, ContentText, Memory } from "../Memory.js";
 import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { ReusableStream } from "../ReusableStream.js";
 import {
@@ -25,6 +25,39 @@ const tracer = trace.getTracer(
   'open-souls-OpenAIProcessor',
   '0.0.1',
 );
+
+const tokenLength = (messagesOrContent: ChatMessage[] | string): number => {
+  // first count out all the images in the memories
+  let tokenCount = 0
+
+  if (typeof messagesOrContent === "string") {
+    for (const tokens of encodeGenerator(messagesOrContent)) {
+      tokenCount += tokens.length
+    }
+
+    return tokenCount
+  }
+
+  const messagesWithoutImages = messagesOrContent.map((m) => {
+    if (!Array.isArray(m.content)) {
+      return m
+    }
+    const text = m.content.find((c) => c.type === "text") as ContentText
+    const images = m.content.filter((c) => c.type === "image_url")
+    // TODO: for now let's treat everything as a 1024x1024 image
+    tokenCount += images.length * 765
+    return {
+      ...m,
+      content: text?.text || ""
+    }
+  })
+
+  for (const tokens of encodeChatGenerator(messagesWithoutImages as any[])) {
+    tokenCount += tokens.length
+  }
+
+  return tokenCount
+}
 
 export type OpenAIClientConfig = ConstructorParameters<typeof OpenAI>[0];
 
@@ -220,25 +253,11 @@ export class OpenAIProcessor implements Processor {
 
         const usagePromise = new Promise<UsageNumbers>(async (resolve, reject) => {
           try {
-            // TODO: get the real numbers using the encodeGenerator
             const fullContent = await fullContentPromise
 
-            const messageIterator = (messages as ChatMessage[])[Symbol.iterator]();
-
-            const outputTokenGen = encodeGenerator(fullContent)
-            const inputTokenGen = encodeChatGenerator(messageIterator)
-
-            const countTokens = async (tokenGen: Generator<any>): Promise<number> => {
-              let count = 0;
-              for await (const chunk of tokenGen) {
-                count += chunk.length;
-              }
-              return count;
-            };
-
             const [inputTokenCount, outputTokenCount] = await Promise.all([
-              countTokens(inputTokenGen),
-              countTokens(outputTokenGen),
+              tokenLength(messages as ChatMessage[]),
+              tokenLength(fullContent),
             ]);
 
             span.setAttribute("model", model)
