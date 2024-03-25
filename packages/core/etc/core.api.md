@@ -424,17 +424,11 @@ export class WorkingMemory extends EventEmitter {
     // (undocumented)
     readonly id: string;
     // (undocumented)
-    protected lastValue?: any;
-    // (undocumented)
     map(callback: (memory: Memory, i?: number) => InputMemory): WorkingMemory;
     // (undocumented)
     protected markPending(): void;
     // (undocumented)
     get memories(): Memory<Record<string, unknown>>[];
-    // (undocumented)
-    protected pending?: Promise<void>;
-    // (undocumented)
-    protected pendingResolve?: () => void;
     // (undocumented)
     prepend(otherWorkingMemory: MemoryListOrWorkingMemory): WorkingMemory;
     // (undocumented)
