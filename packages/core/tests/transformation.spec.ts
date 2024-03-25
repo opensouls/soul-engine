@@ -53,6 +53,7 @@ describe("memory transformations", () => {
       ]
     })
 
+
     const [newMemory, response] = await externalDialog(workingMemory, "Please say hi back to me.")
     expect(response).to.be.a('string')
     // console.log("newMemory", newMemory, "resp: ", response)

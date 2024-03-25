@@ -1,4 +1,4 @@
-import type { Schema, ZodSchema } from "zod"
+import type { ZodSchema } from "zod"
 import type { ProcessorSpecification, WorkingMemory } from "./WorkingMemory.js"
 import type { RequestOptions } from "./processors/Processor.js"
 import { InputMemory } from "./Memory.js"
@@ -17,9 +17,9 @@ export interface MemoryTransformationOptions<SchemaType = string, PostProcessTyp
   skipAutoSchemaAddition?: boolean
 }
 
-export type TransformOptions = 
+export type TransformOptions =
   RequestOptions &
-  { 
+  {
     stream?: boolean
     processor?: ProcessorSpecification
   }
@@ -28,10 +28,10 @@ export type TransformReturnStreaming<PostProcessType> = [WorkingMemory, AsyncIte
 export type TransformReturnNonStreaming<PostProcessType> = [WorkingMemory, PostProcessType]
 export type TransformReturn<PostProcessType> = TransformReturnStreaming<PostProcessType> | TransformReturnNonStreaming<PostProcessType>
 
-export type CognitiveStep<PostProcessReturnType> = {
-  (memory: WorkingMemory, userArgs: any, transformOpts: TransformOptions & { stream: true }): Promise<TransformReturnStreaming<PostProcessReturnType>>
-  (memory: WorkingMemory, userArgs: any, transformOpts?: Omit<TransformOptions, "stream">): Promise<TransformReturnNonStreaming<PostProcessReturnType>>
-  (memory: WorkingMemory, userArgs: any, transformOpts: Omit<TransformOptions, "stream"> & { stream: false }): Promise<TransformReturnNonStreaming<PostProcessReturnType>>
+export type CognitiveStep<UserArgType, PostProcessReturnType> = {
+  (memory: WorkingMemory, userArgs: UserArgType, transformOpts: TransformOptions & { stream: true }): Promise<TransformReturnStreaming<PostProcessReturnType>>
+  (memory: WorkingMemory, userArgs: UserArgType, transformOpts?: Omit<TransformOptions, "stream">): Promise<TransformReturnNonStreaming<PostProcessReturnType>>
+  (memory: WorkingMemory, userArgs: UserArgType, transformOpts: Omit<TransformOptions, "stream"> & { stream: false }): Promise<TransformReturnNonStreaming<PostProcessReturnType>>
 }
 
 /**
@@ -65,12 +65,13 @@ export type CognitiveStep<PostProcessReturnType> = {
  * const [newMemory, stream, resultPromise] = await myCognitiveStep(workingMemory, userArgs, { stream: true })
  * ```
  */
-export const createCognitiveStep = 
-  <SchemaType = string, PostProcessType = SchemaType>(
-    transformationOptionsGenerator: (singleArg?: any) => MemoryTransformationOptions<SchemaType, PostProcessType>
-  ): CognitiveStep<PostProcessType> => {
-    return (async (workingMemory: WorkingMemory, singleArg: any, opts: TransformOptions = {}) => {
+export const createCognitiveStep =
+  <UserArgType = undefined, SchemaType = string, PostProcessType = SchemaType>(
+    transformationOptionsGenerator: (singleArg: UserArgType) => MemoryTransformationOptions<SchemaType, PostProcessType>
+  ): CognitiveStep<UserArgType, PostProcessType> => {
+
+    return (async (workingMemory: WorkingMemory, singleArg: UserArgType, opts: TransformOptions = {}) => {
       const transformOpts = transformationOptionsGenerator(singleArg)
       return workingMemory.transform(transformOpts, opts)
-    }) as CognitiveStep<PostProcessType>
-}
+    }) as CognitiveStep<UserArgType, PostProcessType>
+  }
