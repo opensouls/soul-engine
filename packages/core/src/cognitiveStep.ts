@@ -1,4 +1,4 @@
-import type { ZodSchema } from "zod"
+import type { Schema, ZodSchema } from "zod"
 import type { ProcessorSpecification, WorkingMemory } from "./WorkingMemory.js"
 import type { RequestOptions } from "./processors/Processor.js"
 import { InputMemory } from "./Memory.js"
@@ -65,9 +65,12 @@ export type CognitiveStep<PostProcessReturnType> = {
  * const [newMemory, stream, resultPromise] = await myCognitiveStep(workingMemory, userArgs, { stream: true })
  * ```
  */
-export const createCognitiveStep = <SchemaType, PostProcessType>(transformationOptionsGenerator: (singleArg?: any) => MemoryTransformationOptions<SchemaType, PostProcessType>): CognitiveStep<PostProcessType> => {
-  return (async (workingMemory: WorkingMemory, singleArg: any, opts: TransformOptions = {}) => {
-    const transformOpts = transformationOptionsGenerator(singleArg)
-    return workingMemory.transform(transformOpts, opts)
-  }) as CognitiveStep<PostProcessType>
+export const createCognitiveStep = 
+  <SchemaType = string, PostProcessType = SchemaType>(
+    transformationOptionsGenerator: (singleArg?: any) => MemoryTransformationOptions<SchemaType, PostProcessType>
+  ): CognitiveStep<PostProcessType> => {
+    return (async (workingMemory: WorkingMemory, singleArg: any, opts: TransformOptions = {}) => {
+      const transformOpts = transformationOptionsGenerator(singleArg)
+      return workingMemory.transform(transformOpts, opts)
+    }) as CognitiveStep<PostProcessType>
 }

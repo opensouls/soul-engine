@@ -127,21 +127,23 @@ describe("WorkingMemory", () => {
   })
 
   
-  it("applies postProcess to transform WorkingMemory", () => {
+  it("applies postCloneTransformations to transform WorkingMemory", () => {
     // This test is a trivial example to test functionality. The system is designed so library developers
     // can add their own hooks to working memory (for instance, prevent access to certain methods, or log usage, etc).
     
-    const postProcess = (wm: WorkingMemory) => {
+    const postCloneTransformation = (wm: WorkingMemory) => {
       const transformedMemories = wm.memories.map(memory => ({
         ...memory,
-        content: `${memory.content} post-processed`
+        metadata: {
+          transformed: true,
+        }
       }));
       return new WorkingMemory({ soulName: wm.soulName, memories: transformedMemories });
     };
 
     const memories = new WorkingMemory({
       soulName: "test",
-      postProcess,
+      postCloneTransformation,
       memories: [
         {
           role: ChatMessageRoleEnum.System,
@@ -151,8 +153,8 @@ describe("WorkingMemory", () => {
     }).withMonologue("Test #2")
 
     expect(memories.memories).to.have.lengthOf(2);
-    expect(memories.memories[0].content).to.equal("Test #1 post-processed");
-    expect(memories.memories[1].content).to.equal("Test #2 post-processed");
+    expect(memories.memories[0].metadata?.transformed).to.be.true
+    expect(memories.memories[1].metadata?.transformed).to.be.true
   });
 
 })

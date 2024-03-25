@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { OpenAIProcessor } from '../../src/processors/OpenAIProcessor.js';
 import { WorkingMemory } from '../../src/WorkingMemory.js';
-import { ChatMessageRoleEnum } from '../../src/WorkingMemory.js';
+import { ChatMessageRoleEnum } from '../../src/Memory.js';
 import { z } from 'zod';
 import { zodToJsonSchema } from "zod-to-json-schema"
 import { indentNicely } from '../../src/utils.js';

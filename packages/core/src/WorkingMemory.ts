@@ -25,9 +25,9 @@ export interface WorkingMemoryInitOptions {
   memories?: InputMemory[]
   processor?: ProcessorSpecification
   /*
-   *  postProcess is a hook for library developers who want to shape a working memory or provide hooks or defaults on every return of a new working memory. 
+   *  postCloneTransformation is a hook for library developers who want to shape a working memory or provide hooks or defaults on every return of a new working memory. 
    */
-  postProcess?: (workingMemory: WorkingMemory) => WorkingMemory
+  postCloneTransformation?: (workingMemory: WorkingMemory) => WorkingMemory
 }
 
 export type MemoryListOrWorkingMemory = InputMemory[] | WorkingMemory
@@ -44,22 +44,21 @@ const defaultPostProcessor = <SchemaType = string>(_workingMemory: WorkingMemory
 export class WorkingMemory extends EventEmitter {
   readonly id
   private _memories: Memory[]
-
   private _usage: UsageNumbers
+  private _postCloneTransformation: (workingMemory: WorkingMemory) => WorkingMemory
 
   protected pending?: Promise<void>
   protected pendingResolve?: () => void
 
   protected lastValue?: any
 
-  private postProcess: (workingMemory: WorkingMemory) => WorkingMemory
 
   soulName: string
   processor: ProcessorSpecification = Object.freeze({
     name: "openai",
   })
 
-  constructor({ soulName, memories, postProcess, processor }: WorkingMemoryInitOptions) {
+  constructor({ soulName, memories, postCloneTransformation, processor }: WorkingMemoryInitOptions) {
     super()
     this.id = nanoid()
     this._memories = this.memoriesFromInputMemories(memories || [])
@@ -67,7 +66,7 @@ export class WorkingMemory extends EventEmitter {
     if (processor) {
       this.processor = processor
     }
-    this.postProcess = postProcess || ((workingMemory) => workingMemory)
+    this._postCloneTransformation = postCloneTransformation || ((workingMemory) => workingMemory)
     this._usage = {
       model: "",
       input: 0,
@@ -94,18 +93,23 @@ export class WorkingMemory extends EventEmitter {
     const newMemory = new WorkingMemory({
       soulName: this.soulName,
       memories: replacementMemories || this._memories,
-      postProcess: this.postProcess,
+      postCloneTransformation: this._postCloneTransformation,
       processor: this.processor,
     })
-    return this.postProcess(newMemory)
+    return this._postCloneTransformation(newMemory)
   }
 
-  map(callback: (memory: Memory) => InputMemory) {
-    const newMemories = this._memories.map(callback)
+  map(callback: (memory: Memory, i?: number) => InputMemory) {
+    const unfrozenMemories = this._memories.map((memory) => {
+      return {
+        ...memory
+      }
+    })
+    const newMemories = unfrozenMemories.map(callback)
     return this.clone(newMemories)
   }
 
-  async asyncMap(callback: (memory: Memory) => Promise<InputMemory>) {
+  async asyncMap(callback: (memory: Memory, i?: number) => Promise<InputMemory>) {
     const newMemories = await Promise.all(this._memories.map(callback))
     return this.clone(newMemories)
   }
@@ -260,11 +264,11 @@ export class WorkingMemory extends EventEmitter {
 
   private memoriesFromInputMemories(memories: InputMemory[]) {
     return memories.map((memory) => {
-      return Object.freeze({
+      return {
         ...memory,
         _id: memory._id || nanoid(),
         _timestamp: memory._timestamp || Date.now()
-      })
+      }
     })
   }
 

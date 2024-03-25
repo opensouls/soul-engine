@@ -1,8 +1,9 @@
 import "../../src/processors/OpenAIProcessor.js"
 import { EnumLike, z } from "zod";
-import { ChatMessageRoleEnum, WorkingMemory } from "../../src/WorkingMemory.js";
+import { WorkingMemory } from "../../src/WorkingMemory.js";
 import { createCognitiveStep } from "../../src/cognitiveStep.js";
 import { indentNicely, stripEntityAndVerb, stripEntityAndVerbFromStream } from "../../src/utils.js";
+import { ChatMessageRoleEnum } from "../../src/Memory.js";
 
 export const externalDialog = createCognitiveStep((instructions: string | { instructions: string; verb: string }) => {
   let instructionString: string, verb: string;
@@ -28,7 +29,7 @@ export const externalDialog = createCognitiveStep((instructions: string | { inst
     
             ${instructionString}
     
-            Please reply with the next utterance from ${name}. Use the format '${name} ${verb}: "..."'
+            Please reply with the next utterance from ${name}. Use the format: ${name} ${verb}: "..."
           `
       };
     },
@@ -70,7 +71,7 @@ export const internalMonologue = createCognitiveStep((instructions: string | { i
           * Only respond with the format '${name} ${verb}: "..."', no additional commentary or text.
           * Follow the Description when creating the internal thought!
 
-          Please reply with the next internal monologue thought of ${name}. Use the format '${name} ${verb}: "..."'
+          Please reply with the next internal monologue thought of ${name}. Use the format: ${name} ${verb}: "..."
         `
       };
     },
@@ -132,7 +133,7 @@ export const summarize = createCognitiveStep((extraInstructions: string = "") =>
           ## Extra Instructions
           ${extraInstructions}
 
-          Please reply with the summary in the voice of ${name}. Use the format '${name} summarized: "..."'
+          Please reply with the summary in the voice of ${name}. Use the format: ${name} summarized: "..."
         `
       };
     },
