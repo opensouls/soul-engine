@@ -9,7 +9,6 @@ import { InternalPerception } from '@opensouls/core';
 import { Json } from '@opensouls/core';
 import { mentalQuery } from 'socialagi';
 import { Perception } from '@opensouls/core';
-import * as soul_2 from '@opensouls/soul';
 import { SoulEnvironment } from '@opensouls/core';
 import { WorkingMemory } from '@opensouls/core';
 
@@ -126,8 +125,6 @@ export interface RagSearchOpts {
     query: Embedding | string;
 }
 
-export { soul_2 as soul }
-
 // @public (undocumented)
 export interface SoulConfig {
     // (undocumented)
@@ -234,6 +231,7 @@ export interface WithRagContextOpts {
 
 
 export * from "@opensouls/core";
+export * from "@opensouls/soul";
 
 // (No @packageDocumentation comment for this package)
 

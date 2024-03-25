@@ -25,7 +25,7 @@ export type AnthropicDefaultCompletionParams = AnthropicCompletionParams & {
 
 // @public (undocumented)
 export class AnthropicProcessor implements Processor {
-    constructor({ clientOptions, forcedRoleAlternation, defaultRequestOptions, defaultCompletionParams }: AnthropicProcessorOpts);
+    constructor({ clientOptions, defaultRequestOptions, defaultCompletionParams }: AnthropicProcessorOpts);
     // (undocumented)
     static label: string;
     // (undocumented)
@@ -40,8 +40,6 @@ export interface AnthropicProcessorOpts {
     defaultCompletionParams?: Partial<AnthropicDefaultCompletionParams>;
     // (undocumented)
     defaultRequestOptions?: Partial<AnthropicRequestOptions>;
-    // (undocumented)
-    forcedRoleAlternation?: boolean;
 }
 
 // @public (undocumented)
@@ -86,7 +84,7 @@ export type ContentText = {
 };
 
 // @public
-export const createCognitiveStep: <SchemaType, PostProcessType>(transformationOptionsGenerator: (singleArg?: any) => MemoryTransformationOptions<SchemaType, PostProcessType>) => CognitiveStep<PostProcessType>;
+export const createCognitiveStep: <SchemaType = string, PostProcessType = SchemaType>(transformationOptionsGenerator: (singleArg?: any) => MemoryTransformationOptions<SchemaType, PostProcessType>) => CognitiveStep<PostProcessType>;
 
 // @public (undocumented)
 export const debugChatShape: {
@@ -408,9 +406,9 @@ export interface UsageNumbers {
 
 // @public (undocumented)
 export class WorkingMemory extends EventEmitter {
-    constructor({ soulName, memories, postProcess, processor }: WorkingMemoryInitOptions);
+    constructor({ soulName, memories, postCloneTransformation, processor }: WorkingMemoryInitOptions);
     // (undocumented)
-    asyncMap(callback: (memory: Memory) => Promise<InputMemory>): Promise<WorkingMemory>;
+    asyncMap(callback: (memory: Memory, i?: number) => Promise<InputMemory>): Promise<WorkingMemory>;
     // (undocumented)
     clone(replacementMemories?: InputMemory[]): WorkingMemory;
     // (undocumented)
@@ -428,7 +426,7 @@ export class WorkingMemory extends EventEmitter {
     // (undocumented)
     protected lastValue?: any;
     // (undocumented)
-    map(callback: (memory: Memory) => InputMemory): WorkingMemory;
+    map(callback: (memory: Memory, i?: number) => InputMemory): WorkingMemory;
     // (undocumented)
     protected markPending(): void;
     // (undocumented)
@@ -478,7 +476,7 @@ export interface WorkingMemoryInitOptions {
     // (undocumented)
     memories?: InputMemory[];
     // (undocumented)
-    postProcess?: (workingMemory: WorkingMemory) => WorkingMemory;
+    postCloneTransformation?: (workingMemory: WorkingMemory) => WorkingMemory;
     // (undocumented)
     processor?: ProcessorSpecification;
     // (undocumented)
