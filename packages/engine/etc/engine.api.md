@@ -7,7 +7,6 @@
 import { DeveloperInteractionRequest } from '@opensouls/core';
 import { InternalPerception } from '@opensouls/core';
 import { Json } from '@opensouls/core';
-import { mentalQuery } from 'socialagi';
 import { Perception } from '@opensouls/core';
 import { SoulEnvironment } from '@opensouls/core';
 import { WorkingMemory } from '@opensouls/core';
@@ -90,8 +89,6 @@ export interface MentalProcessArguments<ParamType, CortexStepType = any> {
     // (undocumented)
     workingMemory: WorkingMemory;
 }
-
-export { mentalQuery }
 
 // @public (undocumented)
 export interface RagConfigfile {

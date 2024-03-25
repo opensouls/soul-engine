@@ -2,6 +2,7 @@ import { $ } from 'execa'
 import esbuild from 'esbuild'
 import { Extractor, ExtractorConfig, ExtractorResult } from '@microsoft/api-extractor';
 import { join } from 'path';
+import { readFile, appendFile } from "node:fs/promises"
 
 await $`rm -rf dist lib temp`
 await $`mkdir dist`
@@ -57,5 +58,9 @@ await esbuild.build({
   format: 'esm',
   outExtension: { ".js": ".mjs" },
 })
+
+// see https://github.com/microsoft/rushstack/issues/1709
+const globals = await readFile("src/globals.d.ts", "utf-8")
+await appendFile("dist/types.d.ts", globals)
 
 await $`rm -rf lib temp`

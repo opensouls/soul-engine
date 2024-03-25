@@ -22,21 +22,6 @@ export const ALLOWED_RAG_FILE_EXTENSIONS = [
   ".py",
 ]
 
-// these are added to the global scope when executing in the SOUL ENGINE
-// $$ is a convenience method using Mustache to access the soul.env variables.
-declare global {
-  const soul: {
-    __hooks: SoulHooks
-    env: Record<string, Json>,
-  }
-  const $$: (template: string) => string
-}
-
-/**
- * @deprecated Use `mentalQuery` from "socialagi" instead.
- */
-export { mentalQuery } from "socialagi";
-
 export interface CognitiveEventBase {
   process: MentalProcess<any>
   perception: Omit<InternalPerception, "_id" | "_kind" | "_pending" | "_timestamp" | "internal">
