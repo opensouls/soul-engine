@@ -97,6 +97,18 @@ export class WorkingMemory extends EventEmitter {
     this._usage = usageFactory()
   }
 
+  /**
+   * Gets the usage information of input/output tokens for the current WorkingMemory instance.
+   * This information is only available once the WorkingMemory is no longer pending and after a transformation has been performed.
+   * 
+   * @returns An object containing the model name, and the number of input and output tokens used.
+   * 
+   * @example
+   * ```
+   * const usageInfo = workingMemory.usage;
+   * console.log(`Model: ${usageInfo.model}, Input Tokens: ${usageInfo.input}, Output Tokens: ${usageInfo.output}`);
+   * ```
+   */
   get usage() {
     return { ...this._usage() }
   }
@@ -109,6 +121,19 @@ export class WorkingMemory extends EventEmitter {
     return this._memories()
   }
 
+  /**
+   * The `finished` attribute is a getter that returns a promise which resolves once the current pending transformation using a CognitiveStep is complete.
+   * This is particularly useful for ensuring that all asynchronous operations related to the transformation have been finalized before proceeding.
+   * 
+   * @returns A promise that resolves once the current pending transformation is finished.
+   * 
+   * @example
+   * ```
+   * const [workingMemory] = await cognitiveStep(workingMemory, userArgs);
+   * await workingMemory.finished;
+   * console.log('Transformation complete.');
+   * ```
+   */
   get finished(): Promise<void> {
     const pendingObj = this._pending()
     if (!pendingObj.pending) {
@@ -117,6 +142,19 @@ export class WorkingMemory extends EventEmitter {
     return pendingObj.pending
   }
 
+  /**
+   * Creates a clone of the current WorkingMemory instance, optionally replacing its memories with new ones.
+   * 
+   * @param replacementMemories - An optional array of InputMemory objects to replace the current memories in the clone.
+   *                              If not provided, the clone will retain the original memories.
+   * @returns A new WorkingMemory instance, with optionally replaced memories.
+   * 
+   * @example
+   * ```
+   * const originalMemory = new WorkingMemory({ soulName: "ExampleSoul", memories: [{...memory}] });
+   * const clonedMemory = originalMemory.clone([optionalNewMemories]);
+   * ```
+   */
   clone(replacementMemories?: InputMemory[]) {
     const newMemory = new WorkingMemory({
       soulName: this.soulName,
@@ -127,8 +165,24 @@ export class WorkingMemory extends EventEmitter {
     return this._postCloneTransformation(newMemory)
   }
 
+  /**
+   * Applies a provided function to each memory in the WorkingMemory instance, producing a new WorkingMemory instance.
+   * This method behaves similarly to the Array.prototype.map function, with the key difference being that it returns
+   * a new immutable WorkingMemory instance containing the transformed memories, rather than an array of the transformed items.
+   * 
+   * @param callback - A function that accepts up to two arguments. The map method calls the callback function one time for each memory in the WorkingMemory.
+   * @returns A new WorkingMemory instance with each memory transformed by the callback function.
+   * 
+   * @example
+   * ```
+   * const newWorkingMemory = workingMemory.map((memory, index) => {
+   *   // Transform the memory here
+   *   return transformedMemory;
+   * });
+   * ```
+   */
   map(callback: (memory: Memory, i?: number) => InputMemory) {
-    const unfrozenMemories = this.internalMemories.map((memory) => {
+    const unfrozenMemories = this.memories.map((memory) => {
       return {
         ...memory
       }
@@ -137,42 +191,130 @@ export class WorkingMemory extends EventEmitter {
     return this.clone(newMemories)
   }
 
+  /**
+   * Applies a provided asynchronous function to each memory in the WorkingMemory instance, producing a new WorkingMemory instance.
+   * This method is similar to the `map` method but allows for asynchronous transformations of each memory. It returns
+   * a new immutable WorkingMemory instance containing the transformed memories, rather than an array of the transformed items.
+   * 
+   * @param callback - An asynchronous function that accepts a memory and optional index (number). The asyncMap method calls the callback function one time for each memory in the WorkingMemory.
+   *                   This function should return a Promise that resolves to the transformed memory.
+   * @returns A Promise that resolves to a new WorkingMemory instance with each memory transformed by the asynchronous callback function.
+   * 
+   * @example
+   * ```
+   * const newWorkingMemory = await workingMemory.asyncMap(async (memory, index) => {
+   *   // Asynchronously transform the memory here
+   *   return await transformMemoryAsync(memory);
+   * });
+   * ```
+   */
   async asyncMap(callback: (memory: Memory, i?: number) => Promise<InputMemory>) {
-    const newMemories = await Promise.all(this.internalMemories.map(callback))
+    const newMemories = await Promise.all(this.memories.map(callback))
     return this.clone(newMemories)
   }
 
+  /**
+   * Returns a new WorkingMemory object with the memories sliced from `start` to `end` (`end` not included)
+   * where `start` and `end` represent the index of items in the WorkingMemory's internal memory array. It behaves similarly to the `slice()` method of JavaScript arrays.
+   * 
+   * @param start - Zero-based index at which to start extraction. A negative index can be used, indicating an offset from the end of the sequence.
+   * @param end - Zero-based index before which to end extraction. `slice` extracts up to but not including `end`. A negative index can be used, indicating an offset from the end of the sequence.
+   * @returns A new WorkingMemory instance containing the extracted memories.
+   * 
+   * @example
+   * ```
+   * const slicedWorkingMemory = workingMemory.slice(1, 3);
+   * ```
+   */
   slice(start: number, end?: number) {
     return this.clone(this.internalMemories.slice(start, end))
   }
 
+  /**
+   * Adds a single memory to the current set of memories in the WorkingMemory instance, producing a new WorkingMemory instance.
+   * 
+   * @param memory - The memory to add to the WorkingMemory.
+   * @returns A new WorkingMemory instance with the added memory.
+   * 
+   * @example
+   * ```
+   * const newMemory = { role: ChatMessageRoleEnum.User, content: "Hello, world!" };
+   * const newWorkingMemory = workingMemory.withMemory(newMemory);
+   * ```
+   */
   withMemory(memory: InputMemory) {
     return this.concat(this.normalizeMemoryListOrWorkingMemory([memory]))
   }
 
-  filter(callback: (memory: Memory) => boolean) {
-    const newMemories = this.internalMemories.filter(callback)
+
+  /**
+   * Filters the memories in the WorkingMemory instance using the provided callback, similar to Array.prototype.filter.
+   * This method creates a new WorkingMemory instance with all memories that pass the test implemented by the provided function.
+   * 
+   * @param callback - A function that accepts a memory and returns a boolean. If it returns true, the memory is included in the new WorkingMemory instance.
+   * @returns A new WorkingMemory instance with the filtered memories.
+   */
+  filter(callback: (memory: Memory, i?: number) => boolean) {
+    const newMemories = this.memories.filter(callback)
     return this.clone(newMemories)
   }
 
+  /**
+   * Tests whether at least one memory in the WorkingMemory instance passes the test implemented by the provided callback, similar to Array.prototype.some.
+   * This method does not modify the WorkingMemory instance.
+   * 
+   * @param callback - A function that accepts a memory and returns a boolean.
+   * @returns A boolean indicating whether at least one memory passes the test.
+   */
   some(callback: (memory: Memory) => boolean) {
     return this.internalMemories.some(callback)
   }
 
+  /**
+   * Finds the first memory in the WorkingMemory instance that satisfies the provided testing function, similar to Array.prototype.find.
+   * 
+   * @param callback - A function that accepts a memory and returns a boolean. If it returns true, the memory is returned from the method.
+   * @returns The first memory that satisfies the provided testing function, or undefined if no such memory is found.
+   */
   find(callback: (memory: Memory) => boolean) {
-    return this.internalMemories.find(callback)
+    const mem = this.memories.find(callback)
+    if (!mem) {
+      return mem
+    }
+    return { ...mem }
   }
 
+  /**
+   * Concatenates the memories of another WorkingMemory (or an array of Memory objects) to the memories of the current WorkingMemory instance, similar to Array.prototype.concat.
+   * This method creates a new WorkingMemory instance with the concatenated memories.
+   * 
+   * @param other - Another WorkingMemory (or an array of Memory innstances) to be concatenate with the current instance.
+   * @returns A new WorkingMemory instance with the concatenated memories.
+   */
   concat(other: MemoryListOrWorkingMemory) {
     const otherWorkingMemory = this.normalizeMemoryListOrWorkingMemory(other)
     return this.clone(this.internalMemories.concat(otherWorkingMemory.memories))
   }
 
+  /**
+   * Prepends the memories the memories of another WorkingMemory (or an array of Memory objects) to the memories of the current WorkingMemory instance,
+   * This method creates a new WorkingMemory instance with the memories of the other instance followed by the current instance's memories, similar to using WorkingMemory#concat in reverse.
+   * 
+   * @param otherWorkingMemory - Another MemoryListOrWorkingMemory instance whose memories are to be prepended to the current instance.
+   * @returns A new WorkingMemory instance with the prepended memories.
+   */
   prepend(otherWorkingMemory: MemoryListOrWorkingMemory) {
     const otherMemory = this.normalizeMemoryListOrWorkingMemory(otherWorkingMemory)
     return this.clone(otherMemory.memories.concat(this.memories))
   }
 
+  /**
+   * Adds a monologue memory with the role of Assistant and the provided content to the WorkingMemory instance.
+   * This method creates a new WorkingMemory instance with the added monologue memory.
+   * 
+   * @param content - The content of the monologue memory to add.
+   * @returns A new WorkingMemory instance with the added monologue memory.
+   */
   withMonologue(content: string) {
     return this.withMemory({
       role: ChatMessageRoleEnum.Assistant,
@@ -180,6 +322,17 @@ export class WorkingMemory extends EventEmitter {
     })
   }
 
+  /**
+   * Transforms the WorkingMemory using a specified processor and returns a new WorkingMemory instance along with the results of the transformation.
+   * This function is a low-level API that is rarely used directly by users. Instead, users typically interact with CognitiveSteps defined in ./cognitiveStep.
+   * The transformation can operate in two modes, determined by the `stream` option in the `opts` parameter:
+   * - If `stream: true` is passed, the function returns a stream of transformed data.
+   * - Otherwise, it returns a single transformed result.
+   * 
+   * @param transformation - The transformation options to apply, including the processor to use.
+   * @param opts - Options for the transformation, including whether to use streaming.
+   * @returns A Promise resolving to a new WorkingMemory instance and the results of the transformation. The nature of the results depends on the `stream` option.
+   */
   async transform<SchemaType, PostProcessType>(transformation: MemoryTransformationOptions<SchemaType, PostProcessType>, opts: { stream: true } & TransformOptions): Promise<TransformReturnStreaming<PostProcessType>>;
   async transform<SchemaType, PostProcessType>(transformation: MemoryTransformationOptions<SchemaType, PostProcessType>, opts?: Omit<TransformOptions, 'stream'>): Promise<TransformReturnNonStreaming<PostProcessType>>;
   async transform<SchemaType, PostProcessType>(transformation: MemoryTransformationOptions<SchemaType, PostProcessType>, opts?: { stream: false } & Omit<TransformOptions, 'stream'>): Promise<TransformReturnNonStreaming<PostProcessType>>;
@@ -192,6 +345,12 @@ export class WorkingMemory extends EventEmitter {
     return newMemory.doTransform<SchemaType, PostProcessType>(transformation, opts)
   }
 
+  /**
+   * Returns a string representation of the internal memories of the WorkingMemory instance.
+   * This method formats the internal memories into a readable string, showcasing each memory in a JSON stringified format.
+   * 
+   * @returns A string that represents the internal memories of the WorkingMemory instance.
+   */
   toString() {
     return indentNicely`
       Working Memory (${this.id}): ${this.soulName}

@@ -5,6 +5,7 @@
 ```ts
 
 import Anthropic from '@anthropic-ai/sdk';
+import { ChatMessageContent as ChatMessageContent_2 } from './Memory.js';
 import { EventEmitter } from 'eventemitter3';
 import OpenAI from 'openai';
 import { RequestOptions as RequestOptions_2 } from 'openai/core';
@@ -407,43 +408,38 @@ export interface UsageNumbers {
 // @public (undocumented)
 export class WorkingMemory extends EventEmitter {
     constructor({ soulName, memories, postCloneTransformation, processor }: WorkingMemoryInitOptions);
-    // (undocumented)
     asyncMap(callback: (memory: Memory, i?: number) => Promise<InputMemory>): Promise<WorkingMemory>;
-    // (undocumented)
     clone(replacementMemories?: InputMemory[]): WorkingMemory;
-    // (undocumented)
     concat(other: MemoryListOrWorkingMemory): WorkingMemory;
     // (undocumented)
     protected doTransform<SchemaType, PostProcessType>(transformation: MemoryTransformationOptions<SchemaType, PostProcessType>, opts: TransformOptions): Promise<(AsyncIterable<string> | this | Promise<unknown>)[] | (this | SchemaType | PostProcessType)[]>;
-    // (undocumented)
-    filter(callback: (memory: Memory) => boolean): WorkingMemory;
-    // (undocumented)
-    find(callback: (memory: Memory) => boolean): Memory<Record<string, unknown>> | undefined;
-    // (undocumented)
+    filter(callback: (memory: Memory, i?: number) => boolean): WorkingMemory;
+    find(callback: (memory: Memory) => boolean): {
+        role: ChatMessageRoleEnum;
+        content: ChatMessageContent_2;
+        name?: string | undefined;
+        metadata?: Record<string, unknown> | undefined;
+        _id: string;
+        _timestamp: number;
+    } | undefined;
     get finished(): Promise<void>;
     // (undocumented)
     readonly id: string;
-    // (undocumented)
     map(callback: (memory: Memory, i?: number) => InputMemory): WorkingMemory;
     // (undocumented)
     protected markPending(): void;
     // (undocumented)
     get memories(): Memory<Record<string, unknown>>[];
-    // (undocumented)
     prepend(otherWorkingMemory: MemoryListOrWorkingMemory): WorkingMemory;
     // (undocumented)
     processor: ProcessorSpecification;
     // (undocumented)
     protected resolvePending(): void;
-    // (undocumented)
     slice(start: number, end?: number): WorkingMemory;
-    // (undocumented)
     some(callback: (memory: Memory) => boolean): boolean;
     // (undocumented)
     soulName: string;
-    // (undocumented)
     toString(): string;
-    // (undocumented)
     transform<SchemaType, PostProcessType>(transformation: MemoryTransformationOptions<SchemaType, PostProcessType>, opts: {
         stream: true;
     } & TransformOptions): Promise<TransformReturnStreaming<PostProcessType>>;
@@ -453,15 +449,12 @@ export class WorkingMemory extends EventEmitter {
     transform<SchemaType, PostProcessType>(transformation: MemoryTransformationOptions<SchemaType, PostProcessType>, opts?: {
         stream: false;
     } & Omit<TransformOptions, 'stream'>): Promise<TransformReturnNonStreaming<PostProcessType>>;
-    // (undocumented)
     get usage(): {
         model: string;
         input: number;
         output: number;
     };
-    // (undocumented)
     withMemory(memory: InputMemory): WorkingMemory;
-    // (undocumented)
     withMonologue(content: string): WorkingMemory;
 }
 
