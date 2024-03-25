@@ -41,17 +41,43 @@ const defaultPostProcessor = <SchemaType = string>(_workingMemory: WorkingMemory
   return [memory, response]
 }
 
+interface PendingInfo { 
+  pending?: Promise<void>
+  pendingResolve?: () => void
+} 
+
+// this is the weirdest construct but we need to make sure WorkingMemory is *completely* immutable including
+// anything that is *internally* mutable (pending, usage, memories). So we use these factories to create closures
+// over immutable objects. This way the WorkingMemory is always immutable (the functions do not change), but we can 
+// have some state that is mutable within the WorkingMemory itself.
+const pendingFactory = (): (() => PendingInfo) => {
+  const pending: PendingInfo = {}
+  return () => pending
+}
+
+// see the pending factory for notes here
+const usageFactory = (): (() => UsageNumbers) => {
+  const usage: UsageNumbers = {
+    model: "",
+    input: 0,
+    output: 0,
+  }
+  return () => usage
+}
+
+// see the pending factory for notes here
+const memoryFactory = (initialMemories?: Memory[]): (() => Memory[]) => {
+  const memories: Memory[] = [...initialMemories || []]
+  return () => memories
+}
+
 export class WorkingMemory extends EventEmitter {
   readonly id
-  private _memories: Memory[]
-  private _usage: UsageNumbers
+  private _memories: ReturnType<typeof memoryFactory>
+  private _usage: ReturnType<typeof usageFactory>
   private _postCloneTransformation: (workingMemory: WorkingMemory) => WorkingMemory
 
-  protected pending?: Promise<void>
-  protected pendingResolve?: () => void
-
-  protected lastValue?: any
-
+  private _pending: ReturnType<typeof pendingFactory>
 
   soulName: string
   processor: ProcessorSpecification = Object.freeze({
@@ -61,38 +87,40 @@ export class WorkingMemory extends EventEmitter {
   constructor({ soulName, memories, postCloneTransformation, processor }: WorkingMemoryInitOptions) {
     super()
     this.id = nanoid()
-    this._memories = this.memoriesFromInputMemories(memories || [])
+    this._memories = memoryFactory(this.memoriesFromInputMemories(memories || []))
     this.soulName = soulName
     if (processor) {
       this.processor = processor
     }
+    this._pending = pendingFactory()
     this._postCloneTransformation = postCloneTransformation || ((workingMemory) => workingMemory)
-    this._usage = {
-      model: "",
-      input: 0,
-      output: 0,
-    }
+    this._usage = usageFactory()
   }
 
   get usage() {
-    return { ...this._usage }
+    return { ...this._usage() }
   }
 
   get memories() {
-    return this._memories
+    return [...this.internalMemories]
+  }
+
+  private get internalMemories() {
+    return this._memories()
   }
 
   get finished(): Promise<void> {
-    if (!this.pending) {
+    const pendingObj = this._pending()
+    if (!pendingObj.pending) {
       return Promise.resolve()
     }
-    return this.pending
+    return pendingObj.pending
   }
 
   clone(replacementMemories?: InputMemory[]) {
     const newMemory = new WorkingMemory({
       soulName: this.soulName,
-      memories: replacementMemories || this._memories,
+      memories: replacementMemories || this.memories,
       postCloneTransformation: this._postCloneTransformation,
       processor: this.processor,
     })
@@ -100,7 +128,7 @@ export class WorkingMemory extends EventEmitter {
   }
 
   map(callback: (memory: Memory, i?: number) => InputMemory) {
-    const unfrozenMemories = this._memories.map((memory) => {
+    const unfrozenMemories = this.internalMemories.map((memory) => {
       return {
         ...memory
       }
@@ -110,12 +138,12 @@ export class WorkingMemory extends EventEmitter {
   }
 
   async asyncMap(callback: (memory: Memory, i?: number) => Promise<InputMemory>) {
-    const newMemories = await Promise.all(this._memories.map(callback))
+    const newMemories = await Promise.all(this.internalMemories.map(callback))
     return this.clone(newMemories)
   }
 
   slice(start: number, end?: number) {
-    return this.clone(this._memories.slice(start, end))
+    return this.clone(this.internalMemories.slice(start, end))
   }
 
   withMemory(memory: InputMemory) {
@@ -123,26 +151,26 @@ export class WorkingMemory extends EventEmitter {
   }
 
   filter(callback: (memory: Memory) => boolean) {
-    const newMemories = this._memories.filter(callback)
+    const newMemories = this.internalMemories.filter(callback)
     return this.clone(newMemories)
   }
 
   some(callback: (memory: Memory) => boolean) {
-    return this._memories.some(callback)
+    return this.internalMemories.some(callback)
   }
 
   find(callback: (memory: Memory) => boolean) {
-    return this._memories.find(callback)
+    return this.internalMemories.find(callback)
   }
 
   concat(other: MemoryListOrWorkingMemory) {
     const otherWorkingMemory = this.normalizeMemoryListOrWorkingMemory(other)
-    return this.clone(this._memories.concat(otherWorkingMemory._memories))
+    return this.clone(this.internalMemories.concat(otherWorkingMemory.memories))
   }
 
   prepend(otherWorkingMemory: MemoryListOrWorkingMemory) {
     const otherMemory = this.normalizeMemoryListOrWorkingMemory(otherWorkingMemory)
-    return this.clone(otherMemory._memories.concat(this._memories))
+    return this.clone(otherMemory.memories.concat(this.memories))
   }
 
   withMonologue(content: string) {
@@ -156,9 +184,8 @@ export class WorkingMemory extends EventEmitter {
   async transform<SchemaType, PostProcessType>(transformation: MemoryTransformationOptions<SchemaType, PostProcessType>, opts?: Omit<TransformOptions, 'stream'>): Promise<TransformReturnNonStreaming<PostProcessType>>;
   async transform<SchemaType, PostProcessType>(transformation: MemoryTransformationOptions<SchemaType, PostProcessType>, opts?: { stream: false } & Omit<TransformOptions, 'stream'>): Promise<TransformReturnNonStreaming<PostProcessType>>;
   async transform<SchemaType, PostProcessType>(transformation: MemoryTransformationOptions<SchemaType, PostProcessType>, opts: TransformOptions = {}) {
-    if (this.pending) {
-      await this.pending
-    }
+    await this.finished
+
     const newMemory = this.clone()
     newMemory.markPending()
 
@@ -169,32 +196,35 @@ export class WorkingMemory extends EventEmitter {
     return indentNicely`
       Working Memory (${this.id}): ${this.soulName}
       Memories:
-      ${this._memories.map((memory) => {
+      ${this.internalMemories.map((memory) => {
         return JSON.stringify(memory)
       }).join("\n")}
     `
   }
 
   protected markPending() {
-    if (this.pending) {
+    const pendingInfo = this._pending()
+    if (pendingInfo.pending) {
       throw new Error("attempting to mark pending a working memory already marked as pending")
     }
-    this.pending = new Promise((res) => {
-      this.pendingResolve = res
+    pendingInfo.pending = new Promise((res) => {
+      pendingInfo.pendingResolve = res
     })
   }
 
   protected resolvePending() {
-    if (!this.pendingResolve) {
+    const pendingInfo = this._pending()
+
+    if (!pendingInfo.pendingResolve) {
       throw new Error('attempting to resolve pending on a memory that is not pending')
     }
-    this.pendingResolve()
-    this.pending = undefined
-    this.pendingResolve = undefined
+    pendingInfo.pendingResolve()
+    pendingInfo.pending = undefined
+    pendingInfo.pendingResolve = undefined
   }
 
   protected async doTransform<SchemaType, PostProcessType>(transformation: MemoryTransformationOptions<SchemaType, PostProcessType>, opts: TransformOptions) {
-    if (!this.pending) {
+    if (!this._pending().pending) {
       throw new Error("attempting to update working memory not marked as pending")
     }
     try {
@@ -234,9 +264,12 @@ export class WorkingMemory extends EventEmitter {
         const valuePromise = new Promise(async (resolve, reject) => {
           try {
             const [memory, value] = await postProcess(this, await response.parsed)
-            this._memories.push(...this.memoriesFromInputMemories([memory]))
-            this.lastValue = value
-            this._usage = await response.usage
+            this.internalMemories.push(...this.memoriesFromInputMemories([memory]))
+            const usageNumbers = await response.usage
+            const usageObj = this._usage()
+            Object.entries(usageNumbers).forEach(([key, value]) => {
+              (usageObj as any)[key] = value
+            })
             this.resolvePending()
             resolve(value)
           } catch (err) {
@@ -249,9 +282,13 @@ export class WorkingMemory extends EventEmitter {
       }
 
       const [memory, value] = await postProcess(this, await response.parsed)
-      this._memories.push(...this.memoriesFromInputMemories([memory]))
-      this.lastValue = value
-      this._usage = await response.usage
+      this.internalMemories.push(...this.memoriesFromInputMemories([memory]))
+      const usageNumbers = await response.usage
+
+      const usageObj = this._usage()
+      Object.entries(usageNumbers).forEach(([key, value]) => {
+        (usageObj as any)[key] = value
+      })
       this.resolvePending()
 
       return [this, value]
