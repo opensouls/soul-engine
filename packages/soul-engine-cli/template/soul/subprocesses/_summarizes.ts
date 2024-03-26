@@ -46,10 +46,8 @@ const summarizesConversation: MentalProcess = async ({ workingMemory }) => {
     { 
       model: "exp/nous-hermes-2-mixtral-fp8",
     });
-
-    let updatedNotes
     
-    [, updatedNotes] = await conversationNotes(withMemoryThoughts, conversationModel.current, { model: "exp/nous-hermes-2-mixtral-fp8" })
+    const [, updatedNotes] = await conversationNotes(withMemoryThoughts, conversationModel.current, { model: "exp/nous-hermes-2-mixtral-fp8" })
 
     conversationModel.current = updatedNotes as string
 
