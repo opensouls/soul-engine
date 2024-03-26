@@ -5,9 +5,9 @@ The `useSoulStore` provides a convenient persistent memory store with embedded v
 Here is a basic usage of the store.
 
 ```typescript filename="exampleProcess.ts" {1,5-9}
-import { useSoulStore } from "soul-engine"
+import { useSoulStore } from "@opensouls/engine"
 
-const exampleProcess: MentalProcess = async ({ step: initialStep }) => {
+const exampleProcess: MentalProcess = async ({ workingMemory }) => {
   // access a soul-wide vector store
   const { get, set } = useSoulStore()
 
@@ -17,7 +17,7 @@ const exampleProcess: MentalProcess = async ({ step: initialStep }) => {
 
   // rest of the mental process
   // ...
-  return step
+  return workingMemory
 }
 
 export default exampleProcess
@@ -26,9 +26,10 @@ export default exampleProcess
 Whenever a piece of content is added to the store, it is lazily embedded afterwards. Here's an example demonstrating trivial vector search post embedding:
 
 ```typescript filename="vectorIntro.ts" {4-25}
-import { useActions, useProcessManager, useSoulStore } from "soul-engine"
+import { externalDialog } from "./lib/cognitiveSteps.js"
+import { useActions, useProcessManager, useSoulStore } from "@opensouls/engine"
 
-const vectorIntro: MentalProcess = async ({ step: initialStep }) => {
+const vectorIntro: MentalProcess = async ({ workingMemory }) => {
   const { speak, log } = useActions()
   const { invocationCount, wait } = useProcessManager()
   const { set, get, search } = useSoulStore()
@@ -52,9 +53,10 @@ const vectorIntro: MentalProcess = async ({ step: initialStep }) => {
   //   metadata: { // ...  }
   // }]
   
-  const step = await initialStep.next(externalDialog(`Communicate the following: ${testKey}`))
-  speak(step.value)
-  return step
+  const [finalMemory, response] = await externalDialog(workingMemory, `Communicate the following: ${testKey}`)
+
+  speak(response)
+  return finalMemory
 }
 ```
 

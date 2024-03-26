@@ -1,0 +1,43 @@
+# Adjusting a WorkingMemory
+
+`WorkingMemory` is a container for [memories](working-memory#the-memory-interface) with functions for immutable transformation.
+
+`WorkingMemory` instances are immutable. This means that once an instance is created, it cannot be modified. Instead of changing the existing instance, methods that alter the state of the `WorkingMemory` (such as `withMemory`, `map`, `filter`, etc.) return a new instance of `WorkingMemory` with the modifications applied. This approach helps ensure safety and predictability, especially in asynchronous environments.
+
+`CognitiveStep`s are used to create new WorkingMemory instances using an LLM, and have their own documentation.
+
+`WorkingMemory` provide a variety of methods to manipulate memories and return a new `WorkingMemory`.
+
+* `withMemory(memory)` - adds a new [memory](working-memory#the-memory-interface) to the `WorkingMemory` and returns a new instance
+* `slice(begin, end)` - returns a new `WorkingMemory` with memories sliced between the begin and end indices.
+* `map(callback)` - applies a callback function to each [memory](working-memory#the-memory-interface), returning a new `WorkingMemory` with the results.
+* `asyncMap(callback)` - Applies a provided asynchronous function to each [memory](working-memory#the-memory-interface), producing a new `WorkingMemory` instance with the results.
+* `filter(callback)` - filters memories based on a callback function, returning a new `WorkingMemory` with the filtered results.
+* `find(callback)` - returns the first [memory](working-memory#the-memory-interface) that satisfies the provided testing function, encapsulated in a new `WorkingMemory`.
+* `concat(mem: WorkingMemory | Memory[])` - merges two instances of `WorkingMemory` into one, returning a new instance.
+* `prepend(otherWorkingMemory)` - Prepends the memories of another `WorkingMemory` (or an array of [Memory](working-memory#the-memory-interface) objects) to the memories of the current `WorkingMemory` instance, returning a new instance.
+* `withMonologue(content)` - Adds a [memory](working-memory#the-memory-interface) with the role of Assistant and the provided content to the `WorkingMemory`, returning a new instance.
+
+## Constructor and Initialization Options
+
+To create a new instance of `WorkingMemory`, you can use its constructor with the following options:
+
+```ts
+interface WorkingMemoryInitOptions {
+  soulName: string;
+  memories?: InputMemory[];
+  processor?: ProcessorSpecification;
+  postCloneTransformation?: (workingMemory: WorkingMemory) => WorkingMemory;
+}
+```
+
+* `soulName`: A unique identifier for the soul (or context) the memory belongs to.
+* `memories`: An optional array of `InputMemory` objects to initialize the working memory with.
+
+Example:
+```typescript
+const workingMemory = new WorkingMemory({
+  soulName: "ExampleSoul",
+  memories: [{ role: "User", content: "Hello, world!" }],
+});
+```

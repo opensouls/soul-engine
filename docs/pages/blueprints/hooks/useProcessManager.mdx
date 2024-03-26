@@ -3,15 +3,15 @@
 The `useProcessManager` hook provides access to an API for managing the current `MentalProcess` of the soul.
 
 ```typescript filename="exampleProcess.ts" {1,5}
-import { useProcessManager } from "soul-engine"
+import { useProcessManager } from "@opensouls/engine"
 
-const exampleProcess: MentalProcess = async ({ step: initialStep }) => {
+const exampleProcess: MentalProcess = async ({ workingMemory }) => {
   // access the internal MentalProcess API
   const { invocationCount, setNextProcess, wait } = useProcessManager()
 
   // rest of the mental process
   // ...
-  return step
+  return workingMemory
 }
 
 export default exampleProcess
@@ -51,32 +51,32 @@ await wait(1000) // wait 1 second
 Here's an example process that makes use of the `invocationCount` and `setNextProcess` in order to define a compelling stateful behavior:
 
 ```javascript filename="provokesSpeaker.js"
-import { ChatMessageRoleEnum, brainstorm, decision, externalDialog } from "socialagi";
-import { MentalProcess, mentalQuery, useProcessManager, useActions } from "soul-engine";
+import { MentalProcess, useProcessManager, useActions } from "@opensouls/engine";
+import { brainstorm, decision, externalDialog, mentalQuery } from "./lib/cognitiveSteps.js";
 import playsVictim from "./playsVictim.js";
 
-const provokesSpeaker: MentalProcess = async ({ step: initialStep}) => {
+const provokesSpeaker: MentalProcess = async ({ workingMemory }) => {
   const { speak } = useActions()
   const { invocationCount, setNextProcess } = useProcessManager()
 
-  let step = initialStep
+  let response;
   // compute a line of dialog
-  step = await initialStep.next(externalDialog("Try to provoke the speaker"));
-  speak(step.value)
+  [workingMemory, response] = await externalDialog(workingMemory, "Try to provoke the speaker")
+  speak(response)
 
   // decide if it's time to move on
-  const provocationDecision = await step.compute(
-    mentalQuery("Has Samantha successfully provoked the speaker?")
-  )
+  const [, didProvokeTheUser] = await mentalQuery(workingMemory, "Has samantha successfully provoked the speaker?")
+
+
   // move to a new mental process if the soul decides it's time to move on
   // and it's not the first invocation
-  if (provocationDecision && invocationCount > 0) {
+  if (didProvokeTheUser && invocationCount > 0) {
     // schedule the next mental process via reference to playsVictim
     setNextProcess(playsVictim)
-    return step
+    return workingMemory
   }
 
-  return step
+  return workingMemory
 }
 
 export default provokesSpeaker

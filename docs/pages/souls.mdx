@@ -11,7 +11,7 @@ This page guides you through the process of working with souls in your applicati
 To create and connect to a new soul based off the [Soul Blueprint](/blueprints) `opensouls/samantha-provokes`:
 
 ```javascript copy
-import { Soul, said } from "soul-engine/soul"
+import { Soul, said } from "@opensouls/soul"
 
 // Create a new Soul instance with a new unique identifier
 const soul = new Soul({
@@ -38,7 +38,7 @@ soul.connect().then(async () => {
 To connect a `Soul` to the engine based on a specific unique identifier:
 
 ```javascript copy {7}
-import { Soul, said } from "soul-engine/soul"
+import { Soul, said } from "@opensouls/soul"
 
 // Specify a soul instance by a unique identifier
 const soul = new Soul({

@@ -1,0 +1,140 @@
+Creating and Using a CognitiveStep
+-----------------------------------
+
+A `CognitiveStep` is a fundamental building block in the OPEN SOULS soul-engine, designed to process working memory based on specific logic. `CognitiveStep`s encapsulate a transformation logic that is applied to the working memory, adding a new memory based on the input and the transformation rules defined.
+
+To create a `CognitiveStep`, you use the `createCognitiveStep` function. This function requires a callback that generates transformation options based on the provided arguments. These options define how the working memory should be transformed.
+
+## Examples
+
+### Simple Example
+
+```ts
+import { createCognitiveStep, indentlyNicely } from "@opensouls/core" // also reexported from @opensouls/engine
+
+export const instruction = createCognitiveStep((instructions: string) => {
+  return {
+    command: ({ soulName }: WorkingMemory) => {
+      return {
+        role: ChatMessageRoleEnum.System,
+        name: soulName,
+        content: instructions,
+      };
+    }
+  };
+});
+
+// Initialize a new WorkingMemory instance
+const initialMemory = new WorkingMemory({
+  soulName: "ExampleSoulForInstruction",
+  memories: [{ role: ChatMessageRoleEnum.System, content: "You are a helpful assistant." }]
+});
+
+const [transformed, response] = await instruction(initialMemory, "Please say hello");
+// alternatively where stream is an AsyncIterable<stream> and responsePromise is a promise that will resolve to the value of the cognitive step
+const [transformed, stream, responsePromise] = await instruction(initialMemory, "Please say hello", { stream: true })]
+```
+
+
+### Adding a postProcess
+
+You can post-process the responses (for example to strip prefixes, etc).
+
+```ts
+import { createCognitiveStep, indentlyNicely } from "@opensouls/core" // also rexported from @opensouls/engine
+
+const exampleCognitiveStep = createCognitiveStep((data: { message: string; emphasis: boolean }) => {
+  const { message, emphasis } = data;
+  return {
+    command: ({ soulName: name }: WorkingMemory) => {
+      const formattedMessage = emphasis ? message.toUpperCase() : message;
+      return {
+        role: ChatMessageRoleEnum.User,
+        name: name,
+        content: indentNicely`
+          ${name} is prompted to respond to the following message:
+          
+          "${formattedMessage}"
+          
+          Please reply in the voice of ${name}, using the format: ${name} replied: "..."
+        `
+      };
+    },
+    postProcess: async (memory: WorkingMemory, response: string) => {
+      const newMemory = {
+        role: ChatMessageRoleEnum.Assistant,
+        content: `${memory.soulName} replied: "${response}"`
+      };
+      return [newMemory, response];
+    }
+  }
+});
+
+// Example usage of a CognitiveStep with a WorkingMemory instance
+
+// Initialize a new WorkingMemory instance
+const initialMemory = new WorkingMemory({
+  soulName: "ExampleSoul",
+  memories: [{ role: ChatMessageRoleEnum.User, content: "Hello, world!" }]
+});
+// Use the exampleCognitiveStep created earlier
+const [transformedMemory, response] = await exampleCognitiveStep(initialMemory, {
+  message: "This is a test message.",
+  emphasis: true
+});
+console.log("Transformed Memory:", transformedMemory);
+console.log("Response:", response);
+
+```
+
+### Extracting Typed Data
+
+
+```ts
+import { createCogntiveFunction, z } from "@opensouls/core";
+
+// Example of a cognitive step that uses the greetingSchema
+export const greet = createCognitiveStep((instructions: string) => {
+
+  // Define a schema for a simple cognitive step that processes a greeting
+  const greetingSchema = z.object({
+    greeting: z.string(),
+    name: z.string()
+  });
+
+  return {
+    command: ({ soulName }: WorkingMemory) => {
+      return {
+        role: ChatMessageRoleEnum.System,
+        name: soulName,
+        content: indentNicely`
+          ${soulName} needs to create a greeting to their interlocutor.
+          ${instructions}
+          Please return the greeting in the defined JSON schema.
+        `
+      };
+    },
+    schema: greetingSchema,
+    postProcess: async (memory: WorkingMemory, response: z.infer<typeof greetingSchema>) => {
+      const newMemory = {
+        role: ChatMessageRoleEnum.Assistant,
+        content: `${memory.soulName} received a greeting: "${response.name}" "${response.greeting}`
+      };
+      return [newMemory, response];
+    }
+  }
+});
+
+
+// Example usage of the greet cognitive step
+const initialMemory = new WorkingMemory({
+  soulName: "JohnDoe",
+  memories: [{ role: "User", content: "Hello, world!" }],
+});
+
+// Execute the greet cognitive step with a custom greeting message and name
+const [transformedMemory, greetingData ] = await greet(initialMemory, "Make sure to be pleasant")
+
+console.log(greetingData) // typed data in the format { greeting: string, name: string }
+
+```

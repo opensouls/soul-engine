@@ -1,0 +1,117 @@
+# Working Memory
+
+The soul-engine provides the library `@opensouls/core` to interact with `WorkingMemory` (what is passed into and out of a `MentalProcess`). `WorkingMemory` objects are immutable and all interactions on a `WorkingMemory` return a *new* immutable `WorkingMemory`.
+
+`WorkingMemory` is maniuplated through list-like functions (`slice`, `map`, etc) and `CognitiveStep`s which use a model to modify memory and return values.
+
+`WorkingMemory` is a wrapper around a list of `Memory` objects that provides methods to manipulate that list immutably.
+
+
+## The Memory interface
+```ts
+interface Memory<MetaDataType = Record<string, unknown>> {
+  role: ChatMessageRoleEnum; // see below, OpenAI standards "role"
+  content: ChatMessageContent; // follows OpenAI standards for content which can be a string or an array of "content objects" (to support vision).
+  name?: string;
+  metadata?: MetaDataType; // user-settable metadata
+
+  _id: string; // auto-generated for you
+  _timestamp: number; // auto-generated for you
+}
+
+enum ChatMessageRoleEnum {
+  System = "system",
+  User = "user",
+  Assistant = "assistant",
+}
+```
+
+## Example List Manipulation
+
+[Read more about list manipulation here](./list-manipulation)
+
+
+```typescript filename="workingMemory.ts"
+
+const memory = new WorkingMemory({
+  soulName: "Bobby",
+  memories: [
+    {
+      role: ChatMessageRoleEnum.System,
+      content: "You are modeling the mind of Bobby."
+    }
+  ]
+})
+
+// easily add a memory (returning a new WorkingMemory with the appeneded memory)
+const withHi = memory.withMemory({
+  role: ChatMessageRoleEnum.User,
+  content: "hi!"
+})
+
+// slice off that message:
+const withoutHi = withHi.slice(0,1)
+```
+
+There are many list manipulation functions available to you, read more... [todo: add link].
+
+## Example Cognitive Steps
+
+[Read more about Cognitive Steps here](./cognitive-step)
+
+
+A `CognitiveStep` transforms a `WorkingMemory` using an LLM and returns a new `WorkingMemory` and a value. We have a library of `CognitiveStep`s in our community repo.
+
+```typescript filename="cognitiveSteps.ts"
+import { createCogntiveStep } from "@opensouls/core" // re-exported from @opensouls/engine as well.
+
+export const brainstorm = createCognitiveStep((description: string) => {
+  const params = z.object({
+    newIdeas: z.array(z.string()).describe(`The new brainstormed ideas.`)
+  });
+
+  return {
+    command: ({ soulName: name }: WorkingMemory) => {
+      return {
+        role: ChatMessageRoleEnum.System,
+        name: name,
+        content: indentNicely`
+          ${name} is brainstorming new ideas.
+
+          ## Idea Description
+          ${description}
+
+          Reply with the new ideas that ${name} brainstormed.
+        `
+      };
+    },
+    schema: params,
+    postProcess: async (memory: WorkingMemory, response: z.output<typeof params>) => {
+      const newIdeas = response.newIdeas;
+      const newMemory = {
+        role: ChatMessageRoleEnum.Assistant,
+        content: `${memory.soulName} brainstormed: ${newIdeas.join("\n")}`
+      };
+      return [newMemory, newIdeas];
+    }
+  }
+})
+
+// brainstorm can now be used like so:
+const memory = new WorkingMemory({
+  soulName: "Bobby",
+  memories: [
+    {
+      role: ChatMessageRoleEnum.System,
+      content: "You are modeling the mind of Bobby."
+    }
+  ]
+})
+
+const [newMemory, brainstormIdeas] = await brainstorm(memory, "Think of 3 butterflies")
+// alternatively
+const [newMemory, stream, branstormIdeasPromise] = await brainstrom(memory, "Think of 3 butterflies", { stream: true })
+
+console.log(brainstormIdeas) // string[] with 3 different butterfly ideas
+console.log(newMemory.memories) // the new WorkingMemory with the butterfly ideations appended to the memory
+```

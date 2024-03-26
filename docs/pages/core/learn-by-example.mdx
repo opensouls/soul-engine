@@ -1,0 +1,349 @@
+# Learning By Example
+
+Here we will walk through progressively more complex systems built using [WorkingMemory](./working-memory) and [CognitiveSteps](./cognitive-step). The cognitive steps used are at the [bottom of this page](#cognitive-steps).
+
+## Simple Example
+
+Using WorkingMemory and cognitive steps can be thought of as building up a set of memories, and then performing functional, append-only manipulations on those memories. Here is a simple example that initializes a WorkingMemory with memories of being a helpful AI assistant and applies a cognitive step to process new messages.
+
+```ts
+import { WorkingMemory, ChatMessageRoleEnum, Memory } from "@opensouls/core";
+import { externalDialog } from "./lib/cogntiveSteps.js";
+
+// Initialize WorkingMemory with initial memories
+let workingMemory = new WorkingMemory({
+  soulName: "A Helpful Assistant",
+  memories: [
+    {
+      role: ChatMessageRoleEnum.System,
+      content: "You are modeling the mind of a helpful AI assistant",
+    },
+  ],
+});
+
+// Then, during an event loop, withReply(...) would be called with a memory of each new message:
+async function withReply(workingMemory: WorkingMemory, newMessage: Memory): Promise<WorkingMemory> {
+  // externalDialog is a cognitiveStep defined in another function.
+  const [updatedMemory, response] = await externalDialog(workingMemory, newMessage);
+  console.log("AI:", response);
+  return updatedMemory;
+}
+```
+
+## Chain of thought
+
+Complex dialog agents require more thoughtful cognitive modeling than a direct reply. AI souls from the Soul Engine feels so uncanny because their feelings and internal cognitive processes are modeled. Here's a 3 step process that models the way a soul might formulate a message.
+
+```ts
+async function withIntrospectiveReply(workingMemory: WorkingMemory, newMessage: Memory): Promise<WorkingMemory> {
+  // Add the new message to the working memory
+  let updatedMemory = workingMemory.withMemory(newMessage);
+
+  // Process the internal monologue about feelings towards the last message
+  [updatedMemory] = await internalMonologue(updatedMemory, "How do they feel about the last message?");
+  
+  // Process further thoughts about the feelings and the last user message
+  [updatedMemory] = await internalMonologue(updatedMemory, "Thinks about the feelings and the last user message");
+  
+  // Generate the external dialog based on the updated working memory
+  const [finalMemory, response] = await externalDialog(updatedMemory, "Respond to Booto");
+  
+  console.log("Samantha:", response);
+  return finalMemory;
+}
+```
+
+## Decision making
+Moving beyond a simple dialog agent, cognitive steps easily support decision making.
+
+In this example, we tell an agentic detective to think through a set of case memories before making a decision on what action to take.
+
+```ts
+async function caseDecision(caseMemories: ChatMessage[]): Promise<string> {
+  // Initialize WorkingMemory with the initial memory of being a detective
+  let workingMemory = new WorkingMemory({
+    soulName: "Detective",
+    memories: [
+      {
+        role: ChatMessageRoleEnum.System,
+        content: "You are modeling the mind of a detective who is currently figuring out a complicated case",
+      },
+    ],
+  });
+
+  // Add case memories to the WorkingMemory
+  workingMemory = workingMemory.concat(caseMemories)
+
+  // Process the analysis of the evidence
+  [workingMemory] = await internalMonologue(workingMemory, "The detective analyzes the evidence");
+
+  // Formulate a hypothesis based on the analysis
+  [workingMemory] = await internalMonologue(workingMemory, "The detective makes a hypothesis based on the analysis");
+
+  // Decide the next step based on the hypothesis
+  const [finalMemory, decision] = await decision(
+    workingMemory,
+    {
+      instructions: "Decides the next step based on the hypothesis",
+      choices: ["interview suspect", "search crime scene", "check alibi"],
+    }
+  );
+
+  return decision;
+}
+```
+
+## Brainstorming
+
+Similar to decision making which narrows effective context scope, brainstorming can expand scope. As opposed to choosing from a list of options, a new list of options is generated.
+
+In this example, we ask a chef to consider a basket of ingredients, then brainstorm what dishes could be made.
+
+
+```ts
+async function makeDishSuggestions(ingredientsMemories: ChatMessage[]): Promise<string[]> {
+  // Initialize WorkingMemory with the initial memory of being a chef
+  let workingMemory = new WorkingMemory({
+    soulName: "Chef",
+    memories: [
+      {
+        role: ChatMessageRoleEnum.System,
+        content: "You are modeling the mind of a chef who is preparing a meal.",
+      },
+    ],
+  })
+
+  // Add ingredients memories to the WorkingMemory
+  workingMemory = workingMemory.concat(ingredientsMemories)
+
+  // Consider the ingredients
+  [workingMemory] = await internalMonologue(workingMemory, "The chef considers the ingredients");
+
+  // Brainstorm meal ideas
+  const [, mealIdeas] = await brainstorm(
+    workingMemory,
+    "Brainstorm meal ideas based on the ingredients",
+  );
+
+  return mealIdeas;
+}
+```
+
+## Branching
+Here's an example of a simplified internal monologue which makes a progressive sequence of branching decisions and while maintaining prior context.
+
+```ts
+import { WorkingMemory, ChatMessageRoleEnum } from "@opensouls/core";
+
+const initialMemories = [
+  {
+    role: ChatMessageRoleEnum.System,
+    content: "You are modeling the mind of a protagonist who is deciding on actions in a quest",
+  },
+];
+
+let workingMemory = new WorkingMemory({
+  soulName: "Protagonist",
+  memories: initialMemories,
+});
+
+let quest;
+
+// The protagonist considers the quests
+[workingMemory, quest] = await decision(workingMemory, {
+  instructions: "Protagonist considers the quests",
+  choices: ["slay dragon", "find artifact"],
+});
+
+if (quest === "slay dragon") {
+  // Branch 1: Slay the dragon
+  [workingMemory, quest] = await decision(workingMemory, {
+    instructions: "Protagonist decides how to prepare for the quest",
+    choices: ["gather weapons", "train skills"],
+  });
+
+  if (quest === "gather weapons") {
+    // implement gather tooling for character
+  } else {
+    // implement training tooling for character
+  }
+} else {
+  // Branch 2: Find the artifact
+  [workingMemory, quest] = await decision(workingMemory, {
+    instructions: "Protagonist decides how to find the artifact",
+    choices: ["search old records", "ask elders"],
+  });
+
+  if (quest === "search old records") {
+    // search for clues about the artifact
+  } else {
+    // ask the elders about the artifact
+  }
+}
+
+console.log(quest);
+```
+
+## Cognitive Steps Used In These Examples 
+
+import { Callout } from 'nextra/components'
+
+<Callout type="info" emoji="ℹ️">
+  These cognitiveSteps (and more) are available in our [community library!](https://github.com/opensouls/soul-engine/tree/main/community)
+</Callout>
+
+Below are the cognitive steps used in the examples above.
+
+```ts filename="./lib/cognitiveSteps.ts"
+import { z, WorkingMemory, createCognitiveStep, indentNicely, stripEntityAndVerb, stripEntityAndVerbFromStream, ChatMessageRoleEnum } from "@opensouls/core"
+
+export const externalDialog = createCognitiveStep((instructions: string | { instructions: string; verb: string }) => {
+  let instructionString: string, verb: string;
+  if (typeof instructions === "string") {
+    instructionString = instructions;
+    verb = "said";
+  } else {
+    instructionString = instructions.instructions;
+    verb = instructions.verb;
+  }
+  return {
+    command: ({ soulName: name }: WorkingMemory) => {
+      return {
+        role: ChatMessageRoleEnum.System,
+        name: name,
+        content: indentNicely`
+            Model the mind of ${name}.
+    
+            ## Instructions
+            * DO NOT include actions (for example, do NOT add non-verbal items like *John Smiles* or *John Nods*, etc).
+            * DO NOT include internal thoughts (for example, do NOT respond with John thought: "...").
+            * If necessary, use all CAPS to emphasize certain words.
+    
+            ${instructionString}
+    
+            Please reply with the next utterance from ${name}. Use the format: ${name} ${verb}: "..."
+          `
+      };
+    },
+    streamProcessor: stripEntityAndVerbFromStream,
+    postProcess: async (memory: WorkingMemory, response: string) => {
+      const stripped = stripEntityAndVerb(memory.soulName, verb, response);
+      const newMemory = {
+        role: ChatMessageRoleEnum.Assistant,
+        content: `${memory.soulName} ${verb}: "${stripped}"`
+      };
+      return [newMemory, stripped];
+    }
+  }
+})
+
+export const internalMonologue = createCognitiveStep((instructions: string | { instructions: string; verb: string }) => {
+  let instructionString: string, verb: string;
+  if (typeof instructions === "string") {
+    instructionString = instructions;
+    verb = "thought";
+  } else {
+    instructionString = instructions.instructions;
+    verb = instructions.verb;
+  }
+
+  return {
+    command: ({ soulName: name }: WorkingMemory) => {
+      return {
+        role: ChatMessageRoleEnum.System,
+        name: name,
+        content: indentNicely`
+          Model the mind of ${name}.
+
+          ## Description
+          ${instructionString}
+
+          ## Rules
+          * Internal monologue thoughts should match the speaking style of ${name}.
+          * Only respond with the format '${name} ${verb}: "..."', no additional commentary or text.
+          * Follow the Description when creating the internal thought!
+
+          Please reply with the next internal monologue thought of ${name}. Use the format: ${name} ${verb}: "..."
+        `
+      };
+    },
+    streamProcessor: stripEntityAndVerbFromStream,
+    postProcess: async (memory: WorkingMemory, response: string) => {
+      const stripped = stripEntityAndVerb(memory.soulName, verb, response);
+      const newMemory = {
+        role: ChatMessageRoleEnum.Assistant,
+        content: `${memory.soulName} ${verb}: "${stripped}"`
+      };
+      return [newMemory, stripped];
+    }
+  }
+})
+
+export const decision = createCognitiveStep(({ description, choices, verb = "decided" }: { description: string, choices: z.EnumLike | string[], verb?: string }) => {
+  const params = z.object({
+    decision: z.string().describe(`The decision made by the entity.`)
+  });
+  return {
+    schema: params,
+    command: ({ soulName: name }: WorkingMemory) => {
+      return {
+        role: ChatMessageRoleEnum.System,
+        name: name,
+        content: indentNicely`
+          ${name} is deciding between the following options:
+          ${Array.isArray(choices) ? choices.map((c) => `* ${c}`).join('\n') : JSON.stringify(choices, null, 2)}
+
+          ## Description
+          ${description}
+
+          ## Rules
+          * ${name} must decide on one of the options. Return ${name}'s decision.
+        `
+      };
+    },
+    streamProcessor: stripEntityAndVerbFromStream,
+    postProcess: async (memory: WorkingMemory, response: z.infer<typeof params>) => {
+      const stripped = stripEntityAndVerb(memory.soulName, verb, response.decision);
+      const newMemory = {
+        role: ChatMessageRoleEnum.Assistant,
+        content: `${memory.soulName} ${verb}: "${stripped}"`
+      };
+      return [newMemory, stripped];
+    }
+  }
+})
+
+export const brainstorm = createCognitiveStep((description: string) => {
+  const params = z.object({
+    newIdeas: z.array(z.string()).describe(`The new brainstormed ideas.`)
+  });
+
+  return {
+    command: ({ soulName: name }: WorkingMemory) => {
+      return {
+        role: ChatMessageRoleEnum.System,
+        name: name,
+        content: indentNicely`
+          ${name} is brainstorming new ideas.
+
+          ## Idea Description
+          ${description}
+
+          Reply with the new ideas that ${name} brainstormed.
+        `
+      };
+    },
+    schema: params,
+    postProcess: async (memory: WorkingMemory, response: z.output<typeof params>) => {
+      const newIdeas = response.newIdeas;
+      const newMemory = {
+        role: ChatMessageRoleEnum.Assistant,
+        content: `${memory.soulName} brainstormed: ${newIdeas.join("\n")}`
+      };
+      return [newMemory, newIdeas];
+    }
+  }
+})
+
+```
+

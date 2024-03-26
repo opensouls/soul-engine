@@ -3,15 +3,15 @@
 The `usePerceptions` hook contains access to information about the soul's recent incoming perceptions.
 
 ```typescript filename="exampleProcess.ts" {1,5}
-import { usePerceptions } from "soul-engine"
+import { usePerceptions } from "@opensouls/engine"
 
-const exampleProcess: MentalProcess = async ({ step: initialStep }) => {
+const exampleProcess: MentalProcess = async ({ workingMemory }) => {
   // get information about the incoming perceptions
   const { invokingPerception, pendingPerceptions } = usePerceptions()
 
   // rest of the mental process
   // ...
-  return step
+  return workingMemory
 }
 
 export default exampleProcess
