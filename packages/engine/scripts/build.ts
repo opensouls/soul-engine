@@ -50,15 +50,6 @@ await esbuild.build({
   format: 'cjs',
 })
 
-// build the CLI/commands
-await esbuild.build({
-  ...defaultParams,
-  entryPoints: ['src/cli/index.ts'],
-  outdir: 'dist/cli',
-  format: 'esm',
-  outExtension: { ".js": ".mjs" },
-})
-
 // see https://github.com/microsoft/rushstack/issues/1709
 const globals = await readFile("src/globals.d.ts", "utf-8")
 await appendFile("dist/types.d.ts", globals)

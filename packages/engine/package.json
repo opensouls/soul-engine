@@ -1,9 +1,6 @@
 {
   "name": "@opensouls/engine",
   "version": "0.0.20",
-  "bin": {
-    "soul-engine": "./bin/run.js"
-  },
   "type": "module",
   "description": "Write your own souls to run on the OPEN SOULS soul-engine",
   "main": "dist/index.mjs",
@@ -36,13 +33,7 @@
     "@hocuspocus/provider": "=2.9.0",
     "@opensouls/core": "^0.0.20",
     "@opensouls/soul": "^0.0.20",
-    "commander": "^12.0.0",
-    "conf": "^12.0.0",
-    "cross-fetch": "^4.0.0",
-    "execa": "^8.0.1",
-    "glob": "^10.3.10",
-    "handlebars": "^4.7.8",
-    "open": "^10.1.0"
+    "handlebars": "^4.7.8"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.43.0",
