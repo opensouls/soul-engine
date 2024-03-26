@@ -1,0 +1,106 @@
+# useActions
+
+The `useActions` hook contains all available actions for the Soul to take.
+
+```typescript filename="exampleProcess.ts" {1,5}
+import { useActions } from "soul-engine"
+
+const exampleProcess: MentalProcess = async ({ step: initialStep }) => {
+  // get the soul's available actions
+  const { expire, log, speak, dispatch, scheduleEvent } = useActions()
+
+  // rest of the mental process
+  // ...
+  return step
+}
+
+export default exampleProcess
+```
+
+## expire
+
+The `expire` action terminates the life of the soul, ending all execution of its subroutines.
+
+```typescript copy
+expire()
+```
+
+## log
+
+The `log` action creates debugging log events, which are picked up and displayed in the Soul Engine.
+
+```typescript copy
+log("Something happened to myVar!", myVar)
+```
+
+## speak
+
+The `speak` action dispatches a request to speak to the client interface.
+
+```typescript copy
+speak("I'm a soul saying something!")
+```
+
+## dispatch
+
+The `dispatch` action is a generalized form of `speak`, which sends an interaction request to the client interface.
+
+```typescript copy
+dispatch({
+  name: "Samantha",
+  action: "says",
+  content: "Hi!"
+})
+```
+
+or in the case of a non-verbal action
+
+```typescript copy
+dispatch({
+  name: "Samantha",
+  action: "emoji-reacts",
+  content: "{'messageId': 'xxx', 'emoji': '💫'}"
+})
+```
+
+## scheduleEvent
+
+The `scheduleEvent` action is a powerful action that schedules a cognitive event, comprising a perception and a mental process to act on that perception, to occur at some time in the future.
+
+```javascript copy
+scheduleEvent({
+  in: 10, // seconds
+  // the internal perception that will be queued
+  perception: {
+    action: "poke",
+    content: "The user",
+    name: "Samantha",
+  },
+  // reference to the mental process which will act on the perception
+  process: pokesSpeaker
+})
+```
+
+Alternatively, an event can be scheduled to run on a particular Date.
+
+```javascript copy
+scheduleEvent({
+  // run the event on the 21st of next month
+  when: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 21),
+  // the internal perception that will be queued
+  perception: {
+    action: "poke",
+    content: "The user",
+    name: "Samantha",
+  },
+  // reference to the mental process which will act on the perception
+  process: pokesSpeaker,
+})
+```
+
+
+import { Callout } from 'nextra/components'
+ 
+<Callout type="info" emoji="ℹ️">
+When a cognitive event is scheduled, it queues a perception called an internal perception to be processed at the target time, along with a target mental process to act on that internal perception. If any current perceptions are being actively processed, they're finished processing first.
+</Callout>

@@ -1,0 +1,64 @@
+# Soul Hooks
+
+The Soul Engine API provides stateful hooks that can generate side effects during `MentalProcess` execution and extend the Soul Engine's functionality. All of the hooks follow the pattern `use[Hook]` and can be imported from the `soul-engine` package.
+
+```typescript filename="exampleProcess.ts" {1,5}
+import { MentalProcess, useProcessMemory } from "soul-engine"
+
+const exampleProcess: MentalProcess = async ({ step: initialStep }) => {
+  // example call to a hook which generates a local persistent memory container
+  const count = useProcessMemory(0)
+
+  // rest of the mental process
+  // ...
+  return step
+}
+
+export default exampleProcess
+```
+
+The Engine provides the following hooks:
+
+
+import { Cards, Card } from "nextra/components";
+
+import { RxExclamationTriangle, RxCardStack, RxBookmarkFilled, RxArrowTopLeft, RxRadiobutton } from "react-icons/rx";
+import { FaSortAmountUpAlt, FaMemory, FaHeart, FaBolt, FaEye, FaBrain, FaCog, FaDatabase, FaExchangeAlt } from "react-icons/fa";
+
+<Cards>
+  <Card
+    icon={<FaBolt />}
+    title="useActions"
+    href="/blueprints/hooks/useActions"
+  />
+  <Card
+    icon={<FaEye />}
+    title="usePerceptions"
+    href="/blueprints/hooks/usePerceptions"
+  />
+  <Card
+    icon={<FaMemory />}
+    title="useProcessMemory"
+    href="/blueprints/hooks/useProcessMemory"
+  />
+  <Card
+    icon={<FaCog />}
+    title="useProcessManager"
+    href="/blueprints/hooks/useProcessManager"
+  />
+  <Card
+    icon={<FaBrain />}
+    title="useSoulMemory"
+    href="/blueprints/hooks/useSoulMemory"
+  />
+  <Card
+    icon={<FaDatabase />}
+    title="useSoulStore"
+    href="/blueprints/hooks/useSoulStore"
+  />
+  <Card
+    icon={<FaSortAmountUpAlt />}
+    title="useRag"
+    href="/blueprints/hooks/useRag"
+  />
+</Cards>

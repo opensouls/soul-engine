@@ -1,0 +1,63 @@
+# Soul Blueprint
+
+A Soul's Blueprint specifies its underlying cognitive architecture and data modeling. Developing a soul powered by the **Soul Engine** begins with creation of a Soul Blueprint. A Blueprint comprises a specific directory structure that the Soul Engine understands:
+
+```
+package.json
+/soul
+  [soul-name].md        ----> define the context of the soul
+  initialProcess.ts     ----> the mental process the soul begins executing after creation
+  default.env.ts        ----> (optional) specify any default environment variables
+  
+  /mentalProcesses      ----> mental processes to run in foreground after initialProcess
+    [process1].ts
+    ...
+
+  /subprocesses         ----> (optional) all mental processes that will run in the background
+    [process1].ts
+    ...
+
+/rag                    ----> (optional) files to be chunked and stored for rag context
+    [context1].md
+    ...
+```
+
+More detail on each of these architectural components can be found here:
+
+import { Cards, Card } from "nextra/components";
+
+import { FaCubes, FaEnvira, FaSitemap, FaAnchor, FaExchangeAlt } from "react-icons/fa";
+import { MdPsychology, MdSettingsSystemDaydream } from "react-icons/md";
+
+<Cards>
+  <Card
+    icon={<MdPsychology />}
+    title="Mental Processes"
+    href="/blueprints/mental-processes"
+  />
+  <Card
+    icon={<FaSitemap />}
+    title="Subprocesses"
+    href="/blueprints/subprocesses"
+  />
+  <Card
+    icon={<FaAnchor />}
+    title="Hooks"
+    href="/blueprints/hooks"
+  />
+  <Card
+    icon={<MdSettingsSystemDaydream />}
+    title="Environment Variables"
+    href="/blueprints/environment-variables"
+  />
+  <Card
+    icon={<FaCubes />}
+    title="Models"
+    href="/blueprints/models"
+  />
+  <Card
+    icon={<FaExchangeAlt />}
+    title="RAG"
+    href="/blueprints/hooks/useRag"
+  />
+</Cards>

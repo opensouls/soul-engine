@@ -1,0 +1,11 @@
+{
+  "useActions": "useActions",
+  "usePerceptions": "usePerceptions",
+  "useProcessMemory": "useProcessMemory",
+  "useProcessManager": "useProcessManager",
+  "useSoulMemory": "useSoulMemory",
+  "useSoulStore": "useSoulStore",
+  "useRag": "useRag"
+}
+
+

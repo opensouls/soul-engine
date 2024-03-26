@@ -1,0 +1,40 @@
+# Understanding a Soul's Processing Cycle
+
+The Soul processing model is an event driven interface that sends perceptions to be processed and receives interaction requests from the Soul Engine. In detail, the processing cycle for a `Soul` involves the following steps:
+
+1. **Perceptions**: The Soul [client](/souls) sends `DeveloperDispatchedPerception` events to the Soul Engine.
+1. **Soul Engine Execution**: The Soul Engine adds the perception to a processing queue, adds them sequentially to working memory, and executes the [mental processes](/blueprints/mental-processes) of the soul against the perception queue in a single-threaded manner.
+1. **Interaction Request Dispatch**: The soul sends `InteractionRequest` events to the client interface.
+1. **Interaction Event Handling**: The application handles these interaction requests (for example, showing a "say" interaction to a user, or navigating a set of decisions in a game).
+
+**Example**: Supppose a person says "Hi!" to a soul. To represent this event, the Soul should dispatch a perception to the engine of the user saying "Hi!":
+
+```javascript
+// executed on the client
+// dispatch a perception to be processed by the soul
+soul.dispatch({
+  name: "User",
+  action: "said",
+  content: "Hi",
+})
+```
+
+The engine adds the perception to working memory, executes the current mental process, e.g. "introduction.ts", and then it dispatches an interaction request to reply back to the user.
+
+```javascript
+// executed on the engine
+// interaction requests mirror perceptions
+// it's recommended that actions are stated in present future tense for requests
+dispatch({
+  action: "says",
+  content: "Hi there!",
+  name: "Samantha",
+})
+```
+
+Once the client-side [`Soul`](/souls) object receives the request, its listeners fire for the target event, e.g.
+```js
+soul.on("says", async ({ content }) => {
+  console.log("Samantha said", await content())
+})
+```

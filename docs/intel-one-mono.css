@@ -1,0 +1,108 @@
+/**
+ *
+ * Font Family: Intel One Mono
+ *
+ * Font Styles:
+ * IntelOneMono-Light
+ * IntelOneMono-LightItalic
+ * IntelOneMono-Regular
+ * IntelOneMono-Italic
+ * IntelOneMono-Medium
+ * IntelOneMono-MediumItalic
+ * IntelOneMono-Bold
+ * IntelOneMono-BoldItalic
+ *
+**/
+
+
+@font-face {
+  font-family: "IntelOneMono-Light";
+  src:
+    url("/fonts/intel-one-mono/IntelOneMono-Light.woff2") format("woff2"),
+    url("/fonts/intel-one-mono/IntelOneMono-Light.woff") format("woff"),
+    url("/fonts/intel-one-mono/IntelOneMono-Light.ttf") format("truetype");
+  font-weight: 300;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "IntelOneMono-LightItalic";
+  src:
+    url("/nts/intel-one-mono/IntelOneMono-LightItalic.woff2") format("woff2"),
+    url("/fonts/intel-one-mono/IntelOneMono-LightItalic.woff") format("woff"),
+    url("/fonts/intel-one-mono/IntelOneMono-LightItalic.ttf")
+      format("truetype");
+  font-weight: 300;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "IntelOneMono-Regular";
+  src:
+    url("/fonts/intel-one-mono/IntelOneMono-Regular.woff2") format("woff2"),
+    url("/fonts/intel-one-mono/IntelOneMono-Regular.woff") format("woff"),
+    url("/fonts/intel-one-mono/IntelOneMono-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "IntelOneMono-Italic";
+  src:
+    url("/fonts/intel-one-mono/IntelOneMono-Italic.woff2") format("woff2"),
+    url("/fonts/intel-one-mono/IntelOneMono-Italic.woff") format("woff"),
+    url("/fonts/intel-one-mono/IntelOneMono-Italic.ttf") format("truetype");
+  font-weight: 400;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "IntelOneMono-Medium";
+  src:
+    url("/fonts/intel-one-mono/IntelOneMono-Medium.woff2") format("woff2"),
+    url("/fonts/intel-one-mono/IntelOneMono-Medium.woff") format("woff"),
+    url("/fonts/intel-one-mono/IntelOneMono-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "IntelOneMono-MediumItalic";
+  src:
+    url("/fonts/intel-one-mono/IntelOneMono-MediumItalic.woff2") format("woff2"),
+    url("/fonts/intel-one-mono/IntelOneMono-MediumItalic.woff") format("woff"),
+    url("/fonts/intel-one-mono/IntelOneMono-MediumItalic.ttf") format("truetype");
+  font-weight: 500;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "IntelOneMono-Bold";
+  src:
+    url("/fonts/intel-one-mono/IntelOneMono-Bold.woff2") format("woff2"),
+    url("/fonts/intel-one-mono/IntelOneMono-Bold.woff") format("woff"),
+    url("/fonts/intel-one-mono/IntelOneMono-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "IntelOneMono-BoldItalic";
+  src:
+    url("/fonts/intel-one-mono/IntelOneMono-BoldItalic.woff2") format("woff2"),
+    url("/fonts/intel-one-mono/IntelOneMono-BoldItalic.woff") format("woff"),
+    url("/fonts/intel-one-mono/IntelOneMono-BoldItalic.ttf")
+      format("truetype");
+  font-weight: 700;
+  font-display: swap;
+  font-style: normal;
+}
+
+
