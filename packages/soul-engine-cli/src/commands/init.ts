@@ -1,19 +1,26 @@
+import { Command } from "commander"
 import { globSync } from "glob"
 import Handlebars from "handlebars"
-import { readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { readFileSync, renameSync, rmSync, statSync, writeFileSync, copyFileSync } from 'node:fs'
+import { join, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url';
+import fsExtra from "fs-extra"
 
 import { getConfig } from '../config.js'
 import { handleLogin } from '../login.js'
-import { Command } from "commander"
+
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const templatePath = join(__dirname, '..', '..', 'template');
 
 const createInit = (program: Command) => {
   program
     .command('init <projectName>')
     .description('Create a new soul for the OPEN SOULS soul engine.')
     .option('-l, --local', 'Use the local template', false)
-    .option('-b, --branch <branch>', 'The branch of the template you want to use.', "")
-    .action(async (projectName: string, options: { local: boolean, branch: string }) => {
+    .action(async (projectName: string, options: { local: boolean }) => {
       await handleLogin(options.local)
 
       const config = await getConfig()
@@ -30,9 +37,9 @@ const createInit = (program: Command) => {
       const { $ } = await import('execa');
       console.log("cloning template...")
 
-      await (options.branch ?
-        $`git clone --branch ${options.branch} https://github.com/opensouls/soul-engine-cli-template.git ${safeProjectName}` :
-        $`git clone --depth 1 https://github.com/opensouls/soul-engine-cli-template.git ${safeProjectName}`);
+      await fsExtra.copy(templatePath, safeProjectName)
+
+      console.log("Template copied successfully.");
 
       process.chdir(join('.', safeProjectName))
 
