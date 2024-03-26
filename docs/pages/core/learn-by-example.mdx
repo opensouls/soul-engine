@@ -189,7 +189,7 @@ console.log(quest);
 import { Callout } from 'nextra/components'
 
 <Callout type="info" emoji="ℹ️">
-  Many pre-built cognitiveSteps are available in our [community library!](https://github.com/opensouls/soul-engine/tree/main/community)
+  These cognitiveSteps (and more) are available in our [community library!](https://github.com/opensouls/soul-engine/tree/main/community)
 </Callout>
 
 Below are the cognitive steps used in the examples above.
@@ -313,33 +313,6 @@ export const decision = createCognitiveStep(({ description, choices, verb = "dec
   }
 })
 
-export const summarize = createCognitiveStep((extraInstructions: string = "") => {
-  return {
-    command: ({ soulName: name }: WorkingMemory) => {
-      return {
-        role: ChatMessageRoleEnum.System,
-        name: name,
-        content: indentNicely`
-          ${name} summarizes the conversation so far.
-
-          ## Extra Instructions
-          ${extraInstructions}
-
-          Please reply with the summary in the voice of ${name}. Use the format: ${name} summarized: "..."
-        `
-      };
-    },
-    postProcess: async (memory: WorkingMemory, response: string) => {
-      const stripped = stripEntityAndVerb(memory.soulName, "summarized", response);
-      const newMemory = {
-        role: ChatMessageRoleEnum.Assistant,
-        content: `${memory.soulName} summarized: "${stripped}"`
-      };
-      return [newMemory, stripped];
-    }
-  }
-})
-
 export const brainstorm = createCognitiveStep((description: string) => {
   const params = z.object({
     newIdeas: z.array(z.string()).describe(`The new brainstormed ideas.`)
@@ -371,47 +344,6 @@ export const brainstorm = createCognitiveStep((description: string) => {
     }
   }
 })
-
-export const mentalQuery = createCognitiveStep((statement: string) => {
-  const params = z.object({
-    isStatementTrue: z.boolean().describe(`Is the statement true or false?`),
-  });
-
-  return {
-    command: ({ soulName: name }: WorkingMemory) => {
-      return {
-        role: ChatMessageRoleEnum.System,
-        name: name,
-        content: indentNicely`
-          ${name} reasons about the veracity of the following statement.
-          > ${statement}
-
-          Please reply with if ${name} believes the statement is true or false.
-        `,
-      };
-    },
-    schema: params,
-    postProcess: async (memory: WorkingMemory, response: z.output<typeof params>) => {
-      const newMemory = {
-        role: ChatMessageRoleEnum.Assistant,
-        content: `${memory.soulName} evaluated: \`${statement}\` and decided that the statement is ${response.isStatementTrue ? 'true' : 'false'}`
-      };
-      return [newMemory, response.isStatementTrue];
-    }
-  };
-});
-
-export const instruction = createCognitiveStep((instructions: string) => {
-  return {
-    command: ({ soulName }: WorkingMemory) => {
-      return {
-        role: ChatMessageRoleEnum.System,
-        name: soulName,
-        content: instructions,
-      };
-    }
-  };
-});
 
 ```
 
