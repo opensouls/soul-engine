@@ -1,0 +1,21 @@
+{
+  "name": "{{slug}}",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "description": "A blank AI soul built for the OPEN SOULS Soul Engine",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "soul-engine": ">0.1.0",
+    "@opensouls/engine": ">0.0.20"
+  }
+}
