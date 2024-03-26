@@ -34,11 +34,10 @@ const summarizesConversation: MentalProcess = async ({ workingMemory }) => {
   `)
   const { log } = useActions()
 
-  let step = workingMemory
 
-  if (step.memories.length > 5) {
+  if (workingMemory.memories.length > 9) {
     log("updating conversation notes");
-    [step] = await internalMonologue(step, {
+    const [withMemoryThoughts] = await internalMonologue(workingMemory, {
       instructions: indentNicely`
         What is really important that I remember about this conversation?
       `,
@@ -50,9 +49,22 @@ const summarizesConversation: MentalProcess = async ({ workingMemory }) => {
 
     let updatedNotes
     
-    [step, updatedNotes] = await conversationNotes(step, conversationModel.current, { model: "exp/nous-hermes-2-mixtral-fp8" })
+    [, updatedNotes] = await conversationNotes(withMemoryThoughts, conversationModel.current, { model: "exp/nous-hermes-2-mixtral-fp8" })
 
     conversationModel.current = updatedNotes as string
+
+    if (workingMemory.find((m) => !!m.metadata?.conversationSummary)) {
+      // update the existing
+      return workingMemory.map((m) => {
+        if (m.metadata?.conversationSummary) {
+          return {
+            ...m,
+            content: updatedNotes
+          }
+        }
+        return m
+      }).slice(0, 3).concat(workingMemory.slice(-4))
+    }
 
     return workingMemory.slice(0, 1).withMemory({
       role: ChatMessageRoleEnum.Assistant,
@@ -66,7 +78,7 @@ const summarizesConversation: MentalProcess = async ({ workingMemory }) => {
     }).concat(workingMemory.slice(-4))
   }
 
-  return step
+  return workingMemory
 }
 
 export default summarizesConversation
