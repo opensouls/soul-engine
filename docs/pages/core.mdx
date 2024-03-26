@@ -8,7 +8,7 @@ The open source library offers WorkingMemory and cognitiveSteps for managing con
 
 The core concepts of the library are:
 * [`WorkingMemory`](./core/working-memory) - a collection of [Memory](working-memory#the-memory-interface) objects that provides [lots of ways](list-manipulation) to immutably transform memory.
-* [`cogntiveStep`](./core/cognitive-step) - a function that transforms a WorkingMemory, adds to its memories, and returns a response. You can think of these functions as thinking, speaking, noticing, etc.
+* [`cognitiveStep`](./core/cognitive-step) - a function that transforms a WorkingMemory, adds to its memories, and returns a response. You can think of these functions as thinking, speaking, noticing, etc.
 * `processor` - a class for calling out to an LLM and fetching a response.
 
 At its most basic, you perform a [CognitiveStep](./cognitive-step) on a `WorkingMemory` and receive both a fully-typed response (based on the schema of your cognitiveStep) and a new `WorkingMemory` 
