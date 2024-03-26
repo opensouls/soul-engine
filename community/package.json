@@ -1,6 +1,7 @@
 {
   "name": "@opensouls/community",
   "version": "0.0.1",
+  "private": true,
   "type": "module",
   "description": "Community cognitive functions",
   "main": "dist/src/index.js",
@@ -12,8 +13,6 @@
     "dist/src"
   ],
   "scripts": {
-    "build": "rm -rf dist && tsc",
-    "prepublishOnly": "npm run build"
   },
   "author": "OpenSouls",
   "license": "MIT",
