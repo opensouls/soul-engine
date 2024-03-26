@@ -6,6 +6,8 @@ The soul-engine provides the library `@opensouls/core` to interact with `Working
 
 `WorkingMemory` is a wrapper around a list of `Memory` objects that provides methods to manipulate that list immutably.
 
+
+## The Memory interface
 ```ts
 interface Memory<MetaDataType = Record<string, unknown>> {
   role: ChatMessageRoleEnum; // see below, OpenAI standards "role"

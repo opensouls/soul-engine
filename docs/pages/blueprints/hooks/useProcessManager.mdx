@@ -51,8 +51,8 @@ await wait(1000) // wait 1 second
 Here's an example process that makes use of the `invocationCount` and `setNextProcess` in order to define a compelling stateful behavior:
 
 ```javascript filename="provokesSpeaker.js"
-import { MentalProcess, mentalQuery, useProcessManager, useActions } from "@opensouls/engine";
-import { brainstorm, decision, externalDialog } from "./lib/cognitiveFunctions";
+import { MentalProcess, useProcessManager, useActions } from "@opensouls/engine";
+import { brainstorm, decision, externalDialog, mentalQuery } from "./lib/cognitiveSteps.js";
 import playsVictim from "./playsVictim.js";
 
 const provokesSpeaker: MentalProcess = async ({ workingMemory }) => {
@@ -61,11 +61,11 @@ const provokesSpeaker: MentalProcess = async ({ workingMemory }) => {
 
   let response;
   // compute a line of dialog
-  [workingMemory, response] = externalDialog(workingMemory, "Try to provide the speaker")
+  [workingMemory, response] = await externalDialog(workingMemory, "Try to provoke the speaker")
   speak(response)
 
   // decide if it's time to move on
-  const [, didProvokeTheUser] = mentalQuery(workingMemory, "Has samantha successfully provoked the speaker?")
+  const [, didProvokeTheUser] = await mentalQuery(workingMemory, "Has samantha successfully provoked the speaker?")
 
 
   // move to a new mental process if the soul decides it's time to move on

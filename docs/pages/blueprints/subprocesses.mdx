@@ -32,7 +32,7 @@ const userNotes = createCognitiveStep(() => {
         `,
       }
     },
-    postProcess: async (_step, response: string) => {
+    postProcess: async (_workingMemory, response: string) => {
       return [
         {
           role: ChatMessageRoleEnum.Assistant,

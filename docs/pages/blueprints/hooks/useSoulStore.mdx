@@ -26,7 +26,7 @@ export default exampleProcess
 Whenever a piece of content is added to the store, it is lazily embedded afterwards. Here's an example demonstrating trivial vector search post embedding:
 
 ```typescript filename="vectorIntro.ts" {4-25}
-import { externalDialog } from "./lib/externalDialog.js"
+import { externalDialog } from "./lib/cognitiveSteps.js"
 import { useActions, useProcessManager, useSoulStore } from "@opensouls/engine"
 
 const vectorIntro: MentalProcess = async ({ workingMemory }) => {
