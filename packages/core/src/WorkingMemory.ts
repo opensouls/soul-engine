@@ -122,16 +122,27 @@ export class WorkingMemory extends EventEmitter {
   }
 
   /**
-   * The `finished` attribute is a getter that returns a promise which resolves once the current pending transformation using a CognitiveStep is complete.
-   * This is particularly useful for ensuring that all asynchronous operations related to the transformation have been finalized before proceeding.
+   * The `finished` attribute returns a promise which resolves once the current pending transformation using a CognitiveStep is complete.
+   * This is a fairly low level API and most users will not need to worry about this, since working memory uses this attribute internally and
+   * the soul-engine does as well.
+   * 
+   * Only streaming cognitive functions will result in WorkingMemory with pending transformations.
    * 
    * @returns A promise that resolves once the current pending transformation is finished.
    * 
    * @example
    * ```
-   * const [workingMemory] = await cognitiveStep(workingMemory, userArgs);
+   * const [workingMemory, stream] = await cognitiveStep(workingMemory, userArgs, { stream: true });
    * await workingMemory.finished;
    * console.log('Transformation complete.');
+   * ```
+   * 
+   * @example
+   * ```
+   * [workingMemory, stream] = await cognitiveStep(workingMemory, userArgs, { stream: true });
+   * // even though we are not awaiting workingMemory.finished it's ok and will be automatically awaited.
+   * [workingMemory] = await cognitiveStep(workingMemory, userArgs);
+   * // all transformations are complete here.
    * ```
    */
   get finished(): Promise<void> {
