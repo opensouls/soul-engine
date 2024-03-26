@@ -7,8 +7,8 @@
 The open source library offers WorkingMemory and cognitiveSteps for managing context. Each cognitiveStep operates on WorkingMemory, treating every interaction as a distinct transformation. This method ensures a structured and coherent progression of context, allowing for a more predictable and streamlined way to navigate an AI souls thought process. The result is a more consistent and intuitive interaction flow.
 
 The core concepts of the library are:
-* `WorkingMemory` - which is a wrapper around a collection of [Memory](working-memory#the-memory-interface) objects that provides [lots of ways](list-manipulation) to immutably transform memory.
-* `cogntiveStep` - which is a function that transforms a WorkingMemory, adds to its memories, and returns a response. You can think of these functions as thinking, speaking, noticing, etc.
+* [`WorkingMemory`](./core/working-memory) - a collection of [Memory](working-memory#the-memory-interface) objects that provides [lots of ways](list-manipulation) to immutably transform memory.
+* [`cogntiveStep`](./core/cognitive-step) - a function that transforms a WorkingMemory, adds to its memories, and returns a response. You can think of these functions as thinking, speaking, noticing, etc.
 * `processor` - a class for calling out to an LLM and fetching a response.
 
 At its most basic, you perform a [CognitiveStep](./cognitive-step) on a `WorkingMemory` and receive both a fully-typed response (based on the schema of your cognitiveStep) and a new `WorkingMemory` 
@@ -34,7 +34,7 @@ Using WorkingMemory and cognitive steps can be thought of as building up a set o
 
 ```ts
 import { WorkingMemory, ChatMessageRoleEnum, Memory } from "@opensouls/core";
-import { externalDialog } from "./lib/cogntiveSteps";
+import { externalDialog } from "./lib/cogntiveSteps.js";
 
 // Initialize WorkingMemory with initial memories
 let workingMemory = new WorkingMemory({
@@ -55,3 +55,7 @@ async function withReply(workingMemory: WorkingMemory, newMessage: Memory): Prom
   return updatedMemory;
 }
 ```
+
+<Callout type="info" emoji="ℹ️">
+  Many more examples on the [learn-by-example page](./core/learn-by-example)
+</Callout>
