@@ -1,11 +1,12 @@
 import { expect } from "chai";
-import { ChatMessageRoleEnum, WorkingMemory } from "../../src/WorkingMemory.js";
+import { WorkingMemory } from "../../src/WorkingMemory.js";
 import { brainstorm, decision, externalDialog } from "../shared/cognitiveSteps.js";
 import { registerProcessor } from "../../src/processors/registry.js";
 import { OpenAIProcessor, OpenAIProcessorOpts } from "../../src/processors/OpenAIProcessor.js";
 import { z } from "zod";
 import { createCognitiveStep } from "../../src/cognitiveStep.js";
 import { indentNicely } from "../../src/utils.js";
+import { ChatMessageRoleEnum } from "../../src/Memory.js";
 
 registerProcessor("fireworks", (opts: Partial<OpenAIProcessorOpts> = {}) => {
   return new OpenAIProcessor({

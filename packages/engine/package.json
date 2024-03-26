@@ -1,0 +1,65 @@
+{
+  "name": "@opensouls/engine",
+  "version": "0.0.20",
+  "bin": {
+    "soul-engine": "./bin/run.js"
+  },
+  "type": "module",
+  "description": "Write your own souls to run on the OPEN SOULS soul-engine",
+  "main": "dist/index.mjs",
+  "types": "dist/types.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs",
+      "types": "./dist/types.d.ts"
+    }
+  },
+  "scripts": {
+    "prepublishOnly": "npm run build",
+    "test": "mocha tests/*.spec.ts tests/**/*.spec.ts",
+    "build": "tsx scripts/build.ts"
+  },
+  "files": [
+    "bin",
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "author": "",
+  "license": "LGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opensouls/soul-engine.git"
+  },
+  "dependencies": {
+    "@hocuspocus/provider": "=2.9.0",
+    "@opensouls/core": "^0.0.20",
+    "@opensouls/soul": "^0.0.20",
+    "commander": "^12.0.0",
+    "conf": "^12.0.0",
+    "cross-fetch": "^4.0.0",
+    "execa": "^8.0.1",
+    "glob": "^10.3.10",
+    "handlebars": "^4.7.8",
+    "open": "^10.1.0"
+  },
+  "devDependencies": {
+    "@microsoft/api-extractor": "^7.43.0",
+    "@types/chai": "^4.3.12",
+    "@types/mocha": "^10.0.6",
+    "@types/ws": "^8.5.10",
+    "chai": "^5.1.0",
+    "dotenv": "^16.4.5",
+    "esbuild": "0.20.2",
+    "mocha": "^10.3.0",
+    "tsx": "^4.7.1",
+    "typescript": "^5.4.2"
+  },
+  "optionalDependencies": {
+    "ws": "^8.16.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

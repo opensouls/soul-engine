@@ -3,14 +3,9 @@ import esbuild from 'esbuild'
 import { Extractor, ExtractorConfig, ExtractorResult } from '@microsoft/api-extractor';
 import { join } from 'path';
 
-// import path from 'node:path'
-
-await $`rm -rf dist etc lib temp`
-// await $`rm -rf cache/tmp`
+await $`rm -rf dist lib temp`
 await $`mkdir dist`
-await $`mkdir etc`
 await $`npx tsc -p tsconfig.build.json`
-
 
 const apiExtractorJsonPath: string = join(process.cwd(), "config/api-extractor.json")
 
@@ -56,6 +51,14 @@ await esbuild.build({
 await esbuild.build({
   ...defaultParams,
   format: 'cjs',
+  outExtension: { ".js": ".cjs" },
+})
+
+await esbuild.build({
+  ...defaultParams,
+  entryPoints: ["src/minimal.ts"],
+  format: 'esm',
+  outExtension: { ".js": ".mjs" },
 })
 
 await $`rm -rf lib temp`

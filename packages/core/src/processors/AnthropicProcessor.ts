@@ -3,7 +3,7 @@ import { MessageStream } from "@anthropic-ai/sdk/lib/MessageStream";
 import { trace, context } from "@opentelemetry/api";
 import { encodeChatGenerator, encodeGenerator } from "gpt-tokenizer/model/gpt-4"
 import { registerProcessor } from "./registry.js";
-import { ChatMessageRoleEnum, Memory } from "../WorkingMemory.js";
+import { ChatMessageRoleEnum, Memory } from "../Memory.js";
 import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { ReusableStream } from "../ReusableStream.js";
 import {
@@ -49,7 +49,6 @@ export interface AnthropicProcessorOpts {
   clientOptions?: AnthropicClientConfig
   defaultCompletionParams?: Partial<AnthropicDefaultCompletionParams>
   defaultRequestOptions?: Partial<AnthropicRequestOptions>
-  forcedRoleAlternation?: boolean,
 }
 
 const openAiToAnthropicMessages = (openAiMessages: ChatCompletionMessageParam[]): { system?: string, messages: AnthropicMessage[] } => {
@@ -107,14 +106,11 @@ export class AnthropicProcessor implements Processor {
   static label = "anthropic"
   private client: Anthropic
 
-  private forcedRoleAlternation: boolean
-
   private defaultRequestOptions: Partial<AnthropicRequestOptions>
   private defaultCompletionParams: Partial<AnthropicDefaultCompletionParams>
 
-  constructor({ clientOptions, forcedRoleAlternation, defaultRequestOptions, defaultCompletionParams }: AnthropicProcessorOpts) {
+  constructor({ clientOptions, defaultRequestOptions, defaultCompletionParams }: AnthropicProcessorOpts) {
     this.client = new Anthropic(clientOptions)
-    this.forcedRoleAlternation = forcedRoleAlternation || false
     this.defaultRequestOptions = defaultRequestOptions || {}
     this.defaultCompletionParams = defaultCompletionParams || {}
   }
@@ -180,7 +176,6 @@ export class AnthropicProcessor implements Processor {
     maxTokens,
     memory,
     model: developerSpecifiedModel,
-    schema,
     signal,
     timeout,
     temperature,
@@ -203,7 +198,8 @@ export class AnthropicProcessor implements Processor {
           outgoingParams: JSON.stringify(params),
         })
 
-        const stream = await this.client.messages.stream(
+        // TODO, do we want to do anything with schema here to make claude more aware of JSON?
+        const stream = this.client.messages.stream(
           {
             ...this.defaultCompletionParams,
             ...params,
@@ -284,7 +280,7 @@ export class AnthropicProcessor implements Processor {
   }
 
   private possiblyFixMessageRoles(messages: (ChatMessage | ChatCompletionMessageParam)[]): ChatCompletionMessageParam[] {
-    return fixMessageRoles({ singleSystemMessage: true, forcedRoleAlternation: this.forcedRoleAlternation }, messages)
+    return fixMessageRoles({ singleSystemMessage: true, forcedRoleAlternation: true }, messages)
   }
 
 }

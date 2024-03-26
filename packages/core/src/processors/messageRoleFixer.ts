@@ -1,6 +1,6 @@
 import { ChatMessage } from "gpt-tokenizer/GptEncoding"
 import { ChatCompletionMessageParam } from "openai/resources/index.mjs"
-import { ChatMessageRoleEnum } from "../WorkingMemory.js"
+import { ChatMessageRoleEnum } from "../Memory.js"
 
 export interface FixMethods {
   singleSystemMessage?: boolean

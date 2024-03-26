@@ -1,4 +1,4 @@
-import { WorkingMemory } from "./WorkingMemory.js";
+import type { WorkingMemory } from "./WorkingMemory.js";
 import { codeBlock } from "common-tags"
 
 export const indentNicely = codeBlock

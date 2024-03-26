@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { WorkingMemory } from '../../src/WorkingMemory.js';
-import { ChatMessageRoleEnum } from '../../src/WorkingMemory.js';
+import { ChatMessageRoleEnum } from '../../src/Memory.js';
 import { z } from 'zod';
 import { zodToJsonSchema } from "zod-to-json-schema"
 import { AnthropicProcessor } from '../../src/processors/AnthropicProcessor.js';
