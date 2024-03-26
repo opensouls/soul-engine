@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 import { getConfig } from '../config.js'
 import { FilePoster } from '../debugChat/file-poster.js'
-import { SoulConfig } from '../../index.js'
+import { SoulConfig } from '@opensouls/engine'
 import { handleLogin } from '../login.js'
 import { RagPoster } from '../rag/rag-file-poster.js'
 import { Command } from 'commander'

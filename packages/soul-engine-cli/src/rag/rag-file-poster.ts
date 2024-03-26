@@ -4,7 +4,7 @@ import { join, relative } from "node:path";
 
 import { FileWatcher } from "../fileSystem/file-watcher.js";
 import { readDirRecursive } from "../fileSystem/recursive-reader.js";
-import { ALLOWED_RAG_FILE_EXTENSIONS, RagConfigfile, RagIngestionBody, defaultRagBucketName } from "../../index.js";
+import { ALLOWED_RAG_FILE_EXTENSIONS, RagConfigfile, RagIngestionBody, defaultRagBucketName } from "@opensouls/engine";
 
 interface RagPosterOpts {
   apiKey?: string
