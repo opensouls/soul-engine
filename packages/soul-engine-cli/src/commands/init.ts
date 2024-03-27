@@ -1,7 +1,7 @@
 import { Command } from "commander"
 import { globSync } from "glob"
 import Handlebars from "handlebars"
-import { readFileSync, renameSync, rmSync, statSync, writeFileSync, copyFileSync } from 'node:fs'
+import { readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url';
 import fsExtra from "fs-extra"
