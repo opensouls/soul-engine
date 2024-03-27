@@ -1,6 +1,8 @@
-import { externalDialog, mentalQuery } from "./lib/cognitiveSteps.js";
+
 import { MentalProcess, useActions, useProcessManager } from "@opensouls/engine";
 import shouts from "./mentalProcesses/shouts.js";
+import externalDialog from "./lib/externalDialog.js";
+import mentalQuery from "./lib/mentalQuery.js";
 
 const gainsTrustWithTheUser: MentalProcess = async ({ workingMemory }) => {
   const { speak, log  } = useActions()
