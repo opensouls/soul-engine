@@ -32,7 +32,7 @@
   "dependencies": {
     "@opensouls/core": "^0.1.0-0",
     "@opensouls/soul": "^0.1.0-0",
-    "soul-engine": "^0.1.0-0"
+    "soul-engine-next": "^0.1.0-0"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.43.0",
