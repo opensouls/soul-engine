@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "target": "ES2022",
+    "module": "NodeNext",
+    "outDir": "./dist",
+    "rootDir": ".",
+    "strict": true,
+    "esModuleInterop": true,
+    "declaration": true,
+    "types": ["node", "mocha"],
+    "resolveJsonModule": true,
+    "moduleResolution": "Node16",
+  },
+  "include": ["src/**/*", "tests/**/*", "scripts/**/*", "soul/**/*"],
+  "exclude": ["node_modules"]
+}

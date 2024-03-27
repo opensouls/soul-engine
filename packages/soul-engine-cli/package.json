@@ -24,6 +24,7 @@
     "bin",
     "dist",
     "src",
+    "template",
     "README.md"
   ],
   "author": "",
@@ -39,6 +40,7 @@
     "conf": "^12.0.0",
     "cross-fetch": "^4.0.0",
     "execa": "^8.0.1",
+    "fs-extra": "^11.2.0",
     "glob": "^10.3.10",
     "handlebars": "^4.7.8",
     "open": "^10.1.0"
@@ -46,6 +48,7 @@
   "devDependencies": {
     "@microsoft/api-extractor": "^7.43.0",
     "@types/chai": "^4.3.12",
+    "@types/fs-extra": "^11.0.4",
     "@types/mocha": "^10.0.6",
     "@types/ws": "^8.5.10",
     "chai": "^5.1.0",
