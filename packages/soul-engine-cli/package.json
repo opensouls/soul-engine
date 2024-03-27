@@ -35,7 +35,8 @@
   },
   "dependencies": {
     "@hocuspocus/provider": "=2.9.0",
-    "@opensouls/engine": "^0.0.20",
+    "@opensouls/engine": "^0.1.0-0",
+    "chokidar": "^3.6.0",
     "commander": "^12.0.0",
     "conf": "^12.0.0",
     "cross-fetch": "^4.0.0",
@@ -43,7 +44,8 @@
     "fs-extra": "^11.2.0",
     "glob": "^10.3.10",
     "handlebars": "^4.7.8",
-    "open": "^10.1.0"
+    "open": "^10.1.0",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.43.0",
