@@ -7,7 +7,7 @@
 import { Command } from 'commander';
 
 // @public (undocumented)
-const run_2: () => Command;
+const run_2: () => Promise<Command>;
 export { run_2 as run }
 
 // (No @packageDocumentation comment for this package)

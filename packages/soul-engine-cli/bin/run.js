@@ -2,4 +2,5 @@
 
 import { run } from '../dist/index.mjs';
 
-run()
+await run();
+process.exit(0);

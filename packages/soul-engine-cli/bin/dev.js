@@ -2,4 +2,5 @@
 /* eslint-disable node/shebang */
 import { run } from '../src/index';
 
-run()
+await run();
+process.exit(0);

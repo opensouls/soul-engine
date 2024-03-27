@@ -80,7 +80,8 @@ const createInit = (program: Command) => {
 
       console.log("npm install...")
       await $`npm install`
-      console.log("and done!")
+      console.log("success.")
+      return
     })
 }
 

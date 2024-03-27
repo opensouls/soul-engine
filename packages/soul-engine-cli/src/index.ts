@@ -4,5 +4,5 @@ import { setupCLI } from "./commands/index.js";
 export const run = () => {
   const program = new Command();
   setupCLI(program);
-  return program.parse();
+  return program.parseAsync()
 }
