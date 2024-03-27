@@ -1,6 +1,7 @@
 import { MentalProcess, indentNicely, useActions, useProcessManager } from "@opensouls/engine";
 import initialProcess from "../initialProcess.js";
-import { externalDialog, mentalQuery } from "../lib/cognitiveSteps.js";
+import externalDialog from "../lib/externalDialog.js";
+import mentalQuery from "../lib/mentalQuery.js";
 
 const shouts: MentalProcess = async ({ workingMemory }) => {
   const { speak, log } = useActions()

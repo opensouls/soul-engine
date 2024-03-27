@@ -1,6 +1,7 @@
 
 import { ChatMessageRoleEnum, MentalProcess, WorkingMemory, createCognitiveStep, indentNicely, useActions, useProcessMemory } from "@opensouls/engine";
-import { internalMonologue, mentalQuery } from "../lib/cognitiveSteps.js";
+import mentalQuery from "../lib/mentalQuery.js";
+import internalMonologue from "../lib/internalMonologue.js";
 
 const userNotes = createCognitiveStep(() => {
   return {

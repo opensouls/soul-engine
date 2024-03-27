@@ -7,10 +7,10 @@ const COMMUNITY_ROOT = "https://raw.githubusercontent.com/opensouls/souls/featur
 
 const createInstall = (program: Command) => {
   program
-    .command('install <packagePath>')
+    .command('install')
     .argument('<packagePath>', 'The full path of the library package (eg cognitiveSteps/externalDialog)')
     .description('install a community package from the Open Souls community library')
-    .action(async ({ packagePath }: { packagePath: string }) => {
+    .action(async (packagePath: string) => {
       if (!packagePath.endsWith(".ts")) {
         packagePath = packagePath + ".ts"
       }
