@@ -14,6 +14,12 @@ const createInstall = (program: Command) => {
       if (!packagePath.endsWith(".ts")) {
         packagePath = packagePath + ".ts"
       }
+
+      if (! (await fsExtra.pathExists("soul"))) {
+        console.error("You must be in the root of a soul project to install a community file.")
+        return
+      }
+      
       const url = COMMUNITY_ROOT + packagePath
       const resp = await fetch(url)
       if (!resp.ok) {
