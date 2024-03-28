@@ -62,12 +62,12 @@ export enum ChatMessageRoleEnum {
 }
 
 // @public (undocumented)
-export type CognitiveStep<PostProcessReturnType> = {
-    (memory: WorkingMemory, userArgs: any, transformOpts: TransformOptions & {
+export type CognitiveStep<UserArgType, PostProcessReturnType> = {
+    (memory: WorkingMemory, userArgs: UserArgType, transformOpts: TransformOptions & {
         stream: true;
     }): Promise<TransformReturnStreaming<PostProcessReturnType>>;
-    (memory: WorkingMemory, userArgs: any, transformOpts?: Omit<TransformOptions, "stream">): Promise<TransformReturnNonStreaming<PostProcessReturnType>>;
-    (memory: WorkingMemory, userArgs: any, transformOpts: Omit<TransformOptions, "stream"> & {
+    (memory: WorkingMemory, userArgs: UserArgType, transformOpts?: Omit<TransformOptions, "stream">): Promise<TransformReturnNonStreaming<PostProcessReturnType>>;
+    (memory: WorkingMemory, userArgs: UserArgType, transformOpts: Omit<TransformOptions, "stream"> & {
         stream: false;
     }): Promise<TransformReturnNonStreaming<PostProcessReturnType>>;
 };
@@ -85,7 +85,7 @@ export type ContentText = {
 };
 
 // @public
-export const createCognitiveStep: <SchemaType = string, PostProcessType = SchemaType>(transformationOptionsGenerator: (singleArg?: any) => MemoryTransformationOptions<SchemaType, PostProcessType>) => CognitiveStep<PostProcessType>;
+export const createCognitiveStep: <UserArgType = undefined, SchemaType = string, PostProcessType = SchemaType>(transformationOptionsGenerator: (singleArg: UserArgType) => MemoryTransformationOptions<SchemaType, PostProcessType>) => CognitiveStep<UserArgType, PostProcessType>;
 
 // @public (undocumented)
 export const debugChatShape: {

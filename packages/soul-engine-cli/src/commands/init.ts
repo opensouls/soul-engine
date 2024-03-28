@@ -43,8 +43,6 @@ const createInit = (program: Command) => {
 
       process.chdir(join('.', safeProjectName))
 
-      rmSync('.git', { recursive: true })
-
       await $`git init`
       // glob files need to use the "/" even on windows machines, so cannot use path.join here.
       const files = globSync(`${process.cwd()}/**/*`, { dot: false, ignore: "node_modules/**/*" })
@@ -82,7 +80,8 @@ const createInit = (program: Command) => {
 
       console.log("npm install...")
       await $`npm install`
-      console.log("and done!")
+      console.log("success.")
+      return
     })
 }
 

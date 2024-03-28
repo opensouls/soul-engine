@@ -1,5 +1,5 @@
 {
-  "name": "soul-engine",
+  "name": "soul-engine-next",
   "version": "0.1.0",
   "bin": {
     "soul-engine": "./bin/run.js"
@@ -35,7 +35,8 @@
   },
   "dependencies": {
     "@hocuspocus/provider": "=2.9.0",
-    "@opensouls/engine": "^0.0.20",
+    "@opensouls/engine": "^0.1.0-0",
+    "chokidar": "^3.6.0",
     "commander": "^12.0.0",
     "conf": "^12.0.0",
     "cross-fetch": "^4.0.0",
@@ -43,13 +44,15 @@
     "fs-extra": "^11.2.0",
     "glob": "^10.3.10",
     "handlebars": "^4.7.8",
-    "open": "^10.1.0"
+    "open": "^10.1.0",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.43.0",
     "@types/chai": "^4.3.12",
     "@types/fs-extra": "^11.0.4",
     "@types/mocha": "^10.0.6",
+    "@types/uuid": "^9.0.8",
     "@types/ws": "^8.5.10",
     "chai": "^5.1.0",
     "dotenv": "^16.4.5",
