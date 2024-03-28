@@ -1,6 +1,6 @@
 {
   "name": "@opensouls/soul",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "type": "module",
   "description": "The client code for interacting with a soul on the OPEN SOULS soul engine.",
   "main": "dist/index.mjs",

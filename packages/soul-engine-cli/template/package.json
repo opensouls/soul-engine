@@ -15,6 +15,6 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@opensouls/engine": ">=0.1.2"
+    "@opensouls/engine": ">=0.1.4"
   }
 }
