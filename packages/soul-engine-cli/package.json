@@ -1,6 +1,6 @@
 {
   "name": "soul-engine-next",
-  "version": "0.1.0",
+  "version": "0.1.4",
   "bin": {
     "soul-engine": "./bin/run.js"
   },
@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "@hocuspocus/provider": "=2.9.0",
-    "@opensouls/engine": "^0.1.0-0",
+    "@opensouls/engine": "^0.1.4",
     "chokidar": "^3.6.0",
     "commander": "^12.0.0",
     "conf": "^12.0.0",
