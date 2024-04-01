@@ -27,6 +27,24 @@ describe("WorkingMemory", () => {
     expect(memories3.memories[1].content).to.equal(memories2.memories[0].content)
   })
 
+  it("replaces the current memories with new ones", () => {
+    const originalMemories = new WorkingMemory({
+      soulName: "test",
+    }).withMonologue("Original memory #1")
+      .withMonologue("Original memory #2")
+
+    const newMemoriesData = [
+      { content: "New memory #1", role: ChatMessageRoleEnum.User },
+      { content: "New memory #2", role: ChatMessageRoleEnum.User }
+    ]
+
+    const updatedMemories = originalMemories.replace(newMemoriesData)
+
+    expect(updatedMemories.memories).to.have.lengthOf(2)
+    expect(updatedMemories.memories[0].content).to.equal("New memory #1")
+    expect(updatedMemories.memories[1].content).to.equal("New memory #2")
+  })
+
   it("maps over memories", () => {
     const memories = new WorkingMemory({
       soulName: "test",
