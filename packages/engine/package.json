@@ -1,6 +1,6 @@
 {
   "name": "@opensouls/engine",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "type": "module",
   "description": "Write your own souls to run on the OPEN SOULS soul-engine",
   "main": "dist/index.mjs",
