@@ -178,7 +178,7 @@ export interface SoulStoreGetOpts {
 
 // @public (undocumented)
 export interface SoulVectorStoreHook extends Omit<VectorStoreHook, "get"> {
-    // (undocumented)
+    // @deprecated (undocumented)
     get: <T = unknown>(key: string, opts?: SoulStoreGetOpts) => (typeof opts extends {
         includeMetadata: true;
     } ? VectorRecord : T) | undefined;

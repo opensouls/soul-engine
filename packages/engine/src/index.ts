@@ -132,7 +132,9 @@ export interface VectorStoreHook {
 }
 
 export interface SoulVectorStoreHook extends Omit<VectorStoreHook, "get"> {
-  // @deprecated use fetch instead
+  /**
+   * @deprecated use fetch instead
+   */
   get: <T = unknown>(key: string, opts?: SoulStoreGetOpts) => (typeof opts extends { includeMetadata: true } ? VectorRecord : T) | undefined
 }
 
