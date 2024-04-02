@@ -433,6 +433,7 @@ export class WorkingMemory extends EventEmitter {
     prepend(otherWorkingMemory: MemoryListOrWorkingMemory): WorkingMemory;
     // (undocumented)
     processor: ProcessorSpecification;
+    replace(replacementMemories: InputMemory[]): WorkingMemory;
     // (undocumented)
     protected resolvePending(): void;
     slice(start: number, end?: number): WorkingMemory;

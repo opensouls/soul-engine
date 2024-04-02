@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "bump": "npm version patch --workspace packages && npm update @opensouls/engine @opensouls/soul soul-engine --workspace packages",
-    "publish": "npm publish --workspace packages"
+    "publish:all": "npm publish --workspace packages"
   },
   "workspaces": [
     "packages/*"
