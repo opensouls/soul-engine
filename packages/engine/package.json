@@ -1,6 +1,6 @@
 {
   "name": "@opensouls/engine",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "type": "module",
   "description": "Write your own souls to run on the OPEN SOULS soul-engine",
   "main": "dist/index.mjs",
@@ -32,7 +32,7 @@
   "dependencies": {
     "@opensouls/core": "^0.1.4",
     "@opensouls/soul": "^0.1.4",
-    "soul-engine-next": "^0.1.4"
+    "soul-engine": "^0.1.4"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.43.0",
