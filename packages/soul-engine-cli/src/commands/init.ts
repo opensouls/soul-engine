@@ -13,7 +13,7 @@ import { handleLogin } from '../login.js'
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const templatePath = join(__dirname, '..', '..', 'template');
+const templatePath = __dirname.endsWith("dist") ? join(__dirname, '..', 'template') : join(__dirname, '..', '..', 'template');
 
 const createInit = (program: Command) => {
   program
