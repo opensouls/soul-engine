@@ -177,6 +177,23 @@ export class WorkingMemory extends EventEmitter {
   }
 
   /**
+   * Replaces the current memories in the WorkingMemory instance with new ones provided by the caller.
+   * This method is nearly an alias of the `clone` method, with the key difference being that `replacementMemories` are required.
+   * 
+   * @param replacementMemories - An array of InputMemory objects to replace the current memories.
+   * @returns A new WorkingMemory instance, with the memories replaced by the provided ones.
+   * 
+   * @example
+   * ```
+   * const newMemories = [{...}, {...}];
+   * const updatedMemory = workingMemory.replace(newMemories);
+   * ```
+   */
+  replace(replacementMemories: InputMemory[]) {
+    return this.clone(replacementMemories)
+  }
+
+  /**
    * Applies a provided function to each memory in the WorkingMemory instance, producing a new WorkingMemory instance.
    * This method behaves similarly to the Array.prototype.map function, with the key difference being that it returns
    * a new immutable WorkingMemory instance containing the transformed memories, rather than an array of the transformed items.
