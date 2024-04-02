@@ -126,12 +126,13 @@ export interface RagSearchOpts {
 export interface VectorStoreHook {
   createEmbedding: (content: string) => Promise<Embedding>
   delete: (key: string) => void
-  get: <T = unknown>(key: string, opts?: SoulStoreGetOpts) => Promise<(typeof opts extends { includeMetadata: true } ? VectorRecord : T) | undefined>
+  fetch: <T = unknown>(key: string, opts?: SoulStoreGetOpts) => Promise<(typeof opts extends { includeMetadata: true } ? VectorRecord : T) | undefined>
   search: (query: Embedding | string, filter?: VectorMetadata) => Promise<VectorRecordWithDistance[]>
   set: (key: string, value: Json, metadata?: VectorMetadata) => void
 }
 
 export interface SoulVectorStoreHook extends Omit<VectorStoreHook, "get"> {
+  // @deprecated use fetch instead
   get: <T = unknown>(key: string, opts?: SoulStoreGetOpts) => (typeof opts extends { includeMetadata: true } ? VectorRecord : T) | undefined
 }
 

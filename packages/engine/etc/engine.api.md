@@ -245,7 +245,7 @@ export interface VectorStoreHook {
     // (undocumented)
     delete: (key: string) => void;
     // (undocumented)
-    get: <T = unknown>(key: string, opts?: SoulStoreGetOpts) => Promise<(typeof opts extends {
+    fetch: <T = unknown>(key: string, opts?: SoulStoreGetOpts) => Promise<(typeof opts extends {
         includeMetadata: true;
     } ? VectorRecord : T) | undefined>;
     // (undocumented)
