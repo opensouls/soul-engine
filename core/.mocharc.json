@@ -1,7 +1,0 @@
-{
-  "extension": ["ts"],
-  "file": ["tests/shared/dotenv.ts"],
-  "spec": ["tests/**/*.spec.ts"],
-  "require": ["ts-node/register"],
-  "timeout": 60000
-}
