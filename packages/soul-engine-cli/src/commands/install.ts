@@ -3,7 +3,7 @@ import fsExtra from 'fs-extra/esm'
 import { writeFile } from "node:fs/promises"
 import { basename, join } from "node:path"
 
-const COMMUNITY_ROOT = "https://raw.githubusercontent.com/opensouls/souls/feature/community/library/"
+const COMMUNITY_ROOT = "https://raw.githubusercontent.com/opensouls/community/main/library/"
 
 const createInstall = (program: Command) => {
   program
