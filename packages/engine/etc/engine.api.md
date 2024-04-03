@@ -137,6 +137,10 @@ export interface SoulHooks {
     // (undocumented)
     useActions: () => DefaultActions;
     // (undocumented)
+    useBlueprintStore: (bucketName?: string) => VectorStoreHook;
+    // (undocumented)
+    useOrganizationStore: (bucketName?: string) => VectorStoreHook;
+    // (undocumented)
     usePerceptions: () => {
         invokingPerception: Perception | null | undefined;
         pendingPerceptions: {
@@ -155,7 +159,7 @@ export interface SoulHooks {
     };
     // (undocumented)
     useRag(bucketName?: string): {
-        search: (opts: RagSearchOpts) => Promise<VectorRecordWithSimilarity[]>;
+        search: (opts: RagSearchOpts) => Promise<VectorRecordWithDistance[]>;
         withRagContext: <T = any>(step: T, opts?: WithRagContextOpts) => Promise<T>;
     };
     // (undocumented)
@@ -163,15 +167,7 @@ export interface SoulHooks {
         current: T;
     };
     // (undocumented)
-    useSoulStore: () => {
-        createEmbedding: (content: string) => Promise<Embedding>;
-        delete: (key: string) => void;
-        get: <T = unknown>(key: string, opts?: SoulStoreGetOpts) => (typeof opts extends {
-            includeMetadata: true;
-        } ? VectorRecord : T) | undefined;
-        search: (query: Embedding | string, filter?: VectorMetadata) => Promise<VectorRecordWithSimilarity[]>;
-        set: (key: string, value: Json, metadata?: VectorMetadata) => void;
-    };
+    useSoulStore: () => SoulVectorStoreHook;
 }
 
 // @public (undocumented)
@@ -181,7 +177,21 @@ export interface SoulStoreGetOpts {
 }
 
 // @public (undocumented)
+export interface SoulVectorStoreHook extends Omit<VectorStoreHook, "get"> {
+    // @deprecated (undocumented)
+    get: <T = unknown>(key: string, opts?: SoulStoreGetOpts) => (typeof opts extends {
+        includeMetadata: true;
+    } ? VectorRecord : T) | undefined;
+}
+
+// @public (undocumented)
 export const useActions: SoulHooks["useActions"];
+
+// @public (undocumented)
+export const useBlueprintStore: SoulHooks["useBlueprintStore"];
+
+// @public (undocumented)
+export const useOrganizationStore: SoulHooks["useOrganizationStore"];
 
 // @public (undocumented)
 export const usePerceptions: SoulHooks["usePerceptions"];
@@ -217,9 +227,31 @@ export interface VectorRecord {
 }
 
 // @public (undocumented)
-export interface VectorRecordWithSimilarity extends VectorRecord {
+export interface VectorRecordWithDistance extends VectorRecord {
     // (undocumented)
+    distance: number;
+}
+
+// @public @deprecated (undocumented)
+export interface VectorRecordWithSimilarity extends VectorRecordWithDistance {
+    // @deprecated (undocumented)
     similarity: number;
+}
+
+// @public (undocumented)
+export interface VectorStoreHook {
+    // (undocumented)
+    createEmbedding: (content: string) => Promise<Embedding>;
+    // (undocumented)
+    delete: (key: string) => void;
+    // (undocumented)
+    fetch: <T = unknown>(key: string, opts?: SoulStoreGetOpts) => Promise<(typeof opts extends {
+        includeMetadata: true;
+    } ? VectorRecord : T) | undefined>;
+    // (undocumented)
+    search: (query: Embedding | string, filter?: VectorMetadata) => Promise<VectorRecordWithDistance[]>;
+    // (undocumented)
+    set: (key: string, value: Json, metadata?: VectorMetadata) => void;
 }
 
 // @public (undocumented)
