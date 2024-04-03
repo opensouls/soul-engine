@@ -80,7 +80,7 @@ export const defaultRagBucketName: (blueprint: string) => string;
 export type Embedding = number[];
 
 // @public (undocumented)
-export type MentalProcess<ParamType = Record<number | string, any>, CortexStepType = any> = (args: MentalProcessArguments<ParamType, CortexStepType>) => Promise<CortexStepType | WorkingMemory>;
+export type MentalProcess<ParamType = Record<number | string, any>, CortexStepType = any> = (args: MentalProcessArguments<ParamType, CortexStepType>) => Promise<MentalProcessReturnTypes<CortexStepType, ParamType>>;
 
 // @public (undocumented)
 export interface MentalProcessArguments<ParamType, CortexStepType = any> {
@@ -91,6 +91,17 @@ export interface MentalProcessArguments<ParamType, CortexStepType = any> {
     // (undocumented)
     workingMemory: WorkingMemory;
 }
+
+// @public (undocumented)
+export interface MentalProcessReturnOptions<ParamType> {
+    // (undocumented)
+    executeNow?: boolean;
+    // (undocumented)
+    params?: ParamType;
+}
+
+// @public (undocumented)
+export type MentalProcessReturnTypes<CortexStepType, ParamType = any> = CortexStepType | WorkingMemory | [WorkingMemory, MentalProcess<ParamType>] | [WorkingMemory, MentalProcess<ParamType>, MentalProcessReturnOptions<ParamType>];
 
 // @public (undocumented)
 export type PerceptionProcessor = <PropType>(perceptionArgs: {
