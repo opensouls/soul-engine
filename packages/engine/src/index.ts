@@ -1,5 +1,5 @@
 /* eslint-disable arrow-body-style */
-import { InternalPerception } from '@opensouls/core';
+import { InternalPerception, WorkingMemory } from '@opensouls/core';
 import { DeveloperInteractionRequest, Json, Perception, SoulEnvironment } from '@opensouls/core';
 import { MentalProcess } from './mentalProcess.js'
 
@@ -95,6 +95,14 @@ export interface SoulStoreGetOpts {
 
 export type Embedding = number[]
 
+export type PerceptionProcessorReturnTypes<PropType = any> = undefined | [WorkingMemory] | [WorkingMemory, MentalProcess<PropType>] | [WorkingMemory, MentalProcess<PropType>, PropType]
+
+export type PerceptionProcessor = <PropType>(perceptionArgs: {
+  perception: Perception,
+  currentProcess: MentalProcess<any>,
+  workingMemory: WorkingMemory,
+}) => Promise<PerceptionProcessorReturnTypes<PropType>>
+
 export interface Blueprint {
   name: string
   entity: string
@@ -102,6 +110,9 @@ export interface Blueprint {
   initialProcess: MentalProcess<any>
   mentalProcesses: MentalProcess<any>[]
   subprocesses?: MentalProcess<any>[]
+
+  perceptionProcessor?: PerceptionProcessor
+
   defaultEnvironment?: SoulEnvironment
 }
 

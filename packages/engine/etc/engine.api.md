@@ -29,6 +29,8 @@ export interface Blueprint {
     // (undocumented)
     name: string;
     // (undocumented)
+    perceptionProcessor?: PerceptionProcessor;
+    // (undocumented)
     subprocesses?: MentalProcess<any>[];
 }
 
@@ -89,6 +91,16 @@ export interface MentalProcessArguments<ParamType, CortexStepType = any> {
     // (undocumented)
     workingMemory: WorkingMemory;
 }
+
+// @public (undocumented)
+export type PerceptionProcessor = <PropType>(perceptionArgs: {
+    perception: Perception;
+    currentProcess: MentalProcess<any>;
+    workingMemory: WorkingMemory;
+}) => Promise<PerceptionProcessorReturnTypes<PropType>>;
+
+// @public (undocumented)
+export type PerceptionProcessorReturnTypes<PropType = any> = undefined | [WorkingMemory] | [WorkingMemory, MentalProcess<PropType>] | [WorkingMemory, MentalProcess<PropType>, PropType];
 
 // @public (undocumented)
 export interface RagConfigfile {
