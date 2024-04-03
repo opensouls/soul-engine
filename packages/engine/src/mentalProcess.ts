@@ -6,8 +6,8 @@ export interface MentalProcessArguments<ParamType, CortexStepType = any> {
   workingMemory: WorkingMemory
 }
 
-export interface MentalProcessReturnOptions<PropType> {
-  params: PropType,
+export interface MentalProcessReturnOptions<ParamType> {
+  params?: ParamType,
   executeNow?: boolean
 }
 
