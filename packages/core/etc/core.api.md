@@ -26,7 +26,7 @@ export type AnthropicDefaultCompletionParams = AnthropicCompletionParams & {
 
 // @public (undocumented)
 export class AnthropicProcessor implements Processor {
-    constructor({ clientOptions, defaultRequestOptions, defaultCompletionParams }: AnthropicProcessorOpts);
+    constructor({ clientOptions, defaultRequestOptions, defaultCompletionParams, customClient }: AnthropicProcessorOpts);
     // (undocumented)
     static label: string;
     // (undocumented)
@@ -37,6 +37,8 @@ export class AnthropicProcessor implements Processor {
 export interface AnthropicProcessorOpts {
     // (undocumented)
     clientOptions?: AnthropicClientConfig;
+    // (undocumented)
+    customClient?: ICompatibleAnthropicClient;
     // (undocumented)
     defaultCompletionParams?: Partial<AnthropicDefaultCompletionParams>;
     // (undocumented)
@@ -70,6 +72,13 @@ export type CognitiveStep<UserArgType, PostProcessReturnType> = {
     (memory: WorkingMemory, userArgs: UserArgType, transformOpts: Omit<TransformOptions, "stream"> & {
         stream: false;
     }): Promise<TransformReturnNonStreaming<PostProcessReturnType>>;
+};
+
+// @public (undocumented)
+export type CompatibleAnthropicClient = {
+    messages: {
+        stream: (body: AnthropicCompletionParams, options?: AnthropicRequestOptions) => AsyncIterable<Anthropic.MessageStreamEvent>;
+    };
 };
 
 // @public (undocumented)
@@ -139,6 +148,12 @@ export function getProcessor(name: string, opts?: ProcessorCreationOpts): Proces
 // @public (undocumented)
 type Headers_2 = Record<string, string | null | undefined>;
 export { Headers_2 as Headers }
+
+// @public (undocumented)
+export interface ICompatibleAnthropicClient {
+    // (undocumented)
+    new (options: AnthropicClientConfig): CompatibleAnthropicClient;
+}
 
 // @public (undocumented)
 export interface ImageURL {
