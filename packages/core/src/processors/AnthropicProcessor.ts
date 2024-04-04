@@ -28,6 +28,16 @@ interface AnthropicMessage {
   role: ChatMessageRoleEnum.Assistant | ChatMessageRoleEnum.User
 }
 
+export interface ICompatibleAnthropicClient {
+  new (options: AnthropicClientConfig): CompatibleAnthropicClient;
+}
+
+export type CompatibleAnthropicClient = {
+  messages: {
+    stream: (body: AnthropicCompletionParams, options?: AnthropicRequestOptions) => AsyncIterable<Anthropic.MessageStreamEvent>
+  }
+}
+
 export type AnthropicClientConfig = ConstructorParameters<typeof Anthropic>[0]
 
 export type AnthropicCompletionParams = Anthropic["messages"]["stream"]["arguments"][0]
@@ -49,6 +59,7 @@ export interface AnthropicProcessorOpts {
   clientOptions?: AnthropicClientConfig
   defaultCompletionParams?: Partial<AnthropicDefaultCompletionParams>
   defaultRequestOptions?: Partial<AnthropicRequestOptions>
+  customClient?: ICompatibleAnthropicClient
 }
 
 const openAiToAnthropicMessages = (openAiMessages: ChatCompletionMessageParam[]): { system?: string, messages: AnthropicMessage[] } => {
@@ -104,13 +115,13 @@ const DEFAULT_MODEL = "claude-3-opus-20240229"
 
 export class AnthropicProcessor implements Processor {
   static label = "anthropic"
-  private client: AnthropicCustomRestClient
+  private client: CompatibleAnthropicClient
   
   private defaultRequestOptions: Partial<AnthropicRequestOptions>
   private defaultCompletionParams: Partial<AnthropicDefaultCompletionParams>
 
-  constructor({ clientOptions, defaultRequestOptions, defaultCompletionParams }: AnthropicProcessorOpts) {
-    this.client = new AnthropicCustomRestClient(clientOptions)
+  constructor({ clientOptions, defaultRequestOptions, defaultCompletionParams, customClient }: AnthropicProcessorOpts) {
+    this.client = new (customClient ?? Anthropic)(clientOptions)
     this.defaultRequestOptions = defaultRequestOptions || {}
     this.defaultCompletionParams = defaultCompletionParams || {}
   }

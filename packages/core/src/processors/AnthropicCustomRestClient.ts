@@ -1,9 +1,9 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { Response as NodeFetchResponse } from 'node-fetch';
-import { AnthropicClientConfig } from './AnthropicProcessor.js';
+import { AnthropicClientConfig, CompatibleAnthropicClient } from './AnthropicProcessor.js';
 import { Readable } from 'stream';
 
-export class AnthropicCustomRestClient {
+export class AnthropicCustomRestClient implements CompatibleAnthropicClient {
   clientOptions: AnthropicClientConfig;
 
   constructor(clientOptions: AnthropicClientConfig) {
