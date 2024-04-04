@@ -1,5 +1,4 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { MessageStream } from "@anthropic-ai/sdk/lib/MessageStream";
 import { trace, context } from "@opentelemetry/api";
 import { encodeChatGenerator, encodeGenerator } from "gpt-tokenizer/model/gpt-4"
 import { registerProcessor } from "./registry.js";
@@ -17,6 +16,7 @@ import {
 import { backOff } from "exponential-backoff";
 import { ChatMessage } from "gpt-tokenizer/GptEncoding";
 import { fixMessageRoles } from './messageRoleFixer.js';
+import { AnthropicCustomRestClient } from './AnthropicCustomRestClient.js';
 
 const tracer = trace.getTracer(
   'open-souls-OpenAIProcessor',
@@ -84,7 +84,7 @@ const openAiToAnthropicMessages = (openAiMessages: ChatCompletionMessageParam[])
   return { system: systemMessage, messages: messages }
 }
 
-async function* chunkStreamToTextStream(chunkStream: MessageStream) {
+async function* chunkStreamToTextStream(chunkStream: AsyncIterable<Anthropic.MessageStreamEvent>) {
 
   for await (const evt of chunkStream) {
     if (evt.type === "message_start") {
@@ -104,13 +104,13 @@ const DEFAULT_MODEL = "claude-3-opus-20240229"
 
 export class AnthropicProcessor implements Processor {
   static label = "anthropic"
-  private client: Anthropic
-
+  private client: AnthropicCustomRestClient
+  
   private defaultRequestOptions: Partial<AnthropicRequestOptions>
   private defaultCompletionParams: Partial<AnthropicDefaultCompletionParams>
 
   constructor({ clientOptions, defaultRequestOptions, defaultCompletionParams }: AnthropicProcessorOpts) {
-    this.client = new Anthropic(clientOptions)
+    this.client = new AnthropicCustomRestClient(clientOptions)
     this.defaultRequestOptions = defaultRequestOptions || {}
     this.defaultCompletionParams = defaultCompletionParams || {}
   }
@@ -210,7 +210,7 @@ export class AnthropicProcessor implements Processor {
             timeout: timeout || 10_000,
           }
         )
-
+        
         const textStream = new ReusableStream(chunkStreamToTextStream(stream))
 
         const fullContentPromise = new Promise<string>(async (resolve, reject) => {
