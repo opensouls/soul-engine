@@ -18,11 +18,26 @@ export class CommunityInstaller {
     }
 
     const directory = dirname(this.userPath)
+    switch (directory) {
+      case "perceptionProcessors":
+        return this.preprocessorInstall(await resp.text())
+      default:
+        return this.defaultInstall(await resp.text())
+    }
+  }
+
+  async defaultInstall(data: string) {
+    const directory = dirname(this.userPath)
 
     await fsExtra.mkdirp(join("soul", directory))
 
-    const data = await resp.text();
     const destinationPath = join("soul", this.userPath)
+    await writeFile(destinationPath, data);
+    console.log(`${this.userPath} has been installed successfully to ${destinationPath}`);
+  }
+
+  async preprocessorInstall(data: string) {
+    const destinationPath = join("soul", "perceptionProcessor.ts")
     await writeFile(destinationPath, data);
     console.log(`${this.userPath} has been installed successfully to ${destinationPath}`);
   }
