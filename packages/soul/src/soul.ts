@@ -201,6 +201,8 @@ export class Soul extends EventEmitter<SoulEvents> {
       provider.configuration.websocketProvider.destroy()
     }
 
+    this.connection = undefined
+
     this.removeAllListeners()
   }
 
