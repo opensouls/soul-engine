@@ -1,5 +1,4 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { MessageStream } from "@anthropic-ai/sdk/lib/MessageStream";
 import { trace, context } from "@opentelemetry/api";
 import { encodeChatGenerator, encodeGenerator } from "gpt-tokenizer/model/gpt-4"
 import { registerProcessor } from "./registry.js";
@@ -28,6 +27,16 @@ interface AnthropicMessage {
   role: ChatMessageRoleEnum.Assistant | ChatMessageRoleEnum.User
 }
 
+export interface ICompatibleAnthropicClient {
+  new (options: AnthropicClientConfig): CompatibleAnthropicClient;
+}
+
+export type CompatibleAnthropicClient = {
+  messages: {
+    stream: (body: AnthropicCompletionParams, options?: AnthropicRequestOptions) => AsyncIterable<Anthropic.MessageStreamEvent>
+  }
+}
+
 export type AnthropicClientConfig = ConstructorParameters<typeof Anthropic>[0]
 
 export type AnthropicCompletionParams = Anthropic["messages"]["stream"]["arguments"][0]
@@ -49,6 +58,7 @@ export interface AnthropicProcessorOpts {
   clientOptions?: AnthropicClientConfig
   defaultCompletionParams?: Partial<AnthropicDefaultCompletionParams>
   defaultRequestOptions?: Partial<AnthropicRequestOptions>
+  customClient?: ICompatibleAnthropicClient
 }
 
 const openAiToAnthropicMessages = (openAiMessages: ChatCompletionMessageParam[]): { system?: string, messages: AnthropicMessage[] } => {
@@ -84,7 +94,7 @@ const openAiToAnthropicMessages = (openAiMessages: ChatCompletionMessageParam[])
   return { system: systemMessage, messages: messages }
 }
 
-async function* chunkStreamToTextStream(chunkStream: MessageStream) {
+async function* chunkStreamToTextStream(chunkStream: AsyncIterable<Anthropic.MessageStreamEvent>) {
 
   for await (const evt of chunkStream) {
     if (evt.type === "message_start") {
@@ -104,13 +114,13 @@ const DEFAULT_MODEL = "claude-3-opus-20240229"
 
 export class AnthropicProcessor implements Processor {
   static label = "anthropic"
-  private client: Anthropic
+  private client: CompatibleAnthropicClient
 
   private defaultRequestOptions: Partial<AnthropicRequestOptions>
   private defaultCompletionParams: Partial<AnthropicDefaultCompletionParams>
 
-  constructor({ clientOptions, defaultRequestOptions, defaultCompletionParams }: AnthropicProcessorOpts) {
-    this.client = new Anthropic(clientOptions)
+  constructor({ clientOptions, defaultRequestOptions, defaultCompletionParams, customClient }: AnthropicProcessorOpts) {
+    this.client = new (customClient ?? Anthropic)(clientOptions)
     this.defaultRequestOptions = defaultRequestOptions || {}
     this.defaultCompletionParams = defaultCompletionParams || {}
   }

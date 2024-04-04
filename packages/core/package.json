@@ -34,7 +34,7 @@
     "url": "git+https://github.com/opensouls/soul-engine.git"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.19.0",
+    "@anthropic-ai/sdk": "^0.19.1",
     "@opentelemetry/api": "^1.8.0",
     "common-tags": "^1.8.2",
     "eventemitter3": "^5.0.1",
