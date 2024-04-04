@@ -15,6 +15,8 @@ export enum Actions {
   SAYS = "says",
 }
 
+export type { InteractionRequest } from "@opensouls/core"
+
 export enum Events {
   // this one is sent by the server
   newSoulEvent = "newSoulEvent",
@@ -153,7 +155,15 @@ export class Soul extends EventEmitter<SoulEvents> {
     return this.connection.store
   }
 
+  get connected() {
+    return this.connection?.provider.isConnected
+  }
+
   async connect(): Promise<string> {
+    if (this.connection) {
+      console.warn("connect() called twice on soul")
+      return this.soulId
+    }
     if (!this.websocket) {
       this.selfCreatedWebsocket = true
       // eslint-disable-next-line unicorn/no-typeof-undefined
@@ -163,6 +173,12 @@ export class Soul extends EventEmitter<SoulEvents> {
       } else {
         this.websocket = getConnectedWebsocket(this.organizationSlug, this.local, Boolean(this.debug))
       }
+    }
+
+    // we need to do this a 2nd time because of the await above in the this.websocket block
+    if (this.connection) {
+      console.warn("connect() called twice on soul")
+      return this.soulId
     }
 
     this.connection = this.getProvider()
@@ -184,6 +200,8 @@ export class Soul extends EventEmitter<SoulEvents> {
     if (this.selfCreatedWebsocket) {
       provider.configuration.websocketProvider.destroy()
     }
+
+    this.connection = undefined
 
     this.removeAllListeners()
   }
