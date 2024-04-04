@@ -52,6 +52,8 @@ export enum Events {
     setEnvironment = "setEnvironment"
 }
 
+export { InteractionRequest }
+
 // @public (undocumented)
 export function said(entity: string, content: string): DeveloperDispatchedPerception;
 
@@ -61,6 +63,8 @@ export class Soul extends EventEmitter<SoulEvents> {
     constructor({ debug, local, organization, soulId, blueprint, token, version, webSocket, environment }: SoulOpts);
     // (undocumented)
     connect(): Promise<string>;
+    // (undocumented)
+    get connected(): boolean | undefined;
     // (undocumented)
     disconnect(): Promise<void>;
     // (undocumented)
