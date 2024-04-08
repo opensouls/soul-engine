@@ -6,6 +6,7 @@ import createLogout from "./logout.js";
 import createLogin from "./login.js";
 import createRagCommand from "./rag/index.js";
 import createInstall from "./install.js";
+import createStoreCommand from "./stores/index.js";
 
 export const setupCLI = (program: Command) => {
   createApiKeyCommand(program);
@@ -14,5 +15,6 @@ export const setupCLI = (program: Command) => {
   createLogin(program);
   createLogout(program);
   createRagCommand(program);
+  createStoreCommand(program);
   createInstall(program);
 }
