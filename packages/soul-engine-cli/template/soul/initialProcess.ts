@@ -1,12 +1,9 @@
 
-import { MentalProcess, useActions, useProcessManager } from "@opensouls/engine";
-import shouts from "./mentalProcesses/shouts.js";
+import { MentalProcess, useActions } from "@opensouls/engine";
 import externalDialog from "./cognitiveSteps/externalDialog.js";
-import mentalQuery from "./cognitiveSteps/mentalQuery.js";
 
 const gainsTrustWithTheUser: MentalProcess = async ({ workingMemory }) => {
-  const { speak, log  } = useActions()
-  const { setNextProcess } = useProcessManager()
+  const { speak  } = useActions()
 
   const [withDialog, stream] = await externalDialog(
     workingMemory,
@@ -14,12 +11,6 @@ const gainsTrustWithTheUser: MentalProcess = async ({ workingMemory }) => {
     { stream: true, model: "quality" }
   );
   speak(stream);
-
-  const [,shouldShout] = await mentalQuery(withDialog, "The interlocuter is being rude?")
-  log("User attacked soul?", shouldShout)
-  if (shouldShout) {
-    setNextProcess(shouts)
-  }
 
   return withDialog;
 }
