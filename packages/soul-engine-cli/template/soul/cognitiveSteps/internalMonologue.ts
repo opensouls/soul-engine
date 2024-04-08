@@ -26,7 +26,7 @@ const internalMonologue = createCognitiveStep((instructions: string | { instruct
           * Only respond with the format '${name} ${verb}: "..."', no additional commentary or text.
           * Follow the Description when creating the internal thought!
 
-          Please reply with the next internal monologue thought of ${name}. Use the format: ${name} ${verb}: "..."
+          Please reply with the next internal monologue thought of ${name}. Use the format: '${name} ${verb}: "..."'
         `
       };
     },

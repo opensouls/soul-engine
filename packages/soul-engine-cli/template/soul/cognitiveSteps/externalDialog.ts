@@ -24,7 +24,7 @@ const externalDialog = createCognitiveStep((instructions: string | { instruction
     
             ${instructionString}
     
-            Please reply with the next utterance from ${name}. Use the format: ${name} ${verb}: "..."
+            Please reply with the next utterance from ${name}. Use the format: '${name} ${verb}: "..."'
           `
       };
     },

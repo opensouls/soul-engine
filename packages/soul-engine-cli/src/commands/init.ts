@@ -45,7 +45,7 @@ const createInit = (program: Command) => {
 
       await $`git init`
       // glob files need to use the "/" even on windows machines, so cannot use path.join here.
-      const files = globSync(`${process.cwd()}/**/*`, { dot: false, ignore: "node_modules/**/*" })
+      const files = globSync(`${process.cwd()}/**/*`, { dot: true, ignore: "node_modules/**/*" })
       const organization = config.get("organization") || "public"
       console.log("using soul-engine organization:", organization)
       const data = {
