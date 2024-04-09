@@ -5,6 +5,7 @@ import { join, relative } from "node:path";
 import { FileWatcher } from "../fileSystem/file-watcher.js";
 import { readDirRecursive } from "../fileSystem/recursive-reader.js";
 import { ALLOWED_RAG_FILE_EXTENSIONS, RagConfigfile, RagIngestionBody, defaultRagBucketName } from "@opensouls/engine";
+import { parsedPackageJson } from "../packageParser.js";
 
 interface RagPosterOpts {
   apiKey?: string
@@ -24,14 +25,6 @@ interface CreateWithDefaultConfigOpts {
   apiKey: string
 }
 
-interface PackageJsonWithName {
-  name: string
-}
-
-const parsedPackageJson = (): PackageJsonWithName => {
-  const packageJsonPath = join(".", "package.json")
-  return JSON.parse(readFileSync(packageJsonPath, { encoding: "utf8" }))
-}
 
 export class RagPoster {
   private apiKey: string
@@ -65,8 +58,7 @@ export class RagPoster {
       const ragConfig: RagConfigfile = JSON.parse(readFileSync(pathToRagConfig, { encoding: "utf8" }));
       bucketName = ragConfig.bucket;
     } else {
-      const packageJson = parsedPackageJson();
-      bucketName = defaultRagBucketName(packageJson.name);
+      bucketName = defaultRagBucketName(parsedPackageJson().name);
     }
 
     console.log("RAG bucket name:", bucketName)
