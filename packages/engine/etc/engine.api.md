@@ -253,18 +253,17 @@ export interface VectorRecord {
 export interface VectorRecordWithDistance extends VectorRecord {
     // (undocumented)
     distance: number;
+    // (undocumented)
+    similarity: number;
 }
 
 // @public @deprecated (undocumented)
-export interface VectorRecordWithSimilarity extends VectorRecordWithDistance {
-    // @deprecated (undocumented)
-    similarity: number;
-}
+export type VectorRecordWithSimilarity = VectorRecordWithDistance;
 
 // @public (undocumented)
 export interface VectorStoreHook {
     // (undocumented)
-    createEmbedding: (content: string) => Promise<Embedding>;
+    createEmbedding: (content: string, model?: string) => Promise<Embedding>;
     // (undocumented)
     delete: (key: string) => void;
     // (undocumented)
@@ -272,9 +271,23 @@ export interface VectorStoreHook {
         includeMetadata: true;
     } ? VectorRecord : T) | undefined>;
     // (undocumented)
-    search: (query: Embedding | string, filter?: VectorMetadata) => Promise<VectorRecordWithDistance[]>;
+    search: (query: Embedding | string, opts?: VectorStorSearchOpts) => Promise<VectorRecordWithDistance[]>;
     // (undocumented)
-    set: (key: string, value: Json, metadata?: VectorMetadata) => void;
+    set: (key: string, value: Json, metadata?: VectorMetadata, model?: string) => void;
+}
+
+// @public (undocumented)
+export interface VectorStorSearchOpts {
+    // (undocumented)
+    filter?: VectorMetadata;
+    // (undocumented)
+    maxDistance?: number;
+    // (undocumented)
+    minSimilarity?: number;
+    // (undocumented)
+    model?: string;
+    // (undocumented)
+    resultLimit?: number;
 }
 
 // @public (undocumented)
