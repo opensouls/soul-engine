@@ -63,17 +63,13 @@ export interface VectorRecord {
 
 export interface VectorRecordWithDistance extends VectorRecord {
   distance: number
+  similarity: number
 }
 
 /**
  * @deprecated use VectorRecordWithDistance instead
  */
-export interface VectorRecordWithSimilarity extends VectorRecordWithDistance {
-  /**
-   * @deprecated use distance instead
-   */
-  similarity: number
-}
+export type VectorRecordWithSimilarity = VectorRecordWithDistance
 
 /* end vectordb */
 
@@ -120,7 +116,6 @@ export interface RagConfigfile {
   bucket: string
 }
 
-
 export interface SoulConfig {
   soul: string,
   path?: string,
@@ -134,11 +129,11 @@ export interface RagSearchOpts {
   bucketName?: string
 }
 
-
 export interface VectorStorSearchOpts {
   filter?: VectorMetadata
   resultLimit?: number
   maxDistance?: number
+  minSimilarity?: number
   model?: string
 }
 
