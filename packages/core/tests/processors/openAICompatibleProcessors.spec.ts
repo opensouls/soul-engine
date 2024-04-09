@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { WorkingMemory } from "../../src/WorkingMemory.js";
-import { brainstorm, decision, externalDialog } from "../shared/cognitiveSteps.js";
+import { brainstorm, decision, externalDialog, instruction } from "../shared/cognitiveSteps.js";
 import { registerProcessor } from "../../src/processors/registry.js";
 import { OpenAIProcessor, OpenAIProcessorOpts } from "../../src/processors/OpenAIProcessor.js";
 import { z } from "zod";
@@ -150,8 +150,8 @@ describe("OpenAICompatibleProcessors", () => {
   })
 
   it("works with fireworks and complex json", async () => {
-    if (!process.env.TOGETHER_API_KEY) {
-      console.log("No TOGETHER_API_KEY, skipping test")
+    if (!process.env.FIREWORKS_API_KEY) {
+      console.log("No FIREWORKS_API_KEY, skipping test")
       return
     }
 
@@ -178,6 +178,43 @@ describe("OpenAICompatibleProcessors", () => {
     expect(stormed).to.be.a('Array')
 
     expect((bigObject as any).itemsOfKnowledge).to.be.a('array')
+  })
+
+  it("works with fireworks vision", async () => {
+    if (!process.env.FIREWORKS_API_KEY) {
+      console.log("No FIREWORKS_API_KEY, skipping test")
+      return
+    }
+
+    const url = "https://shop-pawness.com/wp-content/uploads/2019/12/LIVING-THE-HAPPY-LIFE.jpg"
+
+    const workingMemory = new WorkingMemory({
+      soulName: 'Jung',
+      memories: [
+        {
+          role: ChatMessageRoleEnum.User,
+          content: [
+            {
+              type: "text",
+              text: "Here is an image",
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: url,
+              },
+            }
+          ]
+        }
+      ],
+      processor: {
+        name: "fireworks",
+      }
+    });
+
+    const [,answered] = await instruction(workingMemory, "What is that image?", { model: "fireworks/firellava-13b" })
+    
+    expect(answered).to.include("dog")
   })
 
   it("works with mistral", async () => {

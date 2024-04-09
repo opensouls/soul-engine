@@ -27,6 +27,31 @@ describe("WorkingMemory", () => {
     expect(memories3.memories[1].content).to.equal(memories2.memories[0].content)
   })
 
+  it("retrieves a memory at a specified index", () => {
+    const memories = new WorkingMemory({
+      soulName: "test",
+    }).withMonologue("Memory #1")
+      .withMonologue("Memory #2")
+
+    const memoryAtIndex0 = memories.at(0)
+    const memoryAtIndex1 = memories.at(1)
+    const memoryAtInvalidIndex = memories.at(3)
+
+    expect(memoryAtIndex0.content).to.equal("Memory #1")
+    expect(memoryAtIndex1.content).to.equal("Memory #2")
+    expect(memoryAtInvalidIndex).to.be.undefined
+  })
+
+  it("returns the correct length of memories", () => {
+    const memories = new WorkingMemory({
+      soulName: "test",
+    }).withMonologue("Memory #1")
+      .withMonologue("Memory #2")
+      .withMonologue("Memory #3")
+
+    expect(memories.length).to.equal(3)
+  })
+
   it("replaces the current memories with new ones", () => {
     const originalMemories = new WorkingMemory({
       soulName: "test",
