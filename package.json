@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "bump": "npm version patch --workspace packages && npm update @opensouls/engine @opensouls/soul soul-engine --workspace packages",
+    "bump": "lerna version --no-private",
     "publish:all": "npm publish --workspace packages"
   },
   "workspaces": [
