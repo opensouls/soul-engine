@@ -63,17 +63,13 @@ export interface VectorRecord {
 
 export interface VectorRecordWithDistance extends VectorRecord {
   distance: number
+  similarity: number
 }
 
 /**
  * @deprecated use VectorRecordWithDistance instead
  */
-export interface VectorRecordWithSimilarity extends VectorRecordWithDistance {
-  /**
-   * @deprecated use distance instead
-   */
-  similarity: number
-}
+export type VectorRecordWithSimilarity = VectorRecordWithDistance
 
 /* end vectordb */
 
@@ -120,7 +116,6 @@ export interface RagConfigfile {
   bucket: string
 }
 
-
 export interface SoulConfig {
   soul: string,
   path?: string,
@@ -134,12 +129,20 @@ export interface RagSearchOpts {
   bucketName?: string
 }
 
+export interface VectorStorSearchOpts {
+  filter?: VectorMetadata
+  resultLimit?: number
+  maxDistance?: number
+  minSimilarity?: number
+  model?: string
+}
+
 export interface VectorStoreHook {
-  createEmbedding: (content: string) => Promise<Embedding>
+  createEmbedding: (content: string, model?: string) => Promise<Embedding>
   delete: (key: string) => void
   fetch: <T = unknown>(key: string, opts?: SoulStoreGetOpts) => Promise<(typeof opts extends { includeMetadata: true } ? VectorRecord : T) | undefined>
-  search: (query: Embedding | string, filter?: VectorMetadata) => Promise<VectorRecordWithDistance[]>
-  set: (key: string, value: Json, metadata?: VectorMetadata) => void
+  search: (query: Embedding | string, opts?: VectorStorSearchOpts) => Promise<VectorRecordWithDistance[]>
+  set: (key: string, value: Json, metadata?: VectorMetadata, model?: string) => void
 }
 
 export interface SoulVectorStoreHook extends Omit<VectorStoreHook, "get"> {
