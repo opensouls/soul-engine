@@ -134,12 +134,20 @@ export interface RagSearchOpts {
   bucketName?: string
 }
 
+
+export interface VectorStorSearchOpts {
+  filter?: VectorMetadata
+  resultLimit?: number
+  maxDistance?: number
+  model?: string
+}
+
 export interface VectorStoreHook {
-  createEmbedding: (content: string) => Promise<Embedding>
+  createEmbedding: (content: string, model?: string) => Promise<Embedding>
   delete: (key: string) => void
   fetch: <T = unknown>(key: string, opts?: SoulStoreGetOpts) => Promise<(typeof opts extends { includeMetadata: true } ? VectorRecord : T) | undefined>
-  search: (query: Embedding | string, filter?: VectorMetadata) => Promise<VectorRecordWithDistance[]>
-  set: (key: string, value: Json, metadata?: VectorMetadata) => void
+  search: (query: Embedding | string, opts?: VectorStorSearchOpts) => Promise<VectorRecordWithDistance[]>
+  set: (key: string, value: Json, metadata?: VectorMetadata, model?: string) => void
 }
 
 export interface SoulVectorStoreHook extends Omit<VectorStoreHook, "get"> {
