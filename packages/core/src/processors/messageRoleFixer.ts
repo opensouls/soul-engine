@@ -1,6 +1,6 @@
 import { ChatMessage } from "gpt-tokenizer/GptEncoding"
-import { ChatCompletionMessageParam } from "openai/resources/index.mjs"
-import { ChatMessageRoleEnum } from "../Memory.js"
+import { ChatCompletionCreateParams, ChatCompletionMessageParam } from "openai/resources/index.mjs"
+import { ChatMessageContent, ChatMessageRoleEnum, ContentImage, ContentText } from "../Memory.js"
 
 export interface FixMethods {
   singleSystemMessage?: boolean
@@ -15,16 +15,13 @@ export const fixMessageRoles = (fixMethods: FixMethods, messages: (ChatMessage |
   let newMessages = messages
 
   if (fixMethods.singleSystemMessage) {
-    let firstSystemMessage = true
-    newMessages = messages.map((originalMessage) => {
+    newMessages = messages.map((originalMessage, i) => {
       const message = { ...originalMessage }
+      if (i === 0) {
+        return message
+      }
       if (message.role === ChatMessageRoleEnum.System) {
-        if (firstSystemMessage) {
-          firstSystemMessage = false
-          return message
-        }
         message.role = ChatMessageRoleEnum.User
-        // systemMessage += message.content + "\n"
         return message
       }
       return message
@@ -33,25 +30,23 @@ export const fixMessageRoles = (fixMethods: FixMethods, messages: (ChatMessage |
 
   if (fixMethods.forcedRoleAlternation) {
     // now we make sure that all the messages alternate User/Assistant/User/Assistant
-    let lastRole: ChatCompletionMessageParam["role"] | undefined
+    let lastRole: ChatCompletionCreateParams["messages"][0]["role"] | undefined
     const { messages } = newMessages.reduce((acc, message) => {
       // If it's the first message or the role is different from the last, push it to the accumulator
       if (lastRole !== message.role) {
-        acc.messages.push(message as ChatCompletionMessageParam);
+        acc.messages.push(message);
         lastRole = message.role;
-        acc.grouped = [message.content as string]
+        acc.grouped = [message.content as ChatMessageContent]
       } else {
         // If the role is the same, combine the content with the last message in the accumulator
         const lastMessage = acc.messages[acc.messages.length - 1];
-        acc.grouped.push(message.content as string)
+        acc.grouped.push(message.content as ChatMessageContent)
 
-        lastMessage.content = acc.grouped.slice(0, -1).map((str) => {
-          return `${message.role} said: ${str}`
-        }).concat(acc.grouped.slice(-1)[0]).join("\n\n")
+        lastMessage.content = mergeContent(acc.grouped)
       }
 
       return acc;
-    }, { messages: [], grouped: [] } as { grouped: string[], messages: ChatCompletionMessageParam[] })
+    }, { messages: [], grouped: [] } as { grouped: ChatMessageContent[], messages: (ChatMessage | ChatCompletionMessageParam)[] })
 
     newMessages = messages
     if (newMessages[0]?.role === ChatMessageRoleEnum.Assistant) {
@@ -63,4 +58,43 @@ export const fixMessageRoles = (fixMethods: FixMethods, messages: (ChatMessage |
   }
 
   return newMessages as ChatCompletionMessageParam[]
+}
+
+const extractTextFromContent = (content: ChatMessageContent): string => {
+  if (Array.isArray(content)) {
+    return content.map((c) => {
+      if (c.type === "text") {
+        return c.text
+      }
+      return ""
+    }).join("\n")
+  }
+
+  return content || ""
+}
+
+const extractImageFromContent = (content: ChatMessageContent): ContentImage[] => {
+  if (Array.isArray(content)) {
+    return content.filter((c) => c.type === "image_url") as ContentImage[]
+  }
+
+  return []
+}
+
+const mergeContent = (messages: ChatMessageContent[]): ChatMessageContent => {
+  const newContent: ChatMessageContent = [
+    {
+      type: "text",
+      text: ""
+    }
+  ]
+
+  for (const message of messages) {
+    const txt = extractTextFromContent(message);
+    const images = extractImageFromContent(message);
+    newContent.push(...images);
+    (newContent[0] as ContentText).text += txt + "\n\n"
+  }
+
+  return newContent
 }

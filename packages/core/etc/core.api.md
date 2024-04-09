@@ -424,6 +424,7 @@ export interface UsageNumbers {
 export class WorkingMemory extends EventEmitter {
     constructor({ soulName, memories, postCloneTransformation, processor }: WorkingMemoryInitOptions);
     asyncMap(callback: (memory: Memory, i?: number) => Promise<InputMemory>): Promise<WorkingMemory>;
+    at(index: number): Memory<Record<string, unknown>>;
     clone(replacementMemories?: InputMemory[]): WorkingMemory;
     concat(other: MemoryListOrWorkingMemory): WorkingMemory;
     // (undocumented)
@@ -440,6 +441,7 @@ export class WorkingMemory extends EventEmitter {
     get finished(): Promise<void>;
     // (undocumented)
     readonly id: string;
+    get length(): number;
     map(callback: (memory: Memory, i?: number) => InputMemory): WorkingMemory;
     // (undocumented)
     protected markPending(): void;

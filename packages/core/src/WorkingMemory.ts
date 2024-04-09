@@ -117,8 +117,43 @@ export class WorkingMemory extends EventEmitter {
     return [...this.internalMemories]
   }
 
+  /**
+   * The `length` attribute returns the number of memories currently stored in the WorkingMemory instance.
+  * 
+   * @returns The total number of memories.
+   * 
+   * @example
+   * ```
+   * const workingMemory = new WorkingMemory({ soulName: 'example' });
+   * console.log(workingMemory.length); // Outputs 0 (no memories there)
+   * ```
+   */
+  get length() {
+    return this.internalMemories.length
+  }
+
   private get internalMemories() {
     return this._memories()
+  }
+
+  /**
+   * Retrieves a memory at a specified index from the internal memories array.
+   * 
+   * @param index - The zero-based index of the memory to retrieve.
+   * @returns The memory object at the specified index, or undefined if the index is out of bounds.
+   * 
+   * @example
+   * ```
+   * const memoryAtIndex = workingMemory.at(1);
+   * if (memoryAtIndex) {
+   *   console.log(`Memory at index 1:`, memoryAtIndex);
+   * } else {
+   *   console.log(`No memory found at index 1.`);
+   * }
+   * ```
+   */
+  at(index: number) {
+    return this.internalMemories[index]
   }
 
   /**
