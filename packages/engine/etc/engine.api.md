@@ -4,6 +4,8 @@
 
 ```ts
 
+/// <reference types="node" />
+
 import { DeveloperInteractionRequest } from '@opensouls/core';
 import { InternalPerception } from '@opensouls/core';
 import { Json } from '@opensouls/core';
@@ -78,6 +80,30 @@ export const defaultRagBucketName: (blueprint: string) => string;
 
 // @public (undocumented)
 export type Embedding = number[];
+
+// @public (undocumented)
+export const filePathToKey: (path: string) => string;
+
+// @public (undocumented)
+export class FilePipeline {
+    constructor(src: string, dest: string, opts?: FilePipelineOpts);
+    // (undocumented)
+    dest: string;
+    // (undocumented)
+    opts: FilePipelineOpts;
+    // Warning: (ae-forgotten-export) The symbol "CallbackParams" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "ProcessCallbackReturn" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    process(callback: (params: CallbackParams) => Promise<ProcessCallbackReturn>): Promise<void>;
+    // (undocumented)
+    src: string;
+}
+
+// @public (undocumented)
+export interface FilePipelineOpts {
+    replace?: boolean;
+}
 
 // @public (undocumented)
 export type MentalProcess<ParamType = Record<number | string, any>, CortexStepType = any> = (args: MentalProcessArguments<ParamType, CortexStepType>) => Promise<MentalProcessReturnTypes<CortexStepType, ParamType>>;
