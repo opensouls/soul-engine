@@ -7,7 +7,7 @@ import { parsedPackageJson } from "../../packageParser.js";
 const createStoresPullCommand = (program: Command) => {
   program
     .command('pull <bucketName>')
-    .description('Pull a specific bucket from the store. This can be in the format `:bucketName` for organization stores or `blueprintName/:bucketName` for blueprint stores.')
+    .description('Pull a specific bucket from the store. This can be in the format `:bucketName` for blueprint stores or `organization/:bucketName` for organization stores.')
     .option('-l, --local', 'Use the local configuration', false)
     .action(async (bucketName, options: { local: boolean }) => {
       const { local } = options;
