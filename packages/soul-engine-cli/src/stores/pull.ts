@@ -25,8 +25,8 @@ export class StorePuller {
     for (const file of Object.values(files)) {
       const filePath = path.join(this.fileSystemPath(), file.key)
       if (fsExtra.pathExistsSync(filePath)) {
-        const fileContent = Buffer.from(readFileSync(filePath, 'utf-8')).toString('base64')
-        // hash the base64 of the file contents
+        const fileContent = readFileSync(filePath, 'utf8')
+        // hash the file contents
         const localHash = hashContent(fileContent)
         if (localHash === file.contentHash) {
           console.log(`File ${file.key} is up to date`)
