@@ -23,7 +23,7 @@ export class StorePusher {
 
     for (const localFile of localFiles) {
       const filePath = path.join(this.fileSystemPath(), localFile)
-      const fileContent = Buffer.from(readFileSync(filePath, 'utf-8')).toString('base64')
+      const fileContent = readFileSync(filePath, 'utf-8')
       const localHash = hashContent(fileContent)
 
       if (!files[localFile] || files[localFile].contentHash !== localHash) {
