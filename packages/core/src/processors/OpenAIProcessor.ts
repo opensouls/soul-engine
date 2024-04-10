@@ -26,7 +26,7 @@ const tracer = trace.getTracer(
   '0.0.1',
 );
 
-export const tokenLength = (messagesOrContent: ChatMessage[] | string): number => {
+const tokenLength = (messagesOrContent: ChatMessage[] | string): number => {
   // first count out all the images in the memories
   let tokenCount = 0
 
