@@ -29,6 +29,8 @@ describe('OpenAIProcessor', function() {
 
     const usage = await response.usage;
     expect(usage).to.have.property('input');
+    expect(usage.input).to.be.greaterThan(0);
+    expect(usage.output).to.be.greaterThan(0);
     expect(streamed).to.equal(completion);
   });
 
