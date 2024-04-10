@@ -1,6 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { trace, context } from "@opentelemetry/api";
-import { encodeChatGenerator, encodeGenerator } from "gpt-tokenizer/model/gpt-4"
 import { registerProcessor } from "./registry.js";
 import { ChatMessageRoleEnum, Memory } from "../Memory.js";
 import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
@@ -97,10 +96,6 @@ const openAiToAnthropicMessages = (openAiMessages: ChatCompletionMessageParam[])
 async function* chunkStreamToTextStream(chunkStream: AsyncIterable<Anthropic.MessageStreamEvent>) {
 
   for await (const evt of chunkStream) {
-    if (evt.type === "message_start") {
-      continue
-    }
-
     if (evt.type !== "content_block_delta") {
       continue
     }
@@ -108,6 +103,22 @@ async function* chunkStreamToTextStream(chunkStream: AsyncIterable<Anthropic.Mes
     yield evt.delta.text;
   }
   // console.log("chunk over, returning")
+}
+
+async function chunkStreamToUsage(chunkStream: AsyncIterable<Anthropic.MessageStreamEvent>) {
+  const usage = { input: 0, output: 0 }
+
+  for await (const evt of chunkStream) {
+    if (evt.type === "message_start") {
+      usage.input = evt.message.usage.input_tokens
+    }
+
+    if (evt.type === "message_delta" && evt.usage) {
+      usage.output = evt.usage.output_tokens
+    }
+  }
+  
+  return usage
 }
 
 const DEFAULT_MODEL = "claude-3-opus-20240229"
@@ -221,7 +232,9 @@ export class AnthropicProcessor implements Processor {
           }
         )
 
-        const textStream = new ReusableStream(chunkStreamToTextStream(stream))
+        const baseStream = new ReusableStream(stream)
+
+        const textStream = new ReusableStream(chunkStreamToTextStream(baseStream.stream()))
 
         const fullContentPromise = new Promise<string>(async (resolve, reject) => {
           try {
@@ -240,26 +253,8 @@ export class AnthropicProcessor implements Processor {
 
         const usagePromise = new Promise<UsageNumbers>(async (resolve, reject) => {
           try {
-            const fullContent = await fullContentPromise
-
-            const messageIterator = (messages as ChatMessage[])[Symbol.iterator]();
-
-            const outputTokenGen = encodeGenerator(fullContent)
-            const inputTokenGen = encodeChatGenerator(messageIterator)
-
-            const countTokens = async (tokenGen: Generator<any>): Promise<number> => {
-              let count = 0;
-              for await (const chunk of tokenGen) {
-                count += chunk.length;
-              }
-              return count;
-            };
-
-            const [inputTokenCount, outputTokenCount] = await Promise.all([
-              countTokens(inputTokenGen),
-              countTokens(outputTokenGen),
-            ]);
-
+            const { input: inputTokenCount, output: outputTokenCount } = await chunkStreamToUsage(baseStream.stream())
+            
             span.setAttribute("model", model)
             span.setAttribute("usage-input", inputTokenCount)
             span.setAttribute("usage-output", outputTokenCount)
