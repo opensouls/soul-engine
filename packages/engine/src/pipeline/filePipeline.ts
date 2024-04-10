@@ -29,7 +29,7 @@ const normalizeProcessCallbackReturn = (relativePath: string, result: ProcessCal
   })
 }
 
-export interface FilePiplineOpts {
+export interface FilePipelineOpts {
   /**
    * `replace`: Removes all files in the destination directory before running the pipeline.
    * This action ensures the destination directory only contains the output from the current pipeline execution.
@@ -39,7 +39,7 @@ export interface FilePiplineOpts {
 
 export class FilePipeline {
 
-  constructor(public src: string, public dest: string, public opts: FilePiplineOpts = {}) {}
+  constructor(public src: string, public dest: string, public opts: FilePipelineOpts = {}) {}
 
   async process(callback: (params: CallbackParams) => Promise<ProcessCallbackReturn>) {
     let globSrc = join(this.src, "**/*")
