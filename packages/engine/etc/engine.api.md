@@ -37,6 +37,13 @@ export interface Blueprint {
 }
 
 // @public (undocumented)
+export interface CallbackParams {
+    content: () => Promise<string>;
+    contentBytes: () => Promise<Buffer>;
+    path: string;
+}
+
+// @public (undocumented)
 export type CognitiveEvent = CognitiveEventAbsolute | CognitiveEventOffset;
 
 // @public (undocumented)
@@ -81,7 +88,7 @@ export const defaultRagBucketName: (blueprint: string) => string;
 // @public (undocumented)
 export type Embedding = number[];
 
-// @public (undocumented)
+// @public
 export const filePathToKey: (path: string) => string;
 
 // @public (undocumented)
@@ -91,10 +98,6 @@ export class FilePipeline {
     dest: string;
     // (undocumented)
     opts: FilePipelineOpts;
-    // Warning: (ae-forgotten-export) The symbol "CallbackParams" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "ProcessCallbackReturn" needs to be exported by the entry point index.d.ts
-    //
-    // (undocumented)
     process(callback: (params: CallbackParams) => Promise<ProcessCallbackReturn>): Promise<void>;
     // (undocumented)
     src: string;
@@ -138,6 +141,12 @@ export type PerceptionProcessor = <PropType>(perceptionArgs: {
 
 // @public (undocumented)
 export type PerceptionProcessorReturnTypes<PropType = any> = undefined | [WorkingMemory] | [WorkingMemory, MentalProcess<PropType>] | [WorkingMemory, MentalProcess<PropType>, PropType];
+
+// @public (undocumented)
+export type ProcessCallbackReturn = {
+    content: string;
+    key?: string;
+}[] | string[] | string;
 
 // @public (undocumented)
 export interface RagConfigfile {

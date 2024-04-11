@@ -3,14 +3,34 @@ import { glob } from "glob"
 import { mkdir, readFile, writeFile, stat } from "node:fs/promises"
 import { join, relative } from "node:path"
 
-interface CallbackParams {
+export interface CallbackParams {
+  
+  /**
+   * A function that returns a promise resolving to the string contents of the file.
+   */
   content: () => Promise<string>
+  /**
+   * A function that returns a promise resolving to the byte contents of the file.
+   */
   contentBytes: () => Promise<Buffer>
   
+  /**
+   * The relative path of the file from the source directory.
+   */
   path: string
 }
 
-type ProcessCallbackReturn = { content: string, key?: string }[] | string[] | string
+export type ProcessCallbackReturn = { content: string, key?: string }[] | string[] | string
+
+/**
+ * Transforms a given file path into a flat filename representation.
+ * This function replaces path separators (both forward slash `/` and backslash `\`)
+ * with double underscores `__` and then replaces any characters that are not
+ * alphanumeric, underscores, or periods with a dash `-`.
+ * 
+ * @param {string} path - The original file path to transform.
+ * @return {string} The transformed flat filename.
+ */
 
 export const filePathToKey = (path: string) => {
   return path.replace(/[\\\/]/g, "__").replace(/[^\w\d_\.]/g, "-")
@@ -41,6 +61,17 @@ export class FilePipeline {
 
   constructor(public src: string, public dest: string, public opts: FilePipelineOpts = {}) {}
 
+  /**
+   * Processes each file in the source directory, applying a provided callback function to transform the file content.
+   * Each file is read and provided to the callback in two forms: as a UTF-8 string and as raw bytes.
+   * The callback can return either a string, an array of strings, or an array of objects containing the content and an optional key.
+   * If a key is not provided, a default key is generated based on the file's relative path and an index (if needed).
+   * The transformed content is then written to the destination directory under the generated or provided key.
+   * 
+   * @param callback - A function that takes a `CallbackParams` object and returns a `ProcessCallbackReturn`.
+   *                   This function is expected to perform the necessary transformations on the file content.
+   * @returns - A promise that resolves when all files have been processed.
+   */
   async process(callback: (params: CallbackParams) => Promise<ProcessCallbackReturn>) {
     let globSrc = join(this.src, "**/*")
 
@@ -83,5 +114,4 @@ export class FilePipeline {
 
     }
   }
-
 }
