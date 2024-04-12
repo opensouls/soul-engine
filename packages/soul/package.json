@@ -1,6 +1,6 @@
 {
   "name": "@opensouls/soul",
-  "version": "0.1.18",
+  "version": "0.1.19",
   "type": "module",
   "description": "The client code for interacting with a soul on the OPEN SOULS soul engine.",
   "main": "dist/index.mjs",
@@ -40,7 +40,7 @@
   "homepage": "https://github.com/opensouls/soul-engine#readme",
   "dependencies": {
     "@hocuspocus/provider": "=2.9.0",
-    "@opensouls/core": "^0.1.18",
+    "@opensouls/core": "^0.1.19",
     "@syncedstore/core": "^0.6.0",
     "uuid": "^9.0.1"
   },
