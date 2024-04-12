@@ -210,6 +210,7 @@ export interface SoulHooks {
         invocationCount: number;
         setNextProcess: <PropType>(process: MentalProcess<PropType>, props?: PropType) => void;
         wait: (ms: number) => Promise<void>;
+        previousMentalProcess?: MentalProcess<any>;
     };
     // (undocumented)
     useProcessMemory: <T = null>(initialValue: T) => {
