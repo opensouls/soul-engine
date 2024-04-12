@@ -492,10 +492,11 @@ export class WorkingMemory extends EventEmitter {
             Object.entries(usageNumbers).forEach(([key, value]) => {
               (usageObj as any)[key] = value
             })
-            this.resolvePending()
             resolve(value)
           } catch (err) {
             reject(err)
+          } finally {
+            this.resolvePending()
           }
         })
 
