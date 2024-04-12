@@ -179,6 +179,9 @@ export class OpenAIProcessor implements Processor {
           {
             numOfAttempts: 5,
             retry: (err) => {
+              if (err.message.includes("aborted")) {
+                return false
+              }
               span.addEvent("retry")
               console.error("retrying due to error", err)
 
