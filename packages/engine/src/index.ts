@@ -161,8 +161,12 @@ export interface SoulHooks {
   useActions: () => DefaultActions
   useProcessManager: () => {
     invocationCount: number
+    /**
+     * @deprecated use the return from a MentalProcess instead.
+     */
     setNextProcess: <PropType>(process: MentalProcess<PropType>, props?: PropType) => void
     wait: (ms: number) => Promise<void>
+    previousMentalProcess?: MentalProcess<any>
   }
   usePerceptions: () => {
     invokingPerception: Perception | null | undefined,
