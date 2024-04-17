@@ -1,6 +1,4 @@
-import { emptyDir } from "fs-extra/esm"
 import { glob } from "glob"
-import { mkdir, readFile, writeFile, stat } from "node:fs/promises"
 import { join, relative } from "node:path"
 
 export interface CallbackParams {
@@ -73,6 +71,9 @@ export class FilePipeline {
    * @returns - A promise that resolves when all files have been processed.
    */
   async process(callback: (params: CallbackParams) => Promise<ProcessCallbackReturn>) {
+    const { mkdir, readFile, writeFile, stat } = await import("node:fs/promises")
+    const { emptyDir } = await import("fs-extra/esm")
+
     let globSrc = join(this.src, "**/*")
 
     if (this.opts.replace) {
