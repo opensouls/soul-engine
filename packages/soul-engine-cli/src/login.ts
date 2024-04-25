@@ -32,5 +32,4 @@ export const handleLogin = async (local: boolean, force = false) => {
   console.log(`logged into ${pastedConfig.organization.name} as ${pastedConfig.user.email}`)
   globalConfig.set("apiKey", pastedConfig.apiKey)
   globalConfig.set("organization", pastedConfig.organization.slug)
-  globalConfig.set("organization_id", pastedConfig.organization.id)
 }
