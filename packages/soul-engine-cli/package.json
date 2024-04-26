@@ -45,7 +45,8 @@
     "glob": "^10.3.10",
     "handlebars": "^4.7.8",
     "open": "^10.1.0",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "yjs": "=13.6.14"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.43.0",

@@ -10,7 +10,6 @@ const createLogout = (program: Command) => {
       const globalConfig = await getConfig(local)
       globalConfig.set("apiKey", "")
       globalConfig.set("organization", "")
-      globalConfig.set("organization_id", "")
     })
 
 }

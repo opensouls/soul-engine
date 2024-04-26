@@ -42,7 +42,8 @@
     "@hocuspocus/provider": "=2.9.0",
     "@opensouls/core": "^0.1.21",
     "@syncedstore/core": "^0.6.0",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "yjs": "=13.6.14"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.43.0",
