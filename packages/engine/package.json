@@ -32,8 +32,6 @@
   "dependencies": {
     "@opensouls/core": "^0.1.22",
     "@opensouls/soul": "^0.1.22",
-    "fs-extra": "^11.2.0",
-    "glob": "^10.3.12",
     "soul-engine": "^0.1.22"
   },
   "devDependencies": {

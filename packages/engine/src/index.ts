@@ -3,7 +3,6 @@ import { InternalPerception, WorkingMemory } from '@opensouls/core';
 import { DeveloperInteractionRequest, Json, Perception, SoulEnvironment } from '@opensouls/core';
 import { MentalProcess } from './mentalProcess.js'
 
-export * from "./pipeline/filePipeline.js"
 export * from "./mentalProcess.js"
 export * from "@opensouls/core"
 export * from "@opensouls/soul"

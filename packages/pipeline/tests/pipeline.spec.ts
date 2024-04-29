@@ -2,7 +2,7 @@ import { glob } from "glob"
 import path from "node:path"
 import fs from "node:fs/promises"
 import { expect } from "chai"
-import { FilePipeline, filePathToKey } from "../src/pipeline/filepipeline.js"
+import { FilePipeline, filePathToKey } from "../src/filepipeline.js"
 
 describe("Pipeline", () => {
   const src = "tests/shared/pipeline/src"
