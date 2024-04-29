@@ -8,6 +8,7 @@ import { DeveloperDispatchedPerception } from '@opensouls/core';
 import { EventEmitter } from 'eventemitter3';
 import { EventLogDoc } from '@opensouls/core';
 import { HocuspocusProviderWebsocket } from '@hocuspocus/provider';
+import { HocuspocusProviderWebsocketConfiguration } from '@hocuspocus/provider';
 import { InteractionRequest } from '@opensouls/core';
 import { SoulEnvironment } from '@opensouls/core';
 import { SoulEvent } from '@opensouls/core';
@@ -52,6 +53,9 @@ export enum Events {
     setEnvironment = "setEnvironment"
 }
 
+// @public (undocumented)
+export const getConnectedWebsocket: (organizationSlug: string, local: boolean, debug: boolean, opts?: Partial<HocuspocusProviderWebsocketConfiguration>) => HocuspocusProviderWebsocket;
+
 export { InteractionRequest }
 
 // @public (undocumented)
@@ -59,7 +63,6 @@ export function said(entity: string, content: string): DeveloperDispatchedPercep
 
 // @public (undocumented)
 export class Soul extends EventEmitter<SoulEvents> {
-    // Warning: (ae-forgotten-export) The symbol "SoulOpts" needs to be exported by the entry point index.d.ts
     constructor({ debug, local, organization, soulId, blueprint, token, version, webSocket, environment }: SoulOpts);
     // (undocumented)
     connect(): Promise<string>;
@@ -93,7 +96,32 @@ export type SoulEvents = {
 };
 
 // @public (undocumented)
+export interface SoulOpts {
+    // (undocumented)
+    blueprint: string;
+    // (undocumented)
+    debug?: boolean;
+    // (undocumented)
+    environment?: SoulEnvironment;
+    // (undocumented)
+    local?: boolean;
+    // (undocumented)
+    organization: string;
+    // (undocumented)
+    soulId?: string;
+    // (undocumented)
+    token?: string;
+    // (undocumented)
+    version?: string;
+    // (undocumented)
+    webSocket?: HocuspocusProviderWebsocket;
+}
+
+// @public (undocumented)
 export const syncedEventStore: () => ReturnType<typeof syncedStore<EventLogDoc>>;
+
+// @public (undocumented)
+export const websocketUrl: (organizationSlug: string, local: boolean, debug: boolean) => string;
 
 // (No @packageDocumentation comment for this package)
 
