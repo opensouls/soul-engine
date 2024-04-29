@@ -10,10 +10,6 @@ const createInstall = (program: Command) => {
     .description('install a community package from the OPEN SOULS community library found here https://github.com/opensouls/community/tree/main/library')
     .action(async (packagePaths: string[], { branch }: { branch: string }) => {
       for (let packagePath of packagePaths) {
-        if (!packagePath.endsWith(".ts")) {
-          packagePath = packagePath + ".ts"
-        }
-
         if (!(await fsExtra.pathExists("soul"))) {
           console.error("You must be in the root of a soul project to install a community package.")
           return
