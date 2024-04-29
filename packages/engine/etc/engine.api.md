@@ -4,8 +4,6 @@
 
 ```ts
 
-/// <reference types="node" />
-
 import { DeveloperInteractionRequest } from '@opensouls/core';
 import { InternalPerception } from '@opensouls/core';
 import { Json } from '@opensouls/core';
@@ -34,13 +32,6 @@ export interface Blueprint {
     perceptionProcessor?: PerceptionProcessor;
     // (undocumented)
     subprocesses?: MentalProcess<any>[];
-}
-
-// @public (undocumented)
-export interface CallbackParams {
-    content: () => Promise<string>;
-    contentBytes: () => Promise<Buffer>;
-    path: string;
 }
 
 // @public (undocumented)
@@ -88,26 +79,6 @@ export const defaultRagBucketName: (blueprint: string) => string;
 // @public (undocumented)
 export type Embedding = number[];
 
-// @public
-export const filePathToKey: (path: string) => string;
-
-// @public (undocumented)
-export class FilePipeline {
-    constructor(src: string, dest: string, opts?: FilePipelineOpts);
-    // (undocumented)
-    dest: string;
-    // (undocumented)
-    opts: FilePipelineOpts;
-    process(callback: (params: CallbackParams) => Promise<ProcessCallbackReturn>): Promise<void>;
-    // (undocumented)
-    src: string;
-}
-
-// @public (undocumented)
-export interface FilePipelineOpts {
-    replace?: boolean;
-}
-
 // @public (undocumented)
 export type MentalProcess<ParamType = Record<number | string, any>, CortexStepType = any> = (args: MentalProcessArguments<ParamType, CortexStepType>) => Promise<MentalProcessReturnTypes<CortexStepType, ParamType>>;
 
@@ -141,12 +112,6 @@ export type PerceptionProcessor = <PropType>(perceptionArgs: {
 
 // @public (undocumented)
 export type PerceptionProcessorReturnTypes<PropType = any> = undefined | [WorkingMemory] | [WorkingMemory, MentalProcess<PropType>] | [WorkingMemory, MentalProcess<PropType>, PropType];
-
-// @public (undocumented)
-export type ProcessCallbackReturn = {
-    content: string;
-    key?: string;
-}[] | string[] | string;
 
 // @public (undocumented)
 export interface RagConfigfile {
