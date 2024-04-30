@@ -33,7 +33,7 @@ export enum Events {
   newInteractionRequest = "newInteractionRequest"
 }
 
-interface SoulOpts {
+export interface SoulOpts {
   local?: boolean
   organization: string
   soulId?: string
