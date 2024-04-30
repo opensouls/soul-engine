@@ -1,6 +1,6 @@
 {
   "name": "@opensouls/pipeline",
-  "version": "0.1.22",
+  "version": "0.1.23",
   "type": "module",
   "description": "",
   "main": "dist/index.mjs",
