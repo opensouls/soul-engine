@@ -1,7 +1,7 @@
 {
   "name": "@opensouls/core",
   "private": false,
-  "version": "0.1.23",
+  "version": "0.1.24-alpha.0",
   "type": "module",
   "description": "The core functionality of the OPEN SOULS soul-engine",
   "main": "dist/index.mjs",
