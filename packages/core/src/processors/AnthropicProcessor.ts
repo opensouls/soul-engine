@@ -3,7 +3,7 @@ import { trace, context } from "@opentelemetry/api";
 import { registerProcessor } from "./registry.js";
 import { ChatMessageRoleEnum, Memory } from "../Memory.js";
 import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
-import { ReusableStream } from "../ReusableStream.js";
+
 import {
   extractJSON,
   Processor,
@@ -15,6 +15,7 @@ import {
 import { backOff } from "exponential-backoff";
 import { ChatMessage } from "gpt-tokenizer/GptEncoding";
 import { fixMessageRoles } from './messageRoleFixer.js';
+import { forkStream } from '../forkStream.js';
 
 const tracer = trace.getTracer(
   'open-souls-OpenAIProcessor',
@@ -94,15 +95,20 @@ const openAiToAnthropicMessages = (openAiMessages: ChatCompletionMessageParam[])
 }
 
 async function* chunkStreamToTextStream(chunkStream: AsyncIterable<Anthropic.MessageStreamEvent>) {
-
-  for await (const evt of chunkStream) {
-    if (evt.type !== "content_block_delta") {
-      continue
+  try {
+    for await (const evt of chunkStream) {
+      if (evt.type !== "content_block_delta") {
+        continue
+      }
+  
+      yield evt.delta.text;
     }
-
-    yield evt.delta.text;
+  } catch (err: any) {
+    if (err.message?.toLowerCase().includes("abort")) {
+      return;
+    }
+    throw err
   }
-  // console.log("chunk over, returning")
 }
 
 async function chunkStreamToUsage(chunkStream: AsyncIterable<Anthropic.MessageStreamEvent>) {
@@ -235,14 +241,17 @@ export class AnthropicProcessor implements Processor {
           }
         )
 
-        const baseStream = new ReusableStream(stream)
+        const [baseStream1, baseStream2] = forkStream(stream, 2, true)
+        const [textStream1, textStream2] = forkStream(chunkStreamToTextStream(baseStream1), 2)
 
-        const textStream = new ReusableStream(chunkStreamToTextStream(baseStream.stream()))
+        // const baseStream = new ReusableStream(stream)
+
+        // const textStream = new ReusableStream(chunkStreamToTextStream(baseStream1))
 
         const fullContentPromise = new Promise<string>(async (resolve, reject) => {
           try {
             let fullText = ""
-            for await (const message of textStream.stream()) {
+            for await (const message of textStream1) {
               span.addEvent("chunk", { length: message.length })
               fullText += message
             }
@@ -256,7 +265,7 @@ export class AnthropicProcessor implements Processor {
 
         const usagePromise = new Promise<UsageNumbers>(async (resolve, reject) => {
           try {
-            const { input: inputTokenCount, output: outputTokenCount } = await chunkStreamToUsage(baseStream.stream())
+            const { input: inputTokenCount, output: outputTokenCount } = await chunkStreamToUsage(baseStream2)
             
             span.setAttribute("model", model)
             span.setAttribute("usage-input", inputTokenCount)
@@ -277,7 +286,7 @@ export class AnthropicProcessor implements Processor {
 
         return {
           rawCompletion: fullContentPromise,
-          stream: textStream.stream(),
+          stream: textStream2,
           usage: usagePromise,
         }
       } catch (err: any) {
