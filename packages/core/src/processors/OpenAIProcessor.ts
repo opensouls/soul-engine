@@ -9,7 +9,7 @@ import { ZodError, fromZodError } from 'zod-validation-error';
 import { registerProcessor } from "./registry.js";
 import { ChatMessageRoleEnum, ContentText, Memory } from "../Memory.js";
 import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
-import { ReusableStream } from "../ReusableStream.js";
+
 import {
   extractJSON,
   Processor,
@@ -20,6 +20,7 @@ import {
 } from "./Processor.js";
 import { fixMessageRoles } from "./messageRoleFixer.js";
 import { indentNicely } from "../utils.js";
+import { forkStream } from "../forkStream.js";
 
 const tracer = trace.getTracer(
   'open-souls-OpenAIProcessor',
@@ -79,10 +80,14 @@ export interface OpenAIProcessorOpts {
 }
 
 async function* chunkStreamToTextStream(chunkStream: AsyncIterable<OpenAI.Chat.Completions.ChatCompletionChunk>) {
-  for await (const chunk of chunkStream) {
-    yield chunk.choices[0].delta.content || ""
+  try {
+    for await (const chunk of chunkStream) {
+      yield chunk.choices[0].delta.content || ""
+    }
+  } catch (err) {
+    console.error("chunkStreamToTextStream error", err)
+    throw err
   }
-  // console.log("chunk over, returning")
 }
 
 const DEFAULT_MODEL = "gpt-3.5-turbo-0125"
@@ -237,12 +242,14 @@ export class OpenAIProcessor implements Processor {
           }
         )
 
-        const textStream = new ReusableStream(chunkStreamToTextStream(stream))
+        const [textStream1, textStream2] = forkStream(chunkStreamToTextStream(stream), 2)
+
+        // const textStream = new ReusableStream(chunkStreamToTextStream(stream))
 
         const fullContentPromise = new Promise<string>(async (resolve, reject) => {
           try {
             let fullText = ""
-            for await (const message of textStream.stream()) {
+            for await (const message of textStream1) {
               span.addEvent("chunk", { length: message.length })
               fullText += message
             }
@@ -280,11 +287,12 @@ export class OpenAIProcessor implements Processor {
 
         return {
           rawCompletion: fullContentPromise,
-          stream: textStream.stream(),
+          stream: textStream2,
           usage: usagePromise,
         }
       } catch (err: any) {
         span.recordException(err)
+        span.end()
         throw err
       }
     })
