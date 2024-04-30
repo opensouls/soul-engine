@@ -4,10 +4,13 @@
 
 ```ts
 
+/// <reference types="node" />
+
 import Anthropic from '@anthropic-ai/sdk';
 import { ChatMessageContent as ChatMessageContent_2 } from './Memory.js';
 import { EventEmitter } from 'eventemitter3';
 import OpenAI from 'openai';
+import { Readable } from 'node:stream';
 import { RequestOptions as RequestOptions_2 } from 'openai/core';
 import { TemplateTag } from 'common-tags';
 import { z } from 'zod';
@@ -141,6 +144,9 @@ export interface ExternalPerception extends PerceptionBase {
 
 // @public (undocumented)
 export function extractJSON(str?: string | null): string | null;
+
+// @public (undocumented)
+export function forkStream<T>(originalStream: AsyncIterable<T>, count?: number, objectMode?: boolean): Readable[];
 
 // @public (undocumented)
 export function getProcessor(name: string, opts?: ProcessorCreationOpts): Processor;
@@ -329,15 +335,6 @@ export interface RequestOptions {
     temperature?: number;
     // (undocumented)
     timeout?: number;
-}
-
-// @public (undocumented)
-export class ReusableStream<T> {
-    constructor(iterable: AsyncIterable<T>);
-    // (undocumented)
-    onFirst(handler: () => void): void;
-    // (undocumented)
-    stream(): AsyncGenerator<Awaited<T & undefined> | Awaited<T & {}>, void, unknown>;
 }
 
 // @public (undocumented)
