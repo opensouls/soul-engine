@@ -2,10 +2,11 @@
   "name": "@opensouls/pipeline",
   "version": "0.1.23",
   "type": "module",
-  "description": "",
+  "description": "Publish and sync data from the OPEN SOULS Soul Engine.",
   "main": "dist/index.mjs",
   "types": "dist/types.d.ts",
   "scripts": {
+    "prepublishOnly": "npm run build",
     "build": "tsx scripts/build.ts",
     "test": "mocha tests/*.spec.ts tests/**/*.spec.ts"
   },
@@ -17,7 +18,11 @@
   ],
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "LGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opensouls/soul-engine.git"
+  },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.43.1",
     "@types/chai": "^4.3.14",
@@ -32,5 +37,8 @@
   "dependencies": {
     "fs-extra": "^11.2.0",
     "glob": "^10.3.12"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
