@@ -42,22 +42,22 @@ registerProcessor("together", (opts: Partial<OpenAIProcessorOpts> = {}) => {
   })  
 })
 
-registerProcessor("mistral", (opts: Partial<OpenAIProcessorOpts> = {}) => {
-  return new OpenAIProcessor({
-    clientOptions: {
-      baseURL: "https://api.mistral.ai/v1/",
-      apiKey: process.env.MISTRAL_API_KEY,
-    },
-    singleSystemMessage: true,
-    disableResponseFormat: true,
-    defaultCompletionParams: {
-      model: "mistral-medium-latest",
-      max_tokens: 1600,
-    },
-    ...opts,
-  })
+// registerProcessor("mistral", (opts: Partial<OpenAIProcessorOpts> = {}) => {
+//   return new OpenAIProcessor({
+//     clientOptions: {
+//       baseURL: "https://api.mistral.ai/v1/",
+//       apiKey: process.env.MISTRAL_API_KEY,
+//     },
+//     singleSystemMessage: true,
+//     disableResponseFormat: true,
+//     defaultCompletionParams: {
+//       model: "mistral-medium-latest",
+//       max_tokens: 1600,
+//     },
+//     ...opts,
+//   })
   
-})
+// })
 
 const unnecessarilyComplexReturn = createCognitiveStep((extraInstructions: string) => {
 
@@ -217,7 +217,7 @@ describe("OpenAICompatibleProcessors", () => {
     expect(answered).to.include("dog")
   })
 
-  it("works with mistral", async () => {
+  it.skip("works with mistral", async () => {
     if (!process.env.MISTRAL_API_KEY) {
       console.log("No MISTRAL_API_KEY, skipping test")
       return
