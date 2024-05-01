@@ -1,39 +1,49 @@
-import { Readable } from 'node:stream';
+import { ReadableStream } from 'web-streams-polyfill';
 
-export function forkStream<T>(originalStream: AsyncIterable<T>, count = 2, objectMode = false): Readable[] {
+export function forkStream<T>(originalStream: AsyncIterable<T>, count = 2): ReadableStream<T>[] {
+  const streams = Array.from({ length: count }, () => {
+    let controller: { current: ReadableStreamDefaultController<T> | null } = { current: null };
 
-  const streams = Array(count).fill(true).map(() => new Readable({
-    objectMode,
-    read() { },
-    destroy(err, callback) {
-      if (err) {
-        console.error('Stream 1 encountered an error:', err);
+    const stream = new ReadableStream<T>({
+      start(c) {
+        controller.current = c;
+      },
+      cancel() {
+        console.log('Stream was cancelled.');
       }
-      callback(null);
-    }
-  }));
+    });
+
+    return {
+      stream,
+      controller
+    };
+  });
 
   const processStream = async () => {
     try {
       for await (const chunk of originalStream) {
-        for (const stream of streams) {
-          if (!stream.push(chunk)) {
-            // Handle backpressure by pausing the source stream if needed
-            await new Promise(resolve => setImmediate(resolve));
+        streams.forEach(({ stream, controller }) => {
+          if (controller.current) {
+            controller.current.enqueue(chunk);
           }
+        });
+      }
+      streams.forEach(({ stream, controller }) => {
+        if (controller.current) {
+          controller.current.close();
         }
-      }
-      for (const stream of streams) {
-        stream.push(null);
-      }
-    } catch (err: any) {
-      for (const stream of streams) {
-        stream.push(null);
-      }
+      });
+    } catch (err) {
+      console.error('Error processing stream:', err);
+      streams.forEach(({ stream, controller }) => {
+        if (controller.current) {
+          controller.current.error(err);
+        }
+      });
     }
   };
 
   processStream();
 
-  return streams;
+  return streams.map(({ stream }) => stream);
 }

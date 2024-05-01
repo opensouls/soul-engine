@@ -241,7 +241,7 @@ export class AnthropicProcessor implements Processor {
           }
         )
 
-        const [baseStream1, baseStream2] = forkStream(stream, 2, true)
+        const [baseStream1, baseStream2] = forkStream(stream, 2)
         const [textStream1, textStream2] = forkStream(chunkStreamToTextStream(baseStream1), 2)
 
         // const baseStream = new ReusableStream(stream)
