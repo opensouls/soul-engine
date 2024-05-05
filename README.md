@@ -24,6 +24,6 @@ The easiest way to get started developing with `@opensouls/core` is to explore t
 
 ## 👏 Contributing
 
-If this project is exciting to you, come hangout in the [OPEN SOULS Discord](https://discord.gg/opensouls) build with us!
+If this project is exciting to you, come hangout in the [OPEN SOULS Discord](https://discord.gg/opensouls) and build with us!
 
 We have a [community repository](https://github.com/opensouls/community) where we share cognitive steps, mental processes, documentation, example projects, etc to help each other build compelling AI souls. This is a great place to start contributing.
