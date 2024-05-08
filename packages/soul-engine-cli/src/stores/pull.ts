@@ -90,7 +90,7 @@ export class StorePuller {
   private url() {
     const { organizationSlug, local } = this.opts
 
-    const rootUrl = local ? "http://localhost:4000/api" : "https://soul-engine-servers.fly.dev/api"
+    const rootUrl = local ? "http://localhost:4000/api" : "https://servers.souls.chat/api"
 
     if (this.opts.blueprint) {
       return `${rootUrl}/${organizationSlug}/stores/${this.opts.blueprint}/${this.opts.bucketName}`

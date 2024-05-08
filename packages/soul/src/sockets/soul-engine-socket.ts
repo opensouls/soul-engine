@@ -5,7 +5,7 @@ export const websocketUrl = (organizationSlug: string, local: boolean, debug: bo
 
   return local ?
     `ws://127.0.0.1:4000/${organizationSlug}/${urlpath}` :
-    `wss://soul-engine-servers.fly.dev/${organizationSlug}/${urlpath}`
+    `wss://servers.souls.chat/${organizationSlug}/${urlpath}`
 }
 
 export const getConnectedWebsocket = (

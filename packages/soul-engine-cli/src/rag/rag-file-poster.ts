@@ -65,7 +65,7 @@ export class RagPoster {
 
     const url = local ?
       `http://localhost:4000/api/${organization}/rag-ingest/${bucketName}` :
-      `https://soul-engine-servers.fly.dev/api/${organization}/rag-ingest/${bucketName}`
+      `https://servers.souls.chat/api/${organization}/rag-ingest/${bucketName}`
 
     return new RagPoster({
       apiKey,
