@@ -99,6 +99,7 @@ export interface EventLogMetadata {
 export const eventLogShape = {
   events: [] as SoulEvent[],
   metadata: {} as EventLogMetadata,
+  pendingToolCalls: {} as Record<string, JsonRPCPair>
 }
 
 export type EventLogDoc = typeof eventLogShape
@@ -107,5 +108,4 @@ export const debugChatShape = {
   metadata: {},
   state: {},
   eventLog: {} as EventLogDoc,
-  pendingToolCalls: {} as Record<string, JsonRPCPair>
 }

@@ -104,8 +104,8 @@ export const debugChatShape: {
     eventLog: {
         events: SoulEvent[];
         metadata: EventLogMetadata;
+        pendingToolCalls: Record<string, JsonRPCPair>;
     };
-    pendingToolCalls: Record<string, JsonRPCPair>;
 };
 
 // @public (undocumented)
@@ -145,6 +145,7 @@ export interface EventLogMetadata {
 export const eventLogShape: {
     events: SoulEvent[];
     metadata: EventLogMetadata;
+    pendingToolCalls: Record<string, JsonRPCPair>;
 };
 
 // @public (undocumented)
