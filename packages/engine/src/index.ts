@@ -252,3 +252,9 @@ export const useRag = (bucketName?: string) => {
   if (!hooks) throw new Error("useRag called when no hooks are available. Are you executing this code on the SOUL ENGINE?")
   return hooks.useRag(bucketName)
 }
+
+export const useTool = (toolName: string) => {
+  const hooks = getHooks()
+  if (!hooks) throw new Error("useTool called when no hooks are available. Are you executing this code on the SOUL ENGINE?")
+  return hooks.useTool(toolName)
+}

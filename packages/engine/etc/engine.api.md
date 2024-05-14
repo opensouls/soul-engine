@@ -192,6 +192,8 @@ export interface SoulHooks {
     };
     // (undocumented)
     useSoulStore: () => SoulVectorStoreHook;
+    // (undocumented)
+    useTool<ParamType = Json, ResponseType = Json>(name: string): (params: ParamType) => Promise<ResponseType>;
 }
 
 // @public (undocumented)
@@ -234,6 +236,9 @@ export const useSoulMemory: SoulHooks["useSoulMemory"];
 
 // @public (undocumented)
 export const useSoulStore: SoulHooks["useSoulStore"];
+
+// @public (undocumented)
+export const useTool: (toolName: string) => any;
 
 // @public (undocumented)
 export type VectorMetadata = Record<string, Json>;
