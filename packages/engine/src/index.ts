@@ -182,7 +182,7 @@ export interface SoulHooks {
     search: (opts: RagSearchOpts) => Promise<VectorRecordWithDistance[]>
     withRagContext: <T = any>(step: T, opts?: WithRagContextOpts) => Promise<T>
   }
-  useTool<ParamType = Json, ResponseType = Json>(name: string): (params: ParamType) => Promise<ResponseType>
+  useTool<ParamType = Json | void, ResponseType = Json>(name: string): (params?: ParamType) => Promise<ResponseType>
 }
 
 export const defaultRagBucketName = (blueprint: string) => {
