@@ -18,7 +18,7 @@ export class ToolHandler {
   }
 
   start() {
-    this.stopObserving = observeDeep(this.soul.store.pendingToolCalls, () => {
+    this.stopObserving = observeDeep(this.soul.store, () => {
       const pending = Object.entries(this.soul.store.pendingToolCalls ?? {}).filter(
         (entry): entry is [string, { request: JsonRPCCall; response?: JsonRPCResponse }] => {
           const { request, response } = entry[1] || {};
@@ -55,14 +55,14 @@ export class ToolHandler {
 
   private async executeTool(request: JsonRPCCall) {
     try {
-      const tool = this.tools[request.method];
-      if (!tool) {
+      const toolHandler = this.tools[request.method];
+      if (!toolHandler) {
         throw {
           code: 404,
           message: "Method not found"
         }
       }
-      const result = await tool(request.params);
+      const result = await toolHandler(request.params);
       this.soul.store.pendingToolCalls![request.id]!.response = {
         id: request.id,
         result,

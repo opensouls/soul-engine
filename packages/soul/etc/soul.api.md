@@ -10,6 +10,7 @@ import { EventLogDoc } from '@opensouls/core';
 import { HocuspocusProviderWebsocket } from '@hocuspocus/provider';
 import { HocuspocusProviderWebsocketConfiguration } from '@hocuspocus/provider';
 import { InteractionRequest } from '@opensouls/core';
+import { Json } from '@opensouls/core';
 import { SoulEnvironment } from '@opensouls/core';
 import { SoulEvent } from '@opensouls/core';
 import { syncedStore } from '@syncedstore/core';
@@ -76,6 +77,8 @@ export class Soul extends EventEmitter<SoulEvents> {
     get events(): SoulEvent[];
     // (undocumented)
     onError(handler: (error: Error) => void): void;
+    // (undocumented)
+    registerTool<Params = Json, Response = Json>(tool: string, handler: (params: Params) => Promise<Response>): void;
     // (undocumented)
     setEnvironment(environment: SoulEnvironment): void;
     // (undocumented)
