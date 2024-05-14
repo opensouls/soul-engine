@@ -1,6 +1,6 @@
 /* eslint-disable perfectionist/sort-object-types */
 
-import { DeveloperDispatchedPerception, EventLogDoc, InteractionRequest, SoulEnvironment, SoulEvent, SoulEventKinds, debugChatShape } from '@opensouls/core'
+import { DeveloperDispatchedPerception, EventLogDoc, InteractionRequest, Json, SoulEnvironment, SoulEvent, SoulEventKinds, debugChatShape } from '@opensouls/core'
 import { HocuspocusProvider, HocuspocusProviderWebsocket } from "@hocuspocus/provider";
 import { getYjsDoc, observeDeep, syncedStore } from "@syncedstore/core";
 import { EventEmitter } from "eventemitter3";
@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { getConnectedWebsocket } from "./sockets/soul-engine-socket.js";
 import { ContentStreamer } from "./content-streamer.js";
 import { syncedEventStore } from "./event-log.js";
+import { ToolHandler } from './tool-handler.js';
 // syntactic sugar for listening to actions which tend to be in the past tense
 // but allowing to listen to things like Action.SAYS
 export enum Actions {
@@ -101,6 +102,7 @@ export class Soul extends EventEmitter<SoulEvents> {
   private selfCreatedWebsocket = false
   private token
   private version
+  private toolHandler: ToolHandler
   
   private websocket?: HocuspocusProviderWebsocket
 
@@ -132,6 +134,8 @@ export class Soul extends EventEmitter<SoulEvents> {
       this.websocket = webSocket
       this.connection = this.getProvider()
     }
+
+    this.toolHandler = new ToolHandler(this)
 
     this.errorHandler = (error) => {
       console.warn("warning: error handler not registered. use onError() to catch errors.")
@@ -186,6 +190,8 @@ export class Soul extends EventEmitter<SoulEvents> {
       console.log("CONNECTED TO SOUL. DEBUG HERE:", this.debugUrl())
     }
 
+    this.toolHandler.start()
+
     return this.soulId
   }
 
@@ -193,6 +199,8 @@ export class Soul extends EventEmitter<SoulEvents> {
     if (!this.connection) {
       throw new Error("You must call start() before stopping")
     }
+
+    this.toolHandler.stop()
 
     const { provider } = this.connection
     provider.destroy()
@@ -204,6 +212,10 @@ export class Soul extends EventEmitter<SoulEvents> {
     this.connection = undefined
 
     this.removeAllListeners()
+  }
+
+  registerTool<Params = Json, Response = Json>(tool: string, handler: (params: Params) => Promise<Response>) {
+    return this.toolHandler.registerTool(tool, handler)
   }
 
   async dispatch(perception: DeveloperDispatchedPerception) {
