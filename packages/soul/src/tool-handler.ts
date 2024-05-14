@@ -62,8 +62,11 @@ export class ToolHandler {
           message: "Method not found"
         }
       }
-      const response = await tool(request.params);
-      this.soul.store.pendingToolCalls![request.id]!.response = response;
+      const result = await tool(request.params);
+      this.soul.store.pendingToolCalls![request.id]!.response = {
+        id: request.id,
+        result,
+      };
     } catch (err: any) {
       this.soul.store.pendingToolCalls![request.id]!.response = {
         error: {

@@ -1,10 +1,22 @@
-import { describe } from "mocha";
+import { beforeEach, describe } from "mocha";
 import { expect } from "chai";
 import { Soul } from "../src/soul.js";
 
 describe("ToolHandler Integration Tests", () => {
+  let cleanup: (() => any)[] = []
+
   before(() => {
     console.log("make sure you have run npx soul-engine dev -l in the tests/shared/integrator-test-soul directory")
+  })
+
+  beforeEach(() => {
+    cleanup = []
+  })
+
+  afterEach(async () => {
+    for (const cleanupFunc of cleanup) {
+      await cleanupFunc()
+    }
   })
 
   it("supplies tools to the soul", async () => {
@@ -21,6 +33,7 @@ describe("ToolHandler Integration Tests", () => {
     })
 
     await soul.connect()
+    cleanup.push(() => soul.disconnect())
 
     await soul.dispatch({
       action: "callTool",

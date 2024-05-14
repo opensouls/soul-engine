@@ -156,6 +156,8 @@ export class Soul extends EventEmitter<SoulEvents> {
       throw new Error("You must call start() before accessing the store")
     }
 
+    this.connection.store.pendingToolCalls ||= {}
+
     return this.connection.store
   }
 
