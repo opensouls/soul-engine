@@ -196,7 +196,7 @@ const getHooks = () => {
     console.error("oops, no hooks", (globalThis as any).soul)
   }
 
-  return (globalThis as any).soul.__hooks
+  return (globalThis as any).soul.__hooks as SoulHooks | undefined
 }
 
 export const useActions: SoulHooks["useActions"] = () => {
@@ -253,8 +253,8 @@ export const useRag = (bucketName?: string) => {
   return hooks.useRag(bucketName)
 }
 
-export const useTool = (toolName: string) => {
+export const useTool = <ParamType = Json, ResponseType = Json>(toolName: string) => {
   const hooks = getHooks()
   if (!hooks) throw new Error("useTool called when no hooks are available. Are you executing this code on the SOUL ENGINE?")
-  return hooks.useTool(toolName)
+  return hooks.useTool<ParamType, ResponseType>(toolName)
 }

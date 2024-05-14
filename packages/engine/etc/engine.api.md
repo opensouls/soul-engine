@@ -229,7 +229,10 @@ export const useProcessManager: SoulHooks["useProcessManager"];
 export const useProcessMemory: SoulHooks["useProcessMemory"];
 
 // @public (undocumented)
-export const useRag: (bucketName?: string) => any;
+export const useRag: (bucketName?: string) => {
+    search: (opts: RagSearchOpts) => Promise<VectorRecordWithDistance[]>;
+    withRagContext: <T = any>(step: T, opts?: WithRagContextOpts) => Promise<T>;
+};
 
 // @public (undocumented)
 export const useSoulMemory: SoulHooks["useSoulMemory"];
@@ -238,7 +241,7 @@ export const useSoulMemory: SoulHooks["useSoulMemory"];
 export const useSoulStore: SoulHooks["useSoulStore"];
 
 // @public (undocumented)
-export const useTool: (toolName: string) => any;
+export const useTool: <ParamType = Json, ResponseType = Json>(toolName: string) => (params: ParamType) => Promise<ResponseType>;
 
 // @public (undocumented)
 export type VectorMetadata = Record<string, Json>;
