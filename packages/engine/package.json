@@ -1,6 +1,6 @@
 {
   "name": "@opensouls/engine",
-  "version": "0.1.27-alpha.0",
+  "version": "0.1.27",
   "type": "module",
   "description": "Write your own souls to run on the OPEN SOULS soul-engine",
   "main": "dist/index.mjs",
@@ -30,9 +30,9 @@
     "url": "git+https://github.com/opensouls/soul-engine.git"
   },
   "dependencies": {
-    "@opensouls/core": "^0.1.27-alpha.0",
-    "@opensouls/soul": "^0.1.27-alpha.0",
-    "soul-engine": "^0.1.27-alpha.0"
+    "@opensouls/core": "^0.1.27",
+    "@opensouls/soul": "^0.1.27",
+    "soul-engine": "^0.1.27"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.43.0",
