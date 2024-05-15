@@ -19,7 +19,7 @@ const createInit = (program: Command) => {
   program
     .command('init <projectName>')
     .description('Create a new soul for the OPEN SOULS soul engine.')
-    .option('-l, --local', 'Use the local template', false)
+    .option('-l, --local', '', false)
     .action(async (projectName: string, options: { local: boolean }) => {
       await handleLogin(options.local)
 

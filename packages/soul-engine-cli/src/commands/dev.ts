@@ -13,7 +13,7 @@ const createDev = (program: Command) => {
   program
     .command('dev')
     .description('Hot reload your code for remote chat debug')
-    .option('-l, --local', 'use the local config file', false)
+    .option('-l, --local', '(Soul Engine developers only) use a local soul engine server', false)
     .option('--once', 'only post the code once, do not watch for changes', false)
     .action(async ({ local, once }) => {
       await handleLogin(local)

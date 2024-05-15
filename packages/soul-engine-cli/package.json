@@ -37,6 +37,7 @@
     "@hocuspocus/provider": "=2.9.0",
     "@opensouls/engine": "^0.1.27",
     "chokidar": "^3.6.0",
+    "cli-table3": "^0.6.5",
     "commander": "^12.0.0",
     "conf": "^12.0.0",
     "cross-fetch": "^4.0.0",
@@ -44,6 +45,7 @@
     "fs-extra": "^11.2.0",
     "glob": "^10.3.12",
     "handlebars": "^4.7.8",
+    "inquirer": "^9.2.21",
     "open": "^10.1.0",
     "uuid": "^9.0.1",
     "yjs": "=13.6.14"
@@ -53,6 +55,7 @@
     "@types/chai": "^4.3.14",
     "@types/fs-extra": "^11.0.4",
     "@types/glob": "^8.1.0",
+    "@types/inquirer": "^9.0.7",
     "@types/mocha": "^10.0.6",
     "@types/uuid": "^9.0.8",
     "@types/ws": "^8.5.10",
