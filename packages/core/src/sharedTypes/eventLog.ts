@@ -62,6 +62,34 @@ export interface SystemEvent extends SoulEvent {
 
 export type SoulEnvironment = Record<string, Json> | undefined
 
+
+export interface JsonRPCCall {
+  id: string
+  method: string
+  params: any
+}
+
+export interface SuccessfulJsonRPCResponse {
+  id: string
+  result: Json
+}
+
+export interface ErroredJsonRPCResponse {
+  id: string
+  error: {
+    code: number
+    message: string
+    data?: Json
+  }
+}
+
+export type JsonRPCResponse = SuccessfulJsonRPCResponse | ErroredJsonRPCResponse
+
+export interface JsonRPCPair {
+  request: JsonRPCCall
+  response?: JsonRPCResponse
+}
+
 export interface EventLogMetadata {
   id: string,
   blueprint?: string,
@@ -71,6 +99,7 @@ export interface EventLogMetadata {
 export const eventLogShape = {
   events: [] as SoulEvent[],
   metadata: {} as EventLogMetadata,
+  pendingToolCalls: {} as Record<string, JsonRPCPair>
 }
 
 export type EventLogDoc = typeof eventLogShape

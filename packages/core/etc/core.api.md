@@ -4,13 +4,11 @@
 
 ```ts
 
-/// <reference types="node" />
-
 import Anthropic from '@anthropic-ai/sdk';
 import { ChatMessageContent as ChatMessageContent_2 } from './Memory.js';
 import { EventEmitter } from 'eventemitter3';
 import OpenAI from 'openai';
-import { Readable } from 'node:stream';
+import { ReadableStream as ReadableStream_2 } from 'web-streams-polyfill';
 import { RequestOptions as RequestOptions_2 } from 'openai/core';
 import { TemplateTag } from 'common-tags';
 import { z } from 'zod';
@@ -106,6 +104,7 @@ export const debugChatShape: {
     eventLog: {
         events: SoulEvent[];
         metadata: EventLogMetadata;
+        pendingToolCalls: Record<string, JsonRPCPair>;
     };
 };
 
@@ -116,6 +115,18 @@ export type DeveloperDispatchedPerception = Omit<ExternalPerception, "_id" | "_k
 export type DeveloperInteractionRequest = Omit<InteractionRequest, "_id" | "_kind" | "_timestamp" | "content" | "internal"> & {
     content: AsyncIterable<string> | string;
 };
+
+// @public (undocumented)
+export interface ErroredJsonRPCResponse {
+    // (undocumented)
+    error: {
+        code: number;
+        message: string;
+        data?: Json;
+    };
+    // (undocumented)
+    id: string;
+}
 
 // @public (undocumented)
 export type EventLogDoc = typeof eventLogShape;
@@ -134,6 +145,7 @@ export interface EventLogMetadata {
 export const eventLogShape: {
     events: SoulEvent[];
     metadata: EventLogMetadata;
+    pendingToolCalls: Record<string, JsonRPCPair>;
 };
 
 // @public (undocumented)
@@ -146,7 +158,7 @@ export interface ExternalPerception extends PerceptionBase {
 export function extractJSON(str?: string | null): string | null;
 
 // @public (undocumented)
-export function forkStream<T>(originalStream: AsyncIterable<T>, count?: number, objectMode?: boolean): Readable[];
+export function forkStream<T>(originalStream: AsyncIterable<T>, count?: number): ReadableStream_2<T>[];
 
 // @public (undocumented)
 export function getProcessor(name: string, opts?: ProcessorCreationOpts): Processor;
@@ -194,6 +206,27 @@ export interface InternalPerception extends PerceptionBase {
 export type Json = {
     [key: string]: Json | undefined;
 } | Json[] | boolean | null | number | string | undefined;
+
+// @public (undocumented)
+export interface JsonRPCCall {
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    method: string;
+    // (undocumented)
+    params: any;
+}
+
+// @public (undocumented)
+export interface JsonRPCPair {
+    // (undocumented)
+    request: JsonRPCCall;
+    // (undocumented)
+    response?: JsonRPCResponse;
+}
+
+// @public (undocumented)
+export type JsonRPCResponse = SuccessfulJsonRPCResponse | ErroredJsonRPCResponse;
 
 // @public (undocumented)
 export interface Memory<MetaDataType = Record<string, unknown>> {
@@ -385,6 +418,14 @@ export const stripEntityAndVerb: (soulName: string, _verb: string, response: str
 
 // @public (undocumented)
 export const stripEntityAndVerbFromStream: ({ soulName }: WorkingMemory, stream: AsyncIterable<string>) => Promise<AsyncIterable<string>>;
+
+// @public (undocumented)
+export interface SuccessfulJsonRPCResponse {
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    result: Json;
+}
 
 // @public (undocumented)
 export interface SystemEvent extends SoulEvent {
