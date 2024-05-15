@@ -182,6 +182,7 @@ export interface SoulHooks {
     search: (opts: RagSearchOpts) => Promise<VectorRecordWithDistance[]>
     withRagContext: <T = any>(step: T, opts?: WithRagContextOpts) => Promise<T>
   }
+  useTool<ParamType = Json | void, ResponseType = Json>(name: string): (params?: ParamType) => Promise<ResponseType>
 }
 
 export const defaultRagBucketName = (blueprint: string) => {
@@ -195,7 +196,7 @@ const getHooks = () => {
     console.error("oops, no hooks", (globalThis as any).soul)
   }
 
-  return (globalThis as any).soul.__hooks
+  return (globalThis as any).soul.__hooks as SoulHooks | undefined
 }
 
 export const useActions: SoulHooks["useActions"] = () => {
@@ -250,4 +251,10 @@ export const useRag = (bucketName?: string) => {
   const hooks = getHooks()
   if (!hooks) throw new Error("useRag called when no hooks are available. Are you executing this code on the SOUL ENGINE?")
   return hooks.useRag(bucketName)
+}
+
+export const useTool = <ParamType = Json, ResponseType = Json>(toolName: string) => {
+  const hooks = getHooks()
+  if (!hooks) throw new Error("useTool called when no hooks are available. Are you executing this code on the SOUL ENGINE?")
+  return hooks.useTool<ParamType, ResponseType>(toolName)
 }
