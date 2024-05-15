@@ -8,7 +8,7 @@ const createCreateModelCommand = (program: Command) => {
   program
     .command('create')
     .description('Create a custom model for the organization')
-    .option('-l, --local', 'Use the local server', false)
+    .option('-l, --local', '(Soul Engine dev only) use a local soul engine server', false)
     .action(async ({ local }) => {
       console.log(`Creating a custom model for the organization.`);
 
