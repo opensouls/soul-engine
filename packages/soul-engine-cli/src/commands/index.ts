@@ -7,6 +7,7 @@ import createLogin from "./login.js";
 import createRagCommand from "./rag/index.js";
 import createInstall from "./install.js";
 import createStoreCommand from "./stores/index.js";
+import createCustomModelCommand from "./custom-models/index.js";
 
 export const setupCLI = (program: Command) => {
   createApiKeyCommand(program);
@@ -17,4 +18,5 @@ export const setupCLI = (program: Command) => {
   createRagCommand(program);
   createStoreCommand(program);
   createInstall(program);
+  createCustomModelCommand(program);
 }
