@@ -1,7 +1,8 @@
 import { Command } from "commander";
-import fetch from 'node-fetch';
 import { handleLogin } from "../../login.js";
 import { getConfig } from "../../config.js";
+import CustomModelManager from "../../customModels/customModel.js";
+import Table from 'cli-table3'
 
 const createListModelsCommand = (program: Command) => {
   program
@@ -19,27 +20,15 @@ const createListModelsCommand = (program: Command) => {
         throw new Error("missing organization, even after login")
       }
 
-      const rootUrl = local ? "http://localhost:4000/api" : "https://servers.souls.chat/api";
-      const url = `${rootUrl}/${organizationSlug}/customProcessors`;
+      const customModelManager = new CustomModelManager(local, organizationSlug, globalConfig.get("apiKey"));
+      const models = await customModelManager.listModels();
 
-      try {
-        const response = await fetch(url, {
-          headers: {
-            "Authorization": `Bearer ${globalConfig.get("apiKey")}`,
-            "Content-Type": "application/json"
-          },
-        });
+      const table = new Table({
+        head: ["Name", "API Endpoint", "Model Name"]
+      })
+      table.push(...models.map((model: any) => [model.name, model.api_endpoint, model.model_name]))
 
-        if (!response.ok) {
-          console.error("Failed to fetch custom processors", { url, response: response.status, statusText: response.statusText });
-          return;
-        }
-
-        const processors = await response.json();
-        console.log("Custom Processors:", processors);
-      } catch (error) {
-        console.error("Error fetching custom processors:", error);
-      }
+      console.log(table.toString())
     });
 
   return program;
