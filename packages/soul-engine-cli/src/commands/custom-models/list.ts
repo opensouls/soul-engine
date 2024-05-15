@@ -8,7 +8,7 @@ const createListModelsCommand = (program: Command) => {
   program
     .command('list')
     .description('List custom models for the organization')
-    .option('-l, --local', 'Use the local server', false)
+    .option('-l, --local', '(Soul Engine Dev Only) Use a local soul engine instance instead of production', false)
     .action(async ({ local }) => {
       console.log(`Listing custom models for the organization.`);
 
