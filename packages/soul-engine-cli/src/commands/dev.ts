@@ -15,7 +15,8 @@ const createDev = (program: Command) => {
     .description('Hot reload your code for remote chat debug')
     .option('-l, --local', '(Soul Engine developers only) use a local soul engine server', false)
     .option('--once', 'only post the code once, do not watch for changes', false)
-    .action(async ({ local, once }) => {
+    .option("-n, --noopen", 'Do not automatically open the browser', false)
+    .action(async ({ local, once, noopen }) => {
       await handleLogin(local)
       const globalConfig = await getConfig(local)
 
@@ -57,24 +58,31 @@ const createDev = (program: Command) => {
         local,
       })
 
+    let resolve: () => void = () => {}
+    const synedOncePromise = new Promise<void>((r) => { resolve = r })  
+
     // eslint-disable-next-line no-warning-comments
     // TODO: this is a dumb quick fix to make sure we see bad things happening. "stateless" is a poor name for this event.
     watcher.once("stateless", () => {
       if (once) {
         console.log("posted")
+        resolve()
         return
       }
 
       const url = local ? `http://localhost:3000/chats/${organization}/${soulConfig.soul}/${uuidv4()}` : `https://souls.chat/chats/${organization}/${soulConfig.soul}/${uuidv4()}`
 
-      console.log("opening", url)
+      console.log("debug chat available at", url)
 
-      open(url)
+      if (!noopen) {
+        open(url)
+      }
     })
 
     await watcher.start()
 
     if (once) {
+      await synedOncePromise
       return
     }
 
