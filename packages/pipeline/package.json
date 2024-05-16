@@ -1,6 +1,6 @@
 {
   "name": "@opensouls/pipeline",
-  "version": "0.1.28",
+  "version": "0.1.29-alpha.0",
   "type": "module",
   "description": "Publish and sync data from the OPEN SOULS Soul Engine.",
   "main": "dist/index.mjs",
