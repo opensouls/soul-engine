@@ -16,7 +16,7 @@ const createDev = (program: Command) => {
     .option('-l, --local', '(Soul Engine developers only) use a local soul engine server', false)
     .option('--once', 'Only post the code once, do not watch for changes', false)
     .option("-n, --noopen", 'Do not automatically open the browser', false)
-    .option("--id", 'Set the SoulId, otherwise assigns a UUID', uuidv4())
+    .option("--id <id>", 'Set the SoulId, otherwise assigns a UUID', uuidv4())
     .action(async ({ local, once, noopen, id }) => {
       await handleLogin(local)
       const globalConfig = await getConfig(local)
@@ -71,6 +71,7 @@ const createDev = (program: Command) => {
         return
       }
 
+      console.log('SoulId:', id);
       const url = local ? `http://localhost:3000/chats/${organization}/${soulConfig.soul}/${id}` : `https://souls.chat/chats/${organization}/${soulConfig.soul}/${id}`
 
       console.log("debug chat available at", url)
