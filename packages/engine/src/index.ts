@@ -1,6 +1,6 @@
 /* eslint-disable arrow-body-style */
 import { InternalPerception, WorkingMemory } from '@opensouls/core';
-import { DeveloperInteractionRequest, Json, Perception, SoulEnvironment } from '@opensouls/core';
+import { DeveloperInteractionRequest, Json, Perception } from '@opensouls/core';
 import { MentalProcess } from './mentalProcess.js'
 
 export * from "./mentalProcess.js"
@@ -98,19 +98,6 @@ export type PerceptionProcessor = <PropType>(perceptionArgs: {
   currentProcess: MentalProcess<any>,
   workingMemory: WorkingMemory,
 }) => Promise<PerceptionProcessorReturnTypes<PropType>>
-
-export interface Blueprint {
-  name: string
-  entity: string
-  context: string
-  initialProcess: MentalProcess<any>
-  mentalProcesses: MentalProcess<any>[]
-  subprocesses?: MentalProcess<any>[]
-
-  perceptionProcessor?: PerceptionProcessor
-
-  defaultEnvironment?: SoulEnvironment
-}
 
 export interface RagConfigfile {
   bucket: string
