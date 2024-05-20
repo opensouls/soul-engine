@@ -14,9 +14,10 @@ const createDev = (program: Command) => {
     .command('dev')
     .description('Hot reload your code for remote chat debug')
     .option('-l, --local', '(Soul Engine developers only) use a local soul engine server', false)
-    .option('--once', 'only post the code once, do not watch for changes', false)
+    .option('--once', 'Only post the code once, do not watch for changes', false)
     .option("-n, --noopen", 'Do not automatically open the browser', false)
-    .action(async ({ local, once, noopen }) => {
+    .option("--id <id>", 'Set the SoulId, otherwise assigns a UUID', uuidv4())
+    .action(async ({ local, once, noopen, id }) => {
       await handleLogin(local)
       const globalConfig = await getConfig(local)
 
@@ -70,7 +71,8 @@ const createDev = (program: Command) => {
         return
       }
 
-      const url = local ? `http://localhost:3000/chats/${organization}/${soulConfig.soul}/${uuidv4()}` : `https://souls.chat/chats/${organization}/${soulConfig.soul}/${uuidv4()}`
+      console.log('SoulId:', id);
+      const url = local ? `http://localhost:3000/chats/${organization}/${soulConfig.soul}/${id}` : `https://souls.chat/chats/${organization}/${soulConfig.soul}/${id}`
 
       console.log("debug chat available at", url)
 

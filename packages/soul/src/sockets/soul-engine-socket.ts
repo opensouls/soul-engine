@@ -4,7 +4,7 @@ export const websocketUrl = (organizationSlug: string, local: boolean, debug: bo
   const urlpath = debug ? "debug-chat" : "experience"
 
   return local ?
-    `ws://127.0.0.1:4000/${organizationSlug}/${urlpath}` :
+    `ws://localhost:4000/${organizationSlug}/${urlpath}` :
     `wss://servers.souls.chat/${organizationSlug}/${urlpath}`
 }
 
