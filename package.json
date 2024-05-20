@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "bump": "lerna version --no-private",
-    "publish:all": "npm publish --workspace packages"
+    "publish:all": "npm publish --workspace packages",
+    "build:all" : "npm run build --workspace packages"
   },
   "workspaces": [
     "packages/*"
