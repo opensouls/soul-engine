@@ -8,31 +8,10 @@ import { DeveloperInteractionRequest } from '@opensouls/core';
 import { InternalPerception } from '@opensouls/core';
 import { Json } from '@opensouls/core';
 import { Perception } from '@opensouls/core';
-import { SoulEnvironment } from '@opensouls/core';
 import { WorkingMemory } from '@opensouls/core';
 
 // @public (undocumented)
 export const ALLOWED_RAG_FILE_EXTENSIONS: string[];
-
-// @public (undocumented)
-export interface Blueprint {
-    // (undocumented)
-    context: string;
-    // (undocumented)
-    defaultEnvironment?: SoulEnvironment;
-    // (undocumented)
-    entity: string;
-    // (undocumented)
-    initialProcess: MentalProcess<any>;
-    // (undocumented)
-    mentalProcesses: MentalProcess<any>[];
-    // (undocumented)
-    name: string;
-    // (undocumented)
-    perceptionProcessor?: PerceptionProcessor;
-    // (undocumented)
-    subprocesses?: MentalProcess<any>[];
-}
 
 // @public (undocumented)
 export type CognitiveEvent = CognitiveEventAbsolute | CognitiveEventOffset;

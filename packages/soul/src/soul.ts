@@ -216,6 +216,24 @@ export class Soul extends EventEmitter<SoulEvents> {
     this.removeAllListeners()
   }
 
+  async reset() {
+    if (!this.connection) {
+      throw new Error("You must call start() before stopping")
+    }
+
+    if (!this.debug) {
+      throw new Error("You can only reset in debug mode")
+    }
+
+    const { provider } = this.connection
+    provider.sendStateless(JSON.stringify({
+      event: Events.revertDoc,
+      data: {
+        version: "initial",
+      }
+    }))
+  }
+
   registerTool<Params = Json, Response = Json>(tool: string, handler: (params: Params) => Promise<Response>) {
     return this.toolHandler.registerTool(tool, handler)
   }

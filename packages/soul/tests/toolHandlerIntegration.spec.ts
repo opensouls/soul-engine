@@ -42,7 +42,7 @@ describe("ToolHandler Integration Tests", () => {
 
     // wait like 500ms, then check to make sure it ponged.
     await new Promise((resolve) => setTimeout(resolve, 500))
-    const said = soul.events.find((event) => event.action === "says")
+    const said = soul.events.find((event: any) => event.action === "says")
     expect(said).to.exist
 
     expect(said?.content).to.equal("Your tool ponged: ping")

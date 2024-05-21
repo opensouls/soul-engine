@@ -80,6 +80,8 @@ export class Soul extends EventEmitter<SoulEvents> {
     // (undocumented)
     registerTool<Params = Json, Response = Json>(tool: string, handler: (params: Params) => Promise<Response>): void;
     // (undocumented)
+    reset(): Promise<void>;
+    // (undocumented)
     setEnvironment(environment: SoulEnvironment): void;
     // (undocumented)
     soulId: string;
