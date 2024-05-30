@@ -17,18 +17,18 @@ const templatePath = __dirname.endsWith("dist") ? join(__dirname, '..', 'templat
 
 const createInit = (program: Command) => {
   program
-    .command('init <projectName>')
+    .command('init [projectName]')
     .description('Create a new soul for the OPEN SOULS soul engine.')
     .option('-l, --local', 'Use the local template', false)
-    .action(async (projectName: string, options: { local: boolean }) => {
-      await handleLogin(options.local)
-
-      const config = await getConfig()
-
-      if (!projectName) {
-        console.log("missing project name")
+    .option('-g, --guided', 'Follow the guided setup', false)
+    .action(async (projectName: string, options: { local: boolean, guided: boolean }) => {
+      if (!projectName && !options.guided) {
+        console.log("missing project name: provide a project name or use the --guided flag")
         return
       }
+      
+      await handleLogin(options.local)
+      const config = await getConfig()
 
       const safeProjectName = projectName.replaceAll(/\s/g, "-").toLowerCase()
       const lowerCaseEntityName = safeProjectName.split("-")[0]
