@@ -46,8 +46,7 @@ export interface DefaultActions {
     expire: () => void;
     // (undocumented)
     log: (...args: any) => void;
-    // (undocumented)
-    scheduleEvent: (evt: CognitiveEvent) => void;
+    scheduleEvent: (evt: CognitiveEvent) => Promise<string>;
     // (undocumented)
     speak: (message: AsyncIterable<string> | string) => void;
 }
@@ -155,6 +154,10 @@ export interface SoulHooks {
         setNextProcess: <PropType>(process: MentalProcess<PropType>, props?: PropType) => void;
         wait: (ms: number) => Promise<void>;
         previousMentalProcess?: MentalProcess<any>;
+        cancelScheduledEvent: (eventId: string) => Promise<void>;
+        pendingScheduledEvents: {
+            current: Record<string, CognitiveEventAbsolute>;
+        };
     };
     // (undocumented)
     useProcessMemory: <T = null>(initialValue: T) => {
