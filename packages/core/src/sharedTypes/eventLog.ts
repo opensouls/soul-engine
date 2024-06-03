@@ -45,7 +45,7 @@ export interface InternalPerception extends PerceptionBase {
 
 export type Perception = ExternalPerception | InternalPerception
 
-export type DeveloperDispatchedPerception = Omit<ExternalPerception, "_id" | "_kind" | "_timestamp">
+export type DeveloperDispatchedPerception = Omit<ExternalPerception, "_id" | "_timestamp">
 
 export interface InteractionRequest extends SoulEvent {
   _kind: SoulEventKinds.InteractionRequest
