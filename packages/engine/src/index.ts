@@ -28,6 +28,10 @@ export interface CognitiveEventBase {
   params?: Json
 }
 
+export interface PendingCognitiveEvent extends CognitiveEventAbsolute {
+  id: string
+}
+
 export interface CognitiveEventAbsolute extends CognitiveEventBase {
   when: Date
 }
@@ -166,7 +170,7 @@ export interface SoulHooks {
      * note the `.current` property is a reference to the current value.
      * Developers should not mutate this object.
      */
-    pendingScheduledEvents: { current: Record<string, CognitiveEventAbsolute> }
+    pendingScheduledEvents: { current: PendingCognitiveEvent[] }
   }
   usePerceptions: () => {
     invokingPerception: Perception | null | undefined,

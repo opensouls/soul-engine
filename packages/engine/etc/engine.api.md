@@ -82,6 +82,12 @@ export interface MentalProcessReturnOptions<ParamType> {
 export type MentalProcessReturnTypes<CortexStepType, ParamType = any> = CortexStepType | WorkingMemory | [WorkingMemory, MentalProcess<ParamType>] | [WorkingMemory, MentalProcess<ParamType>, MentalProcessReturnOptions<ParamType>];
 
 // @public (undocumented)
+export interface PendingCognitiveEvent extends CognitiveEventAbsolute {
+    // (undocumented)
+    id: string;
+}
+
+// @public (undocumented)
 export type PerceptionProcessor = <PropType>(perceptionArgs: {
     perception: Perception;
     currentProcess: MentalProcess<any>;
@@ -156,7 +162,7 @@ export interface SoulHooks {
         previousMentalProcess?: MentalProcess<any>;
         cancelScheduledEvent: (eventId: string) => Promise<void>;
         pendingScheduledEvents: {
-            current: Record<string, CognitiveEventAbsolute>;
+            current: PendingCognitiveEvent[];
         };
     };
     // (undocumented)
