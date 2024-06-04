@@ -49,7 +49,7 @@ export interface DefaultActions {
     */
   expire: () => void
   log: (...args: any) => void
-  speak: (message: AsyncIterable<string>|string) => void
+  speak: (message: AsyncIterable<string> | string) => void
   /**
    * Schedules a CognitiveEvent to dispatch in the future,
    * returns an eventId that can be used to cancel the scheduled event.
@@ -62,9 +62,9 @@ export interface DefaultActions {
 
 export type VectorMetadata = Record<string, Json>
 
-export interface VectorRecord {
+export interface VectorRecord<T = Json> {
   key: string
-  content: Json
+  content: T
   metadata: VectorMetadata
   embedding?: Embedding
 }
@@ -135,7 +135,10 @@ export interface VectorStorSearchOpts {
 export interface VectorStoreHook {
   createEmbedding: (content: string, model?: string) => Promise<Embedding>
   delete: (key: string) => void
-  fetch: <T = unknown>(key: string, opts?: SoulStoreGetOpts) => Promise<(typeof opts extends { includeMetadata: true } ? VectorRecord : T) | undefined>
+  fetch: {
+    <T = Json>(key: string, opts: SoulStoreGetOpts & { includeMetadata: true }): Promise<VectorRecord<T> | undefined>
+    <T = unknown>(key: string, opts?: Exclude<SoulStoreGetOpts, { includeMetadata: true }>): Promise<T | undefined>
+  }
   search: (query: Embedding | string, opts?: VectorStorSearchOpts) => Promise<VectorRecordWithDistance[]>
   set: (key: string, value: Json, metadata?: VectorMetadata, model?: string) => void
 }
