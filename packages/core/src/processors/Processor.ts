@@ -1,9 +1,10 @@
 import { ZodSchema } from "zod"
 import { WorkingMemory } from "../WorkingMemory.js"
 import { ChatMessageContent, ChatMessageRoleEnum, ContentText } from "../Memory.js"
+import { SupportedModel } from "../sharedTypes/supportedModels.js"
 
 export interface UsageNumbers {
-  model: string,
+  model: SupportedModel,
   input: number,
   output: number
 }
@@ -18,7 +19,7 @@ export interface ProcessResponse<SchemaType = string> {
 export type Headers = Record<string, string | null | undefined>;
 
 export interface RequestOptions {
-  model?: string
+  model?: SupportedModel
   temperature?: number
   maxTokens?: number
 
