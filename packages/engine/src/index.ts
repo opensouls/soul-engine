@@ -28,6 +28,10 @@ export interface CognitiveEventBase {
   params?: Json
 }
 
+export interface PendingCognitiveEvent extends CognitiveEventAbsolute {
+  id: string
+}
+
 export interface CognitiveEventAbsolute extends CognitiveEventBase {
   when: Date
 }
@@ -46,7 +50,11 @@ export interface DefaultActions {
   expire: () => void
   log: (...args: any) => void
   speak: (message: AsyncIterable<string>|string) => void
-  scheduleEvent: (evt: CognitiveEvent) => void
+  /**
+   * Schedules a CognitiveEvent to dispatch in the future,
+   * returns an eventId that can be used to cancel the scheduled event.
+   */
+  scheduleEvent: (evt: CognitiveEvent) => Promise<string>
   dispatch: (evt: DeveloperInteractionRequest) => void
 }
 
@@ -153,6 +161,16 @@ export interface SoulHooks {
     setNextProcess: <PropType>(process: MentalProcess<PropType>, props?: PropType) => void
     wait: (ms: number) => Promise<void>
     previousMentalProcess?: MentalProcess<any>
+    /**
+     * cancelScheduledEvent takes the eventId returned by scheduleEvent and cancels the event.
+     */
+    cancelScheduledEvent: (eventId: string) => Promise<void>
+    /**
+     * list of all pending scheduled events, reactively updated.
+     * note the `.current` property is a reference to the current value.
+     * Developers should not mutate this object.
+     */
+    pendingScheduledEvents: { current: PendingCognitiveEvent[] }
   }
   usePerceptions: () => {
     invokingPerception: Perception | null | undefined,
