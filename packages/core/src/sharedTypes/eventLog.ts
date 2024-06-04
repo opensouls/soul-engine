@@ -40,6 +40,9 @@ export interface ExternalPerception extends PerceptionBase {
 
 export interface InternalPerception extends PerceptionBase {
   internal: true,
+  /**
+   * @deprecated - premonition is deprecated, adjust your perception instead.
+   */
   premonition?: string,
 }
 
