@@ -46,8 +46,7 @@ export interface DefaultActions {
     expire: () => void;
     // (undocumented)
     log: (...args: any) => void;
-    // (undocumented)
-    scheduleEvent: (evt: CognitiveEvent) => void;
+    scheduleEvent: (evt: CognitiveEvent) => Promise<string>;
     // (undocumented)
     speak: (message: AsyncIterable<string> | string) => void;
 }
@@ -81,6 +80,12 @@ export interface MentalProcessReturnOptions<ParamType> {
 
 // @public (undocumented)
 export type MentalProcessReturnTypes<CortexStepType, ParamType = any> = CortexStepType | WorkingMemory | [WorkingMemory, MentalProcess<ParamType>] | [WorkingMemory, MentalProcess<ParamType>, MentalProcessReturnOptions<ParamType>];
+
+// @public (undocumented)
+export interface PendingCognitiveEvent extends CognitiveEventAbsolute {
+    // (undocumented)
+    id: string;
+}
 
 // @public (undocumented)
 export type PerceptionProcessor = <PropType>(perceptionArgs: {
@@ -155,6 +160,10 @@ export interface SoulHooks {
         setNextProcess: <PropType>(process: MentalProcess<PropType>, props?: PropType) => void;
         wait: (ms: number) => Promise<void>;
         previousMentalProcess?: MentalProcess<any>;
+        cancelScheduledEvent: (eventId: string) => Promise<void>;
+        pendingScheduledEvents: {
+            current: PendingCognitiveEvent[];
+        };
     };
     // (undocumented)
     useProcessMemory: <T = null>(initialValue: T) => {
