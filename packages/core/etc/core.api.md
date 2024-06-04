@@ -109,6 +109,9 @@ export const debugChatShape: {
 };
 
 // @public (undocumented)
+export type DeveloperDispatchedEvent = Omit<SoulEvent, "_id" | "_timestamp">;
+
+// @public (undocumented)
 export type DeveloperDispatchedPerception = Omit<ExternalPerception, "_id" | "_kind" | "_timestamp">;
 
 // @public (undocumented)
