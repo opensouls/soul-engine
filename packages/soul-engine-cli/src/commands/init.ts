@@ -72,6 +72,10 @@ const createInit = (program: Command) => {
             const newFileName = templateFileName(data);
             renameSync(file, newFileName);
           }
+          
+          if (file.startsWith("_")) {
+            renameSync(file, file.replace(/^_/, ''));
+          }
         } catch (error: unknown) {
           console.error("skipping...", file, error)
           // throw error
