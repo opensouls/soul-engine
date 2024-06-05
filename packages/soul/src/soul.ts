@@ -77,6 +77,8 @@ export type ActionEvent = {
   interactionRequest: InteractionRequest
 }
 
+
+
 export type SoulEvents = {
   [K in Actions]: (evt: ActionEvent) => void
 } & {
@@ -86,6 +88,12 @@ export type SoulEvents = {
   newPerception: (evt: InteractionRequest) => void,
   newInteractionRequest: (evt: InteractionRequest) => void,
   newSoulEvent: (evt: SoulEvent) => void,
+}
+
+// polyfill the websocket for all versions of node, but not
+// bun or the browser
+function shouldPolyfillWebsocket() {
+  return typeof process !== "undefined" && !process.versions.bun
 }
 
 // eslint-disable-next-line unicorn/prefer-event-target
@@ -173,7 +181,7 @@ export class Soul extends EventEmitter<SoulEvents> {
     if (!this.websocket) {
       this.selfCreatedWebsocket = true
       // eslint-disable-next-line unicorn/no-typeof-undefined
-      if (typeof (globalThis.WebSocket) === "undefined") {
+      if (shouldPolyfillWebsocket()) {
         const { default: ws } = await import("ws");
         this.websocket = getConnectedWebsocket(this.organizationSlug, this.local, Boolean(this.debug), { WebSocketPolyfill: ws })
       } else {
