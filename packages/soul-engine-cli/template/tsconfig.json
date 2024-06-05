@@ -8,7 +8,7 @@
     "strict": true,
     "esModuleInterop": true,
     "declaration": true,
-    "types": ["node", "mocha"],
+    "types": ["node"],
     "resolveJsonModule": true,
     "moduleResolution": "Node16",
   },
