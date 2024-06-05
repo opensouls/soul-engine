@@ -86,7 +86,7 @@ const summarizesConversation: MentalProcess = async ({ workingMemory }) => {
     conversationModel.current = updatedNotes as string
 
     return workingMemory
-      .slice(0,2)
+      .slice(0,1)
       .withMemory({
         role: ChatMessageRoleEnum.Assistant,
         content: indentNicely`
