@@ -235,9 +235,9 @@ export const useTool: <ParamType = Json, ResponseType = Json>(toolName: string) 
 export type VectorMetadata = Record<string, Json>;
 
 // @public (undocumented)
-export interface VectorRecord {
+export interface VectorRecord<T = Json> {
     // (undocumented)
-    content: Json;
+    content: T;
     // (undocumented)
     embedding?: Embedding;
     // (undocumented)
@@ -264,9 +264,14 @@ export interface VectorStoreHook {
     // (undocumented)
     delete: (key: string) => void;
     // (undocumented)
-    fetch: <T = unknown>(key: string, opts?: SoulStoreGetOpts) => Promise<(typeof opts extends {
-        includeMetadata: true;
-    } ? VectorRecord : T) | undefined>;
+    fetch: {
+        <T = Json>(key: string, opts: SoulStoreGetOpts & {
+            includeMetadata: true;
+        }): Promise<VectorRecord<T> | undefined>;
+        <T = unknown>(key: string, opts?: Exclude<SoulStoreGetOpts, {
+            includeMetadata: true;
+        }>): Promise<T | undefined>;
+    };
     // (undocumented)
     search: (query: Embedding | string, opts?: VectorStorSearchOpts) => Promise<VectorRecordWithDistance[]>;
     // (undocumented)
