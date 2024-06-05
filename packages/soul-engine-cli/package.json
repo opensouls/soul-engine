@@ -1,6 +1,6 @@
 {
   "name": "soul-engine",
-  "version": "0.1.34",
+  "version": "0.1.35",
   "bin": {
     "soul-engine": "./bin/run.js"
   },
@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "@hocuspocus/provider": "=2.9.0",
-    "@opensouls/engine": "^0.1.34",
+    "@opensouls/engine": "^0.1.35",
     "chokidar": "^3.6.0",
     "cli-table3": "^0.6.5",
     "commander": "^12.0.0",
