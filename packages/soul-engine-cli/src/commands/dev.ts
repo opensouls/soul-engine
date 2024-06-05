@@ -13,7 +13,7 @@ const createDev = (program: Command) => {
   program
     .command('dev')
     .description('Hot reload your code for remote chat debug')
-    .option('-l, --local', '(Soul Engine developers only) use a local soul engine server', false)
+    .option('-l, --local', '(OPEN SOULS internal usage only) use a local soul engine server', false)
     .option('--once', 'Only post the code once, do not watch for changes', false)
     .option("-n, --noopen", 'Do not automatically open the browser', false)
     .option("--id <id>", 'Set the SoulId, otherwise assigns a UUID', uuidv4())
