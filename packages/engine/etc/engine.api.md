@@ -261,7 +261,7 @@ export type VectorRecordWithSimilarity = VectorRecordWithDistance;
 export interface VectorStoreHook {
     // (undocumented)
     createEmbedding: (content: string, model?: string) => Promise<Embedding>;
-    // (undocumented)
+    // @deprecated (undocumented)
     delete: (key: string) => void;
     // (undocumented)
     fetch: {
@@ -272,6 +272,8 @@ export interface VectorStoreHook {
             includeMetadata: true;
         }>): Promise<T | undefined>;
     };
+    // (undocumented)
+    remove: (key: string) => void;
     // (undocumented)
     search: (query: Embedding | string, opts?: VectorStorSearchOpts) => Promise<VectorRecordWithDistance[]>;
     // (undocumented)
