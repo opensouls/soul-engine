@@ -134,7 +134,11 @@ export interface VectorStorSearchOpts {
 
 export interface VectorStoreHook {
   createEmbedding: (content: string, model?: string) => Promise<Embedding>
+  /**
+   * @deprecated Use remove instead. 'delete' is a reserved word in JavaScript.
+   */
   delete: (key: string) => void
+  remove: (key: string) => void
   fetch: {
     <T = Json>(key: string, opts: SoulStoreGetOpts & { includeMetadata: true }): Promise<VectorRecord<T> | undefined>
     <T = unknown>(key: string, opts?: Exclude<SoulStoreGetOpts, { includeMetadata: true }>): Promise<T | undefined>
