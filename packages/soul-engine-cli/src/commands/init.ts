@@ -2,7 +2,7 @@ import { Command } from "commander"
 import { globSync } from "glob"
 import Handlebars from "handlebars"
 import { readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs'
-import { join, dirname } from 'node:path'
+import { join, dirname, basename } from 'node:path'
 import { fileURLToPath } from 'node:url';
 import fsExtra from "fs-extra"
 
@@ -55,6 +55,7 @@ const createInit = (program: Command) => {
       }
       console.log("processing files...")
       for (const file of files) {
+        console.log("file: ", file)
         try {
           if (file.includes("node_modules")) continue;
           if (file.includes("/.git/")) continue;
@@ -73,8 +74,8 @@ const createInit = (program: Command) => {
             renameSync(file, newFileName);
           }
           
-          if (file.startsWith("_")) {
-            renameSync(file, file.replace(/^_/, ''));
+          if (basename(file).startsWith("_")) {
+            renameSync(file, file.replace(/\/_/g, '/'));
           }
         } catch (error: unknown) {
           console.error("skipping...", file, error)
