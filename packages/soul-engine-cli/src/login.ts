@@ -19,6 +19,9 @@ export const handleLogin = async (local: boolean, force = false) => {
 
   console.log(`Opening ${url} in your browser. If the browser does not open, then please visit manually.`)
 
+  if (process.platform === "win32") {
+    console.log("Tip: If you're on Windows, you can paste with a right-click.");
+  }
 
   const configInput = await rl.question('Please login to the soul engine and then paste the config here: ');
   rl.close();
