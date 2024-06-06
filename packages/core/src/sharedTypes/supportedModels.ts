@@ -2,4 +2,9 @@ export const SUPPORTED_MODELS = ["fast", "quality", "vision", "gpt-4-turbo", "gp
 "exp/Nous-Hermes-2-Mixtral-8x7B-SFT", "exp/Nous-Hermes-2-Mixtral-8x7B-DPO", "exp/claude-3-opus", "exp/claude-3-sonnet",
 "exp/claude-3-haiku", "exp/nous-hermes-2-mixtral-fp8", "exp/hermes-2-pro-mistral-7b", "exp/firefunction-v1", "exp/firellava-13b",
 "exp/mixtral-8x22b-instruct", "exp/llama-v3-70b-instruct"];
-export type SupportedModel = typeof SUPPORTED_MODELS[number];
+
+type OrganizationSlug = string;
+type CustomModelName = string;
+export type CUSTOM_MODEL = `${OrganizationSlug}/${CustomModelName}`;
+
+export type SupportedModel = typeof SUPPORTED_MODELS[number] | CUSTOM_MODEL;
