@@ -200,6 +200,22 @@ describe("WorkingMemory", () => {
     expect(memories.memories[1].metadata?.transformed).to.be.true
   });
 
+  it("splices", () => {
+    const memories = new WorkingMemory({
+      soulName: "test",
+    }).withMonologue("Memory #1")
+      .withMonologue("Memory #2")
+      .withMonologue("Memory #3")
+
+    const splicedMemories = memories.splice(1, 1, {
+      role: ChatMessageRoleEnum.System,
+      content: "Spliced Memory"
+    })
+
+    expect(splicedMemories.memories).to.have.lengthOf(3)
+    expect(splicedMemories.memories[1].content).to.equal("Spliced Memory")
+  })
+
   describe('regions', () => {
 
     const fakeSystemMemeory: InputMemory = {
