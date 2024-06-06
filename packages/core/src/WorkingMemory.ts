@@ -41,10 +41,10 @@ const defaultPostProcessor = <SchemaType = string>(_workingMemory: WorkingMemory
   return [memory, response]
 }
 
-interface PendingInfo { 
+interface PendingInfo {
   pending?: Promise<void>
   pendingResolve?: () => void
-} 
+}
 
 // this is the weirdest construct but we need to make sure WorkingMemory is *completely* immutable including
 // anything that is *internally* mutable (pending, usage, memories). So we use these factories to create closures
@@ -113,6 +113,17 @@ export class WorkingMemory extends EventEmitter {
     return { ...this._usage() }
   }
 
+  /**
+   * The `memories` attribute returns a copy of the memories currently stored in the WorkingMemory instance.
+   * 
+   * @returns An array containing the memories of the WorkingMemory instance.
+   * 
+   * @example
+   * ```
+   * const memories = workingMemory.memories;
+   * console.log(memories); // Outputs an array of Memory objects.
+   * ```
+   */
   get memories() {
     return [...this.internalMemories]
   }
@@ -294,6 +305,29 @@ export class WorkingMemory extends EventEmitter {
   }
 
   /**
+   /**
+   * Changes the content of the WorkingMemory instance by removing existing memories and/or adding new memories, producing a new WorkingMemory instance.
+   * This method behaves similarly to the `splice()` method of JavaScript arrays.
+   * 
+   * @param start - Zero-based index at which to start changing the memory array. If greater than the length of the memory array, actual starting index will be set to the length of the array. If negative, will begin that many elements from the end.
+   * @param deleteCount - An integer indicating the number of old memory elements to remove. If deleteCount is 0 or negative, no memories are removed.
+   * @param items - The elements to add to the memory array, beginning from the start index. If you don't specify any elements, splice() will only remove elements from the array.
+   * @returns A new WorkingMemory instance with the spliced memories.
+   * 
+   * @example
+   * ```
+   * const newMemory1 = { role: ChatMessageRoleEnum.User, content: "Hello, world!" };
+   * const newMemory2 = { role: ChatMessageRoleEnum.User, content: "How are you?" };
+   * const newWorkingMemory = workingMemory.splice(1, 2, newMemory1, newMemory2);
+   * ```
+   */
+  splice(start: number, deleteCount: number, ...items: InputMemory[]) {
+    const newMemories = [...this.internalMemories]
+    newMemories.splice(start, deleteCount, ...this.clone(items).memories)
+    return this.clone(newMemories)
+  }
+
+  /**
    * Adds a single memory to the current set of memories in the WorkingMemory instance, producing a new WorkingMemory instance.
    * 
    * @param memory - The memory to add to the WorkingMemory.
@@ -309,6 +343,109 @@ export class WorkingMemory extends EventEmitter {
     return this.concat(this.normalizeMemoryListOrWorkingMemory([memory]))
   }
 
+  /**
+   * Set (add or replace) a region in the memory with the provided new memories. If the region does not exist, it will be created and added to the top of the memories.
+   * This function (like other WorkingMemory functions) is immutable and returns a new WorkingMemory instance with the updated Memory[].
+   * 
+   * @param regionName - The name of the region where the memories will be set.
+   * @param memories - The memories to add to the specified region in the WorkingMemory.
+   * @returns A new WorkingMemory instance with the memories in the specified region.
+   * 
+   * @example
+   * ```
+   * const newMemory1 = { role: ChatMessageRoleEnum.User, content: "Hello, world!" };
+   * const newMemory2 = { role: ChatMessageRoleEnum.User, content: "How are you?" };
+   * const newWorkingMemory = workingMemory.withRegion("greetings", newMemory1, newMemory2);
+   * ```
+   */
+  withRegion(regionName: string, ...memories: InputMemory[]) {
+    const memoriesWithRegion = this.normalizeMemoryListOrWorkingMemory(memories.map((memory) => {
+      return {
+        ...memory,
+        region: regionName
+      }
+    }))
+    // first we'll find where this region should go
+    const startIndex = this.regionalIndex(regionName)
+    if (startIndex === -1) {
+      return this.prepend(memoriesWithRegion)
+    }
+
+    const withoutRegion = this.withoutRegions(regionName)
+
+    return this.clone(
+      this.internalMemories
+        .slice(0, startIndex)
+        .concat(memoriesWithRegion.memories)
+        .concat(withoutRegion.slice(startIndex).memories)
+    )
+    // otherwise we splice it
+  }
+
+  /**
+   * Orders the regions in the memory according to the specified order. If the 'default' region (memories without a region) is not specified, it will be placed at the end.
+   * 
+   * @param regionOrder - An array of region names in the order they should appear in the WorkingMemory.
+   * @returns A new WorkingMemory instance with the memories in the specified region order.
+   * 
+   * @example
+   * ```
+   * const newWorkingMemory = workingMemory.orderRegions("system", "default");
+   * ```
+   */
+  orderRegions(...regionOrder: string[]) {
+    // First, we will extract and remove the memories of the specified regions
+    const memoriesByRegion: { [key: string]: Memory[] } = {};
+    const remainingMemories: Memory[] = [];
+
+    this.internalMemories.forEach(memory => {
+      const region = memory.region || "default";
+      if (regionOrder.includes(region)) {
+        if (!memoriesByRegion[region]) {
+          memoriesByRegion[region] = [];
+        }
+        memoriesByRegion[region].push(memory);
+      } else {
+        remainingMemories.push(memory);
+      }
+    });
+
+    // Now, we will concatenate the memories back in the specified order
+    const orderedMemories: Memory[] = [];
+    regionOrder.forEach(region => {
+      if (memoriesByRegion[region]) {
+        orderedMemories.push(...memoriesByRegion[region]);
+      }
+    });
+
+    // Finally, we return a new WorkingMemory instance with the ordered memories
+    return this.clone(orderedMemories.concat(remainingMemories));
+  }
+
+  /**
+   * Removes memories from the WorkingMemory instance that belong to the specified region, producing a new WorkingMemory instance.
+   * 
+   * @param regionNames - The name of the region(s) to remove from the working memory
+   * @returns A new WorkingMemory instance with the memories removed from the specified regions.
+   * 
+   * @example
+   * ```
+   * const newWorkingMemory = workingMemory.withoutRegions("greetings");
+   * const newWorkingMemory = workingMemory.withoutRegions("system", "summary");
+   * ```
+   */
+  withoutRegions(...regionNames: string[]) {
+    return this.filter((memory) => {
+      const region = memory.region || "default"
+      return !regionNames.includes(region)
+    })
+  }
+
+  private regionalIndex(regionName: string) {
+    return this.memories.findIndex((memory) => {
+      return memory.region === regionName
+    })
+  }
 
   /**
    * Filters the memories in the WorkingMemory instance using the provided callback, similar to Array.prototype.filter.
@@ -419,8 +556,8 @@ export class WorkingMemory extends EventEmitter {
       Working Memory (${this.id}): ${this.soulName}
       Memories:
       ${this.internalMemories.map((memory) => {
-        return JSON.stringify(memory)
-      }).join("\n")}
+      return JSON.stringify(memory)
+    }).join("\n")}
     `
   }
 

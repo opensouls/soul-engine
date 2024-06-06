@@ -28,8 +28,9 @@ export interface Memory<MetaDataType = Record<string, unknown>> {
   role: ChatMessageRoleEnum;
   content: ChatMessageContent;
   name?: string;
+  region?: string;
   metadata?: MetaDataType;
-
+  
   _id: string;
   _timestamp: number;
 }

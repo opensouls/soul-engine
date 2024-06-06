@@ -1,6 +1,6 @@
 import { expect } from "chai"
 import { WorkingMemory } from "../src/WorkingMemory.js"
-import { ChatMessageRoleEnum } from "../src/Memory.js"
+import { ChatMessageRoleEnum, InputMemory } from "../src/Memory.js"
 
 
 describe("WorkingMemory", () => {
@@ -199,5 +199,124 @@ describe("WorkingMemory", () => {
     expect(memories.memories[0].metadata?.transformed).to.be.true
     expect(memories.memories[1].metadata?.transformed).to.be.true
   });
+
+  it("splices", () => {
+    const memories = new WorkingMemory({
+      soulName: "test",
+    }).withMonologue("Memory #1")
+      .withMonologue("Memory #2")
+      .withMonologue("Memory #3")
+
+    const splicedMemories = memories.splice(1, 1, {
+      role: ChatMessageRoleEnum.System,
+      content: "Spliced Memory"
+    })
+
+    expect(splicedMemories.memories).to.have.lengthOf(3)
+    expect(splicedMemories.memories[1].content).to.equal("Spliced Memory")
+  })
+
+  describe('regions', () => {
+
+    const fakeSystemMemeory: InputMemory = {
+      role: ChatMessageRoleEnum.System,
+      content: 'System',
+    }
+
+    it('adds a new region to the working memory', () => {
+      const memories = new WorkingMemory({
+        soulName: "test",
+      }).withMonologue("Memory #1")
+        .withMonologue("Memory #2")
+
+      const memoriesWithRegion = memories.withRegion("system", fakeSystemMemeory)
+      expect(memoriesWithRegion.length).to.equal(3)
+      expect(memoriesWithRegion.at(0)).to.have.property('region', 'system')
+      expect(memoriesWithRegion.at(0)).to.have.property('content', fakeSystemMemeory.content)
+    })
+
+    it('replaces existing regions', () => {
+      const memories = new WorkingMemory({
+        soulName: "test",
+      }).withMonologue("Memory #1")
+        .withMonologue("Memory #2")
+
+      const memoriesWithRegion = memories.withRegion("system", fakeSystemMemeory)
+      
+      const withReplacedRegion = memoriesWithRegion.withRegion("system", {
+        role: ChatMessageRoleEnum.System,
+        content: 'Replaced System',
+      })
+      expect(withReplacedRegion.length).to.equal(3)
+      expect(withReplacedRegion.at(0)).to.have.property('region', 'system')
+      expect(withReplacedRegion.at(0)).to.have.property('content', 'Replaced System')
+    })
+
+    it('orders regions', () => {
+      const memories = new WorkingMemory({
+        soulName: "test",
+      }).withMonologue("Memory #1")
+        .withMonologue("Memory #2")
+
+      const withSystem = memories.withRegion("system", fakeSystemMemeory)
+      const withSummary = withSystem.withRegion("summary", {
+        role: ChatMessageRoleEnum.System,
+        content: 'Summary',
+      })
+
+      const ordered = withSummary.orderRegions('summary', 'system')
+      expect(ordered.length).to.equal(4)
+      expect(ordered.at(0)).to.have.property('region', 'summary')
+      expect(ordered.at(1)).to.have.property('region', 'system')
+
+      const reordered = ordered.orderRegions('system', 'summary')
+      expect(reordered.length).to.equal(4)
+      expect(reordered.at(0)).to.have.property('region', 'system')
+      expect(reordered.at(1)).to.have.property('region', 'summary')
+    })
+
+    it("orders using 'default' as a region", () => {
+      const memories = new WorkingMemory({
+        soulName: "test",
+      }).withMonologue("Memory #1")
+        .withMonologue("Memory #2")
+
+      const withSystem = memories.withRegion("system", fakeSystemMemeory)
+      const withSummary = withSystem.withRegion("summary", {
+        role: ChatMessageRoleEnum.System,
+        content: 'Summary',
+      })
+
+      const ordered = withSummary.orderRegions('default', 'system', 'summary')
+      expect(ordered.at(0)).to.not.have.property('region')
+      expect(ordered.slice(-1).at(0)).to.have.property('region', 'summary')
+      expect(ordered.slice(-2).at(0)).to.have.property('region', 'system')
+    })
+
+  it("removes regions from memory", () => {
+    const memories = new WorkingMemory({
+      soulName: "test",
+    }).withMonologue("Memory #1")
+      .withMonologue("Memory #2")
+
+    const withSystem = memories.withRegion("system", {
+      role: ChatMessageRoleEnum.System,
+      content: 'System Memory',
+    })
+    const withSummary = withSystem.withRegion("summary", {
+      role: ChatMessageRoleEnum.System,
+      content: 'Summary Memory',
+    })
+
+    const withoutSystem = withSummary.withoutRegions('system')
+    expect(withoutSystem.length).to.equal(3)
+    expect(withoutSystem.at(0)).to.not.have.property('region', 'system')
+
+    const withoutSystemAndSummary = withoutSystem.withoutRegions('summary')
+    expect(withoutSystemAndSummary.length).to.equal(2)
+    expect(withoutSystemAndSummary.at(0)).to.not.have.property('region', 'summary')
+  })
+
+  })
 
 })
