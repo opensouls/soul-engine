@@ -382,6 +382,17 @@ export class WorkingMemory extends EventEmitter {
     // otherwise we splice it
   }
 
+  /**
+   * Orders the regions in the memory according to the specified order. If the 'default' region (memories without a region) is not specified, it will be placed at the end.
+   * 
+   * @param regionOrder - An array of region names in the order they should appear in the WorkingMemory.
+   * @returns A new WorkingMemory instance with the memories in the specified region order.
+   * 
+   * @example
+   * ```
+   * const newWorkingMemory = workingMemory.orderRegions("system", "default");
+   * ```
+   */
   orderRegions(...regionOrder: string[]) {
     // First, we will extract and remove the memories of the specified regions
     const memoriesByRegion: { [key: string]: Memory[] } = {};
@@ -411,7 +422,18 @@ export class WorkingMemory extends EventEmitter {
     return this.clone(orderedMemories.concat(remainingMemories));
   }
 
-  private withoutRegion(regionName: string) {
+  /**
+   * Removes memories from the WorkingMemory instance that belong to the specified region, producing a new WorkingMemory instance.
+   * 
+   * @param regionName - The name of the region from which to remove memories.
+   * @returns A new WorkingMemory instance with the memories removed from the specified region.
+   * 
+   * @example
+   * ```
+   * const newWorkingMemory = workingMemory.withoutRegion("greetings");
+   * ```
+   */
+  withoutRegion(regionName: string) {
     return this.filter((memory) => {
       return memory.region !== regionName
     })
