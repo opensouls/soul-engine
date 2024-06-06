@@ -371,7 +371,7 @@ export class WorkingMemory extends EventEmitter {
       return this.prepend(memoriesWithRegion)
     }
 
-    const withoutRegion = this.withoutRegion(regionName)
+    const withoutRegion = this.withoutRegions(regionName)
 
     return this.clone(
       this.internalMemories
@@ -425,17 +425,19 @@ export class WorkingMemory extends EventEmitter {
   /**
    * Removes memories from the WorkingMemory instance that belong to the specified region, producing a new WorkingMemory instance.
    * 
-   * @param regionName - The name of the region from which to remove memories.
-   * @returns A new WorkingMemory instance with the memories removed from the specified region.
+   * @param regionNames - The name of the region(s) to remove from the working memory
+   * @returns A new WorkingMemory instance with the memories removed from the specified regions.
    * 
    * @example
    * ```
-   * const newWorkingMemory = workingMemory.withoutRegion("greetings");
+   * const newWorkingMemory = workingMemory.withoutRegions("greetings");
+   * const newWorkingMemory = workingMemory.withoutRegions("system", "summary");
    * ```
    */
-  withoutRegion(regionName: string) {
+  withoutRegions(...regionNames: string[]) {
     return this.filter((memory) => {
-      return memory.region !== regionName
+      const region = memory.region || "default"
+      return !regionNames.includes(region)
     })
   }
 

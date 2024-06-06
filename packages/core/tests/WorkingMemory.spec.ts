@@ -293,6 +293,30 @@ describe("WorkingMemory", () => {
       expect(ordered.slice(-2).at(0)).to.have.property('region', 'system')
     })
 
+  it("removes regions from memory", () => {
+    const memories = new WorkingMemory({
+      soulName: "test",
+    }).withMonologue("Memory #1")
+      .withMonologue("Memory #2")
+
+    const withSystem = memories.withRegion("system", {
+      role: ChatMessageRoleEnum.System,
+      content: 'System Memory',
+    })
+    const withSummary = withSystem.withRegion("summary", {
+      role: ChatMessageRoleEnum.System,
+      content: 'Summary Memory',
+    })
+
+    const withoutSystem = withSummary.withoutRegions('system')
+    expect(withoutSystem.length).to.equal(3)
+    expect(withoutSystem.at(0)).to.not.have.property('region', 'system')
+
+    const withoutSystemAndSummary = withoutSystem.withoutRegions('summary')
+    expect(withoutSystemAndSummary.length).to.equal(2)
+    expect(withoutSystemAndSummary.at(0)).to.not.have.property('region', 'summary')
+  })
+
   })
 
 })
