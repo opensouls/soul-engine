@@ -5,7 +5,7 @@
   "scripts": {
     "bump": "lerna version --no-private",
     "publish:all": "npm publish --workspace packages",
-    "build:all" : "npm run build --workspace packages"
+    "build:all" : "npm run build --workspace packages/core && npm run build --workspace packages/soul && npm run build --workspace packages"
   },
   "workspaces": [
     "packages/*"
