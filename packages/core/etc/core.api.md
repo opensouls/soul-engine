@@ -198,7 +198,7 @@ export interface InteractionRequest extends SoulEvent {
 export interface InternalPerception extends PerceptionBase {
     // (undocumented)
     internal: true;
-    // (undocumented)
+    // @deprecated (undocumented)
     premonition?: string;
 }
 
@@ -238,6 +238,8 @@ export interface Memory<MetaDataType = Record<string, unknown>> {
     metadata?: MetaDataType;
     // (undocumented)
     name?: string;
+    // (undocumented)
+    region?: string;
     // (undocumented)
     role: ChatMessageRoleEnum;
     // (undocumented)
@@ -358,8 +360,10 @@ export interface RequestOptions {
     headers?: Headers_2;
     // (undocumented)
     maxTokens?: number;
+    // Warning: (ae-forgotten-export) The symbol "SupportedModel" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
-    model?: string;
+    model?: SupportedModel;
     // (undocumented)
     signal?: AbortSignal;
     // (undocumented)
@@ -453,7 +457,7 @@ export interface UsageNumbers {
     // (undocumented)
     input: number;
     // (undocumented)
-    model: string;
+    model: SupportedModel;
     // (undocumented)
     output: number;
 }
@@ -472,6 +476,7 @@ export class WorkingMemory extends EventEmitter {
         role: ChatMessageRoleEnum;
         content: ChatMessageContent_2;
         name?: string | undefined;
+        region?: string | undefined;
         metadata?: Record<string, unknown> | undefined;
         _id: string;
         _timestamp: number;
@@ -483,8 +488,8 @@ export class WorkingMemory extends EventEmitter {
     map(callback: (memory: Memory, i?: number) => InputMemory): WorkingMemory;
     // (undocumented)
     protected markPending(): void;
-    // (undocumented)
     get memories(): Memory<Record<string, unknown>>[];
+    orderRegions(...regionOrder: string[]): WorkingMemory;
     prepend(otherWorkingMemory: MemoryListOrWorkingMemory): WorkingMemory;
     // (undocumented)
     processor: ProcessorSpecification;
@@ -495,6 +500,7 @@ export class WorkingMemory extends EventEmitter {
     some(callback: (memory: Memory) => boolean): boolean;
     // (undocumented)
     soulName: string;
+    splice(start: number, deleteCount: number, ...items: InputMemory[]): WorkingMemory;
     toString(): string;
     transform<SchemaType, PostProcessType>(transformation: MemoryTransformationOptions<SchemaType, PostProcessType>, opts: {
         stream: true;
@@ -512,6 +518,8 @@ export class WorkingMemory extends EventEmitter {
     };
     withMemory(memory: InputMemory): WorkingMemory;
     withMonologue(content: string): WorkingMemory;
+    withoutRegions(...regionNames: string[]): WorkingMemory;
+    withRegion(regionName: string, ...memories: InputMemory[]): WorkingMemory;
 }
 
 // @public (undocumented)
