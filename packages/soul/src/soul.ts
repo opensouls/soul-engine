@@ -4,7 +4,7 @@ import { DeveloperDispatchedPerception, EventLogDoc, InteractionRequest, Json, S
 import { HocuspocusProvider, HocuspocusProviderWebsocket } from "@hocuspocus/provider";
 import { getYjsDoc, observeDeep, syncedStore } from "@syncedstore/core";
 import { EventEmitter } from "eventemitter3";
-import { v4 as uuidv4 } from 'uuid'
+import { v4 as uuidv4, validate as validateUuid } from 'uuid'
 
 import { getConnectedWebsocket } from "./sockets/soul-engine-socket.js";
 import { ContentStreamer } from "./content-streamer.js";
@@ -132,6 +132,10 @@ export class Soul extends EventEmitter<SoulEvents> {
     super()
     if (debug && !token) {
       throw new Error("you must use a token to enable debug chat")
+    }
+
+    if (token && !validateUuid(token)) {
+      throw new Error("you used an invalid token (should be in uuid format)");
     }
 
     this.debug = debug
