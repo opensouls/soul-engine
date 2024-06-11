@@ -27,3 +27,14 @@ The easiest way to get started developing with `@opensouls/core` is to explore t
 If this project is exciting to you, come hangout in the [OPEN SOULS Discord](https://discord.gg/opensouls) and build with us!
 
 We have a [community repository](https://github.com/opensouls/community) where we share cognitive steps, mental processes, documentation, example projects, etc to help each other build compelling AI souls. This is a great place to start contributing.
+
+## 🚢 Releasing
+
+To release a new version, please follow these steps:
+
+1. Ensure you have the necessary access permissions.
+1. Run `git checkout -b bump/v0.1.XX` (where `XX` is the new version)
+1. Push the new branch to the origin: `git push origin bump/v0.1.XX`
+1. Run the bump script: `npm run bump`
+1. Wait until GitHub Actions releases the package.
+1. Don't forget to merge your bump branch to main
