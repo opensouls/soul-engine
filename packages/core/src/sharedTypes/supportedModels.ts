@@ -3,8 +3,8 @@ export const SUPPORTED_MODELS = ["fast", "quality", "vision", "gpt-3.5-turbo-012
 "exp/claude-3-haiku", "exp/nous-hermes-2-mixtral-fp8", "exp/hermes-2-pro-mistral-7b", "exp/firefunction-v1", "exp/firellava-13b",
 "exp/mixtral-8x22b-instruct", "exp/llama-v3-70b-instruct"];
 
-type OrganizationSlug = string;
-type CustomModelName = string;
+export type OrganizationSlug = string;
+export type CustomModelName = string;
 export type CUSTOM_MODEL = `${OrganizationSlug}/${CustomModelName}`;
 
 export type SupportedModel = typeof SUPPORTED_MODELS[number] | CUSTOM_MODEL;

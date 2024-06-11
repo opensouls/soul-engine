@@ -98,6 +98,12 @@ export type ContentText = {
 export const createCognitiveStep: <UserArgType = undefined, SchemaType = string, PostProcessType = SchemaType>(transformationOptionsGenerator: (singleArg: UserArgType) => MemoryTransformationOptions<SchemaType, PostProcessType>) => CognitiveStep<UserArgType, PostProcessType>;
 
 // @public (undocumented)
+export type CUSTOM_MODEL = `${OrganizationSlug}/${CustomModelName}`;
+
+// @public (undocumented)
+export type CustomModelName = string;
+
+// @public (undocumented)
 export const debugChatShape: {
     metadata: {};
     state: {};
@@ -294,6 +300,9 @@ export interface OpenAIProcessorOpts {
 }
 
 // @public (undocumented)
+export type OrganizationSlug = string;
+
+// @public (undocumented)
 export type Perception = ExternalPerception | InternalPerception;
 
 // @public (undocumented)
@@ -360,8 +369,6 @@ export interface RequestOptions {
     headers?: Headers_2;
     // (undocumented)
     maxTokens?: number;
-    // Warning: (ae-forgotten-export) The symbol "SupportedModel" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     model?: SupportedModel;
     // (undocumented)
@@ -430,6 +437,12 @@ export interface SuccessfulJsonRPCResponse {
     // (undocumented)
     result: Json;
 }
+
+// @public (undocumented)
+export const SUPPORTED_MODELS: string[];
+
+// @public (undocumented)
+export type SupportedModel = typeof SUPPORTED_MODELS[number] | CUSTOM_MODEL;
 
 // @public (undocumented)
 export interface SystemEvent extends SoulEvent {
