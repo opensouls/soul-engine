@@ -93,7 +93,11 @@ export type SoulEvents = {
 // polyfill the websocket for all versions of node, but not
 // bun or the browser
 function shouldPolyfillWebsocket() {
-  return typeof process !== "undefined" && !process.versions.bun
+  // Check if the code is running in a browser environment
+  const isBrowser = typeof window !== 'undefined';
+
+  // If it's not in a browser environment and it's Node.js but not Bun, return true
+  return !isBrowser && typeof process !== 'undefined' && process.versions && !process.versions.bun;
 }
 
 // eslint-disable-next-line unicorn/prefer-event-target
@@ -180,8 +184,9 @@ export class Soul extends EventEmitter<SoulEvents> {
     }
     if (!this.websocket) {
       this.selfCreatedWebsocket = true
+      const shouldPolyfill = shouldPolyfillWebsocket();
       // eslint-disable-next-line unicorn/no-typeof-undefined
-      if (shouldPolyfillWebsocket()) {
+      if (shouldPolyfill) {
         const { default: ws } = await import("ws");
         this.websocket = getConnectedWebsocket(this.organizationSlug, this.local, Boolean(this.debug), { WebSocketPolyfill: ws })
       } else {
