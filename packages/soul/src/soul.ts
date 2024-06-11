@@ -181,7 +181,7 @@ export class Soul extends EventEmitter<SoulEvents> {
     if (!this.websocket) {
       this.selfCreatedWebsocket = true
       // eslint-disable-next-line unicorn/no-typeof-undefined
-      if (shouldPolyfillWebsocket()) {
+      if (typeof (globalThis.WebSocket) === "undefined") {
         const { default: ws } = await import("ws");
         this.websocket = getConnectedWebsocket(this.organizationSlug, this.local, Boolean(this.debug), { WebSocketPolyfill: ws })
       } else {
