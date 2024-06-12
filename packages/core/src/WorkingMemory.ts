@@ -409,7 +409,7 @@ export class WorkingMemory extends EventEmitter {
    */
   withRegion(regionName: string, ...memories: InputMemory[]) {
     if (regionName === DEFAULT_REGION) {
-      throw new Error('default is a reserved region name for memories without a region')
+      throw new Error('default is a reserved region name for memories without an explicit region')
     }
     const memoriesWithRegion = this.normalizeMemoryListOrWorkingMemory(memories.map((memory) => {
       return {
