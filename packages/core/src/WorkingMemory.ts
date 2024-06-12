@@ -8,6 +8,8 @@ import type { MemoryTransformationOptions, PostProcessReturn, TransformOptions, 
 import { indentNicely } from "./utils.js"
 import { ChatMessageRoleEnum, InputMemory, Memory } from "./Memory.js"
 
+const DEFAULT_REGION = "default"
+
 /**
  * This file defines the structure and operations on working memory within the OPEN SOULS soul-engine.
  * Additionally, it provides interfaces for processor specifications and the handling of memory transformations and cognitive steps.
@@ -24,6 +26,7 @@ export interface WorkingMemoryInitOptions {
   soulName: string
   memories?: InputMemory[]
   processor?: ProcessorSpecification
+  regionOrder?: string[]
   /*
    *  postCloneTransformation is a hook for library developers who want to shape a working memory or provide hooks or defaults on every return of a new working memory. 
    */
@@ -77,6 +80,8 @@ export class WorkingMemory extends EventEmitter {
   private _usage: ReturnType<typeof usageFactory>
   private _postCloneTransformation: (workingMemory: WorkingMemory) => WorkingMemory
 
+  protected regionOrder?: string[]
+
   private _pending: ReturnType<typeof pendingFactory>
 
   soulName: string
@@ -84,7 +89,7 @@ export class WorkingMemory extends EventEmitter {
     name: "openai",
   })
 
-  constructor({ soulName, memories, postCloneTransformation, processor }: WorkingMemoryInitOptions) {
+  constructor({ soulName, memories, postCloneTransformation, processor, regionOrder }: WorkingMemoryInitOptions) {
     super()
     this.id = nanoid()
     this._memories = memoryFactory(this.memoriesFromInputMemories(memories || []))
@@ -92,6 +97,9 @@ export class WorkingMemory extends EventEmitter {
     if (processor) {
       this.processor = processor
     }
+
+    this.regionOrder = regionOrder
+
     this._pending = pendingFactory()
     this._postCloneTransformation = postCloneTransformation || ((workingMemory) => workingMemory)
     this._usage = usageFactory()
@@ -218,8 +226,45 @@ export class WorkingMemory extends EventEmitter {
       memories: replacementMemories || this.memories,
       postCloneTransformation: this._postCloneTransformation,
       processor: this.processor,
+      regionOrder: this.regionOrder,
     })
     return this._postCloneTransformation(newMemory)
+  }
+
+  /**
+   * Returns a new WorkingMemory with a persistent configuration for the order of regions when they are added to the WorkingMemory instance.
+   * 
+   * @param regionOrder - A list of region names in the order they should appear in the WorkingMemory.
+   * @returns A new WorkingMemory instance with the specified regional order.
+   * 
+   * @example
+   * ```
+   * const memories = new WorkingMemory({
+   *   soulName: "test",
+   * }).withMonologue("Memory #1")
+   *   .withMonologue("Memory #2")
+   *   .withRegionalOrder('system', 'summary');
+   * 
+   * // add the summary first which will go to the top of the working memory (because no system region yet)
+   * const withSummary = memories.withRegion("summary", {
+   *   role: ChatMessageRoleEnum.System,
+   *   content: 'Summary',
+   * });
+   * 
+   * // but then when we add the system, it will go to the top because of the configuration
+   * const withSystem = withSummary.withRegion("system", {
+   *   role: ChatMessageRoleEnum.System,
+   *   content: 'System',
+   * });
+   * 
+   * expect(withSystem.at(0)).to.have.property('region', 'system');
+   * expect(withSystem.at(1)).to.have.property('region', 'summary');
+   * ```
+   */
+  withRegionalOrder(...regionOrder: string[]) {
+    const clone = this.clone()
+    clone.regionOrder = regionOrder
+    return clone
   }
 
   /**
@@ -340,6 +385,10 @@ export class WorkingMemory extends EventEmitter {
    * ```
    */
   withMemory(memory: InputMemory) {
+    if (memory.region) {
+      const existingRegionalMemories = this.regionalMemories(memory.region)
+      return this.withRegion(memory.region, ...existingRegionalMemories, memory)
+    }
     return this.concat(this.normalizeMemoryListOrWorkingMemory([memory]))
   }
 
@@ -359,6 +408,9 @@ export class WorkingMemory extends EventEmitter {
    * ```
    */
   withRegion(regionName: string, ...memories: InputMemory[]) {
+    if (regionName === DEFAULT_REGION) {
+      throw new Error('default is a reserved region name for memories without a region')
+    }
     const memoriesWithRegion = this.normalizeMemoryListOrWorkingMemory(memories.map((memory) => {
       return {
         ...memory,
@@ -366,20 +418,29 @@ export class WorkingMemory extends EventEmitter {
       }
     }))
     // first we'll find where this region should go
-    const startIndex = this.regionalIndex(regionName)
+    let startIndex = this.regionalIndex(regionName)
     if (startIndex === -1) {
-      return this.prepend(memoriesWithRegion)
+      // if there is no region with that name, then it goes right before the first memory with no region
+      const firstMemoryWithoutRegion = this.memories.findIndex((memory) => {
+        return !memory.region || memory.region === DEFAULT_REGION
+      })
+      startIndex = firstMemoryWithoutRegion === -1 ? this.length : firstMemoryWithoutRegion
     }
 
     const withoutRegion = this.withoutRegions(regionName)
 
-    return this.clone(
+    const clone = this.clone(
       this.internalMemories
         .slice(0, startIndex)
         .concat(memoriesWithRegion.memories)
         .concat(withoutRegion.slice(startIndex).memories)
     )
-    // otherwise we splice it
+
+    if (this.regionOrder) {
+      return clone.orderRegions(...this.regionOrder)
+    }
+
+    return clone
   }
 
   /**
@@ -390,7 +451,7 @@ export class WorkingMemory extends EventEmitter {
    * 
    * @example
    * ```
-   * const newWorkingMemory = workingMemory.orderRegions("system", "default");
+   * const newWorkingMemory = workingMemory.orderRegions("system", DEFAULT_REGION);
    * ```
    */
   orderRegions(...regionOrder: string[]) {
@@ -399,7 +460,7 @@ export class WorkingMemory extends EventEmitter {
     const remainingMemories: Memory[] = [];
 
     this.internalMemories.forEach(memory => {
-      const region = memory.region || "default";
+      const region = memory.region || DEFAULT_REGION;
       if (regionOrder.includes(region)) {
         if (!memoriesByRegion[region]) {
           memoriesByRegion[region] = [];
@@ -436,13 +497,19 @@ export class WorkingMemory extends EventEmitter {
    */
   withoutRegions(...regionNames: string[]) {
     return this.filter((memory) => {
-      const region = memory.region || "default"
+      const region = memory.region || DEFAULT_REGION
       return !regionNames.includes(region)
     })
   }
 
   private regionalIndex(regionName: string) {
     return this.memories.findIndex((memory) => {
+      return memory.region === regionName
+    })
+  }
+  
+  private regionalMemories(regionName: string) {
+    return this.internalMemories.filter((memory) => {
       return memory.region === regionName
     })
   }

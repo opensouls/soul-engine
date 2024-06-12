@@ -27,6 +27,30 @@ describe("WorkingMemory", () => {
     expect(memories3.memories[1].content).to.equal(memories2.memories[0].content)
   })
 
+  it('maintains a regional order configuration', () => {
+    const memories = new WorkingMemory({
+      soulName: "test",
+    }).withMonologue("Memory #1")
+      .withMonologue("Memory #2")
+      .withRegionalOrder('system', 'summary')
+
+    // add the summary first which will go to the top
+    const withSummary = memories.withRegion("summary", {
+      role: ChatMessageRoleEnum.System,
+      content: 'Summary',
+    })
+    expect(withSummary.at(0)).to.have.property('region', 'summary')
+
+    const withSystem = withSummary.withRegion("system", {
+      role: ChatMessageRoleEnum.System,
+      content: 'System',
+    })
+
+    // but then when we add the system, it should go to the top because of the configuration
+    expect(withSystem.at(0)).to.have.property('region', 'system')
+    expect(withSystem.at(1)).to.have.property('region', 'summary')
+  })
+
   it("retrieves a memory at a specified index", () => {
     const memories = new WorkingMemory({
       soulName: "test",
@@ -233,6 +257,43 @@ describe("WorkingMemory", () => {
       expect(memoriesWithRegion.length).to.equal(3)
       expect(memoriesWithRegion.at(0)).to.have.property('region', 'system')
       expect(memoriesWithRegion.at(0)).to.have.property('content', fakeSystemMemeory.content)
+    })
+
+    it('adds new regions just after all existing regions by default', () => {
+      const memories = new WorkingMemory({
+        soulName: "test",
+      }).withMonologue("Memory #1")
+        .withMonologue("Memory #2")
+
+      const withSystem = memories.withRegion("system", fakeSystemMemeory)
+      const withSummary = withSystem.withRegion("summary", {
+        role: ChatMessageRoleEnum.System,
+        content: 'Summary',
+      })
+
+      expect(withSummary.length).to.equal(4)
+      expect(withSummary.at(0)).to.have.property('region', 'system')
+      expect(withSummary.at(1)).to.have.property('region', 'summary')
+      expect(withSummary.at(2)).to.not.have.property('region')
+    })
+
+    it('puts memories into the correct region when using withMemory', () => {
+      const memories = new WorkingMemory({
+        soulName: "test",
+      }).withMonologue("Memory #1")
+        .withMonologue("Memory #2")
+
+      const withSystem = memories.withRegion("system", fakeSystemMemeory)
+      const withAddlSystem = withSystem.withMemory({
+        role: ChatMessageRoleEnum.System,
+        content: 'Additional System',
+        region: 'system',
+      })
+
+      expect(withAddlSystem.length).to.equal(4)
+      expect(withAddlSystem.at(0)).to.have.property('region', 'system')
+      expect(withAddlSystem.at(1)).to.have.property('region', 'system')
+      expect(withAddlSystem.at(2)).to.have.property('content', 'Memory #1')
     })
 
     it('replaces existing regions', () => {
