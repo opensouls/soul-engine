@@ -223,7 +223,7 @@ export class WorkingMemory extends EventEmitter {
   clone(replacementMemories?: InputMemory[]) {
     const newMemory = new WorkingMemory({
       soulName: this.soulName,
-      memories: replacementMemories || this.memories,
+      memories: replacementMemories || this.internalMemories,
       postCloneTransformation: this._postCloneTransformation,
       processor: this.processor,
       regionOrder: this.regionOrder,
@@ -368,7 +368,7 @@ export class WorkingMemory extends EventEmitter {
    */
   splice(start: number, deleteCount: number, ...items: InputMemory[]) {
     const newMemories = [...this.internalMemories]
-    newMemories.splice(start, deleteCount, ...this.clone(items).memories)
+    newMemories.splice(start, deleteCount, ...this.clone(items).internalMemories)
     return this.clone(newMemories)
   }
 
@@ -421,7 +421,7 @@ export class WorkingMemory extends EventEmitter {
     let startIndex = this.regionalIndex(regionName)
     if (startIndex === -1) {
       // if there is no region with that name, then it goes right before the first memory with no region
-      const firstMemoryWithoutRegion = this.memories.findIndex((memory) => {
+      const firstMemoryWithoutRegion = this.internalMemories.findIndex((memory) => {
         return !memory.region || memory.region === DEFAULT_REGION
       })
       startIndex = firstMemoryWithoutRegion === -1 ? this.length : firstMemoryWithoutRegion
@@ -432,8 +432,8 @@ export class WorkingMemory extends EventEmitter {
     const clone = this.clone(
       this.internalMemories
         .slice(0, startIndex)
-        .concat(memoriesWithRegion.memories)
-        .concat(withoutRegion.slice(startIndex).memories)
+        .concat(memoriesWithRegion.internalMemories)
+        .concat(withoutRegion.slice(startIndex).internalMemories)
     )
 
     if (this.regionOrder) {
@@ -503,14 +503,14 @@ export class WorkingMemory extends EventEmitter {
   }
 
   private regionalIndex(regionName: string) {
-    return this.memories.findIndex((memory) => {
-      return memory.region === regionName
+    return this.internalMemories.findIndex((memory) => {
+      return (memory.region || DEFAULT_REGION) === regionName
     })
   }
   
   private regionalMemories(regionName: string) {
     return this.internalMemories.filter((memory) => {
-      return memory.region === regionName
+      return (memory.region || DEFAULT_REGION) === regionName
     })
   }
 
@@ -560,7 +560,7 @@ export class WorkingMemory extends EventEmitter {
    */
   concat(other: MemoryListOrWorkingMemory) {
     const otherWorkingMemory = this.normalizeMemoryListOrWorkingMemory(other)
-    return this.clone(this.internalMemories.concat(otherWorkingMemory.memories))
+    return this.clone(this.internalMemories.concat(otherWorkingMemory.internalMemories))
   }
 
   /**
@@ -572,7 +572,7 @@ export class WorkingMemory extends EventEmitter {
    */
   prepend(otherWorkingMemory: MemoryListOrWorkingMemory) {
     const otherMemory = this.normalizeMemoryListOrWorkingMemory(otherWorkingMemory)
-    return this.clone(otherMemory.memories.concat(this.memories))
+    return this.clone(otherMemory.internalMemories.concat(this.internalMemories))
   }
 
   /**
