@@ -4,6 +4,6 @@
   "timeout": 120000,
   "node-option": [
 		"experimental-specifier-resolution=node",
-		"loader=tsx"
+		"import=tsx"
 	]
 }
