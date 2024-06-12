@@ -393,8 +393,12 @@ export class WorkingMemory extends EventEmitter {
   }
 
   /**
-   * Set (add or replace) a region in the memory with the provided new memories. If the region does not exist, it will be created and added to the top of the memories.
-   * This function (like other WorkingMemory functions) is immutable and returns a new WorkingMemory instance with the updated Memory[].
+   * Set (add or replace) a region in the memory with the provided new memories. If the region does not exist,
+   * it will be created and added according to the configuration defined by #withRegionalOrder or (by default)
+   * added right after all other defined regions (right above the default region).
+   * 
+   * This function (like other WorkingMemory functions) is immutable and returns a new WorkingMemory 
+   * instance with the updated Memory[].
    * 
    * @param regionName - The name of the region where the memories will be set.
    * @param memories - The memories to add to the specified region in the WorkingMemory.
