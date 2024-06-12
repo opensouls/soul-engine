@@ -232,7 +232,7 @@ export class WorkingMemory extends EventEmitter {
   }
 
   /**
-   * Returns a new WorkingMemory with a persistent configuration for the order of regions when they are added to the WorkingMemory instance.
+   * Returns a new WorkingMemory with a persistent configuration for the order of regions when they are added to the WorkingMemory instance. Un-regioned memories can be referenced explicitly via the 'default' region. Otherwise, they're sorted to the end of the workingMemory.
    * 
    * @param regionOrder - A list of region names in the order they should appear in the WorkingMemory.
    * @returns A new WorkingMemory instance with the specified regional order.
