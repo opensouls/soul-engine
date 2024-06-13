@@ -477,7 +477,7 @@ export interface UsageNumbers {
 
 // @public (undocumented)
 export class WorkingMemory extends EventEmitter {
-    constructor({ soulName, memories, postCloneTransformation, processor }: WorkingMemoryInitOptions);
+    constructor({ soulName, memories, postCloneTransformation, processor, regionOrder }: WorkingMemoryInitOptions);
     asyncMap(callback: (memory: Memory, i?: number) => Promise<InputMemory>): Promise<WorkingMemory>;
     at(index: number): Memory<Record<string, unknown>>;
     clone(replacementMemories?: InputMemory[]): WorkingMemory;
@@ -506,6 +506,8 @@ export class WorkingMemory extends EventEmitter {
     prepend(otherWorkingMemory: MemoryListOrWorkingMemory): WorkingMemory;
     // (undocumented)
     processor: ProcessorSpecification;
+    // (undocumented)
+    protected regionOrder?: string[];
     replace(replacementMemories: InputMemory[]): WorkingMemory;
     // (undocumented)
     protected resolvePending(): void;
@@ -533,6 +535,7 @@ export class WorkingMemory extends EventEmitter {
     withMonologue(content: string): WorkingMemory;
     withoutRegions(...regionNames: string[]): WorkingMemory;
     withRegion(regionName: string, ...memories: InputMemory[]): WorkingMemory;
+    withRegionalOrder(...regionOrder: string[]): WorkingMemory;
 }
 
 // @public (undocumented)
@@ -543,6 +546,8 @@ export interface WorkingMemoryInitOptions {
     postCloneTransformation?: (workingMemory: WorkingMemory) => WorkingMemory;
     // (undocumented)
     processor?: ProcessorSpecification;
+    // (undocumented)
+    regionOrder?: string[];
     // (undocumented)
     soulName: string;
 }
