@@ -220,13 +220,15 @@ export class WorkingMemory extends EventEmitter {
    * const clonedMemory = originalMemory.clone([optionalNewMemories]);
    * ```
    */
-  clone(replacementMemories?: InputMemory[]) {
+  clone(replacementMemories?: InputMemory[], overrides: Partial<{ regionOrder: string[] }> = {}) {
+    const { regionOrder } = overrides
+
     const newMemory = new WorkingMemory({
       soulName: this.soulName,
       memories: replacementMemories || this.internalMemories,
       postCloneTransformation: this._postCloneTransformation,
       processor: this.processor,
-      regionOrder: this.regionOrder,
+      regionOrder: regionOrder || this.regionOrder,
     })
     return this._postCloneTransformation(newMemory)
   }
@@ -262,8 +264,7 @@ export class WorkingMemory extends EventEmitter {
    * ```
    */
   withRegionalOrder(...regionOrder: string[]) {
-    const clone = this.clone()
-    clone.regionOrder = regionOrder
+    const clone = this.clone(undefined, { regionOrder })
     return clone
   }
 
