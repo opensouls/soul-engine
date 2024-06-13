@@ -480,7 +480,9 @@ export class WorkingMemory extends EventEmitter {
     constructor({ soulName, memories, postCloneTransformation, processor, regionOrder }: WorkingMemoryInitOptions);
     asyncMap(callback: (memory: Memory, i?: number) => Promise<InputMemory>): Promise<WorkingMemory>;
     at(index: number): Memory<Record<string, unknown>>;
-    clone(replacementMemories?: InputMemory[]): WorkingMemory;
+    clone(replacementMemories?: InputMemory[], overrides?: Partial<{
+        regionOrder: string[];
+    }>): WorkingMemory;
     concat(other: MemoryListOrWorkingMemory): WorkingMemory;
     // (undocumented)
     protected doTransform<SchemaType, PostProcessType>(transformation: MemoryTransformationOptions<SchemaType, PostProcessType>, opts: TransformOptions): Promise<(AsyncIterable<string> | this | Promise<unknown>)[] | (this | SchemaType | PostProcessType)[]>;
