@@ -404,7 +404,6 @@ describe("WorkingMemory", () => {
       expect(onlySystemAndSummary.at(0)).to.have.property('region', 'system')
       expect(onlySystemAndSummary.at(1)).to.have.property('region', 'summary')
     })
-
   })
 
 })
