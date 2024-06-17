@@ -193,11 +193,11 @@ describe("WorkingMemory", () => {
     expect(asyncMappedMemories.memories[1].content).to.equal("Async map test #2 async mapped")
   })
 
-  
+
   it("applies postCloneTransformations to transform WorkingMemory", () => {
     // This test is a trivial example to test functionality. The system is designed so library developers
     // can add their own hooks to working memory (for instance, prevent access to certain methods, or log usage, etc).
-    
+
     const postCloneTransformation = (wm: WorkingMemory) => {
       const transformedMemories = wm.memories.map(memory => ({
         ...memory,
@@ -303,7 +303,7 @@ describe("WorkingMemory", () => {
         .withMonologue("Memory #2")
 
       const memoriesWithRegion = memories.withRegion("system", fakeSystemMemeory)
-      
+
       const withReplacedRegion = memoriesWithRegion.withRegion("system", {
         role: ChatMessageRoleEnum.System,
         content: 'Replaced System',
@@ -354,30 +354,56 @@ describe("WorkingMemory", () => {
       expect(ordered.slice(-2).at(0)).to.have.property('region', 'system')
     })
 
-  it("removes regions from memory", () => {
-    const memories = new WorkingMemory({
-      soulName: "test",
-    }).withMonologue("Memory #1")
-      .withMonologue("Memory #2")
+    it("removes regions from memory", () => {
+      const memories = new WorkingMemory({
+        soulName: "test",
+      }).withMonologue("Memory #1")
+        .withMonologue("Memory #2")
 
-    const withSystem = memories.withRegion("system", {
-      role: ChatMessageRoleEnum.System,
-      content: 'System Memory',
+      const withSystem = memories.withRegion("system", {
+        role: ChatMessageRoleEnum.System,
+        content: 'System Memory',
+      })
+      const withSummary = withSystem.withRegion("summary", {
+        role: ChatMessageRoleEnum.System,
+        content: 'Summary Memory',
+      })
+
+      const withoutSystem = withSummary.withoutRegions('system')
+      expect(withoutSystem.length).to.equal(3)
+      expect(withoutSystem.at(0)).to.not.have.property('region', 'system')
+
+      const withoutSystemAndSummary = withoutSystem.withoutRegions('summary')
+      expect(withoutSystemAndSummary.length).to.equal(2)
+      expect(withoutSystemAndSummary.at(0)).to.not.have.property('region', 'summary')
     })
-    const withSummary = withSystem.withRegion("summary", {
-      role: ChatMessageRoleEnum.System,
-      content: 'Summary Memory',
+
+
+    it("returns a working memory with only specific regions", () => {
+      const memories = new WorkingMemory({
+        soulName: "test",
+      }).withMonologue("Memory #1")
+        .withMonologue("Memory #2")
+
+      const withSystem = memories.withRegion("system", {
+        role: ChatMessageRoleEnum.System,
+        content: 'System Memory',
+      })
+      
+      const withSummary = withSystem.withRegion("summary", {
+        role: ChatMessageRoleEnum.System,
+        content: 'Summary Memory',
+      })
+
+      const onlySystem = withSummary.withOnlyRegions('system')
+      expect(onlySystem.length).to.equal(1)
+      expect(onlySystem.at(0)).to.have.property('region', 'system')
+
+      const onlySystemAndSummary = withSummary.withOnlyRegions('system', 'summary')
+      expect(onlySystemAndSummary.length).to.equal(2)
+      expect(onlySystemAndSummary.at(0)).to.have.property('region', 'system')
+      expect(onlySystemAndSummary.at(1)).to.have.property('region', 'summary')
     })
-
-    const withoutSystem = withSummary.withoutRegions('system')
-    expect(withoutSystem.length).to.equal(3)
-    expect(withoutSystem.at(0)).to.not.have.property('region', 'system')
-
-    const withoutSystemAndSummary = withoutSystem.withoutRegions('summary')
-    expect(withoutSystemAndSummary.length).to.equal(2)
-    expect(withoutSystemAndSummary.at(0)).to.not.have.property('region', 'summary')
-  })
-
   })
 
 })

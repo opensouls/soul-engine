@@ -413,9 +413,6 @@ export class WorkingMemory extends EventEmitter {
    * ```
    */
   withRegion(regionName: string, ...memories: InputMemory[]) {
-    if (regionName === DEFAULT_REGION) {
-      throw new Error('default is a reserved region name for memories without an explicit region')
-    }
     const memoriesWithRegion = this.normalizeMemoryListOrWorkingMemory(memories.map((memory) => {
       return {
         ...memory,
@@ -504,6 +501,25 @@ export class WorkingMemory extends EventEmitter {
     return this.filter((memory) => {
       const region = memory.region || DEFAULT_REGION
       return !regionNames.includes(region)
+    })
+  }
+
+  /**
+   * Returns a new WorkingMemory instance that only includes memories from the specified region(s).
+   * 
+   * @param regionNames - The name of the region(s) to include in the working memory
+   * @returns A new WorkingMemory instance with only the memories from the specified regions.
+   * 
+   * @example
+   * ```
+   * const newWorkingMemory = workingMemory.withOnlyRegions("greetings");
+   * const newWorkingMemory = workingMemory.withOnlyRegions("system", "summary");
+   * ```
+   */
+  withOnlyRegions(...regionNames: string[]) {
+    return this.filter((memory) => {
+      const region = memory.region || DEFAULT_REGION
+      return regionNames.includes(region)
     })
   }
 

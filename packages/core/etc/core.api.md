@@ -535,6 +535,7 @@ export class WorkingMemory extends EventEmitter {
     };
     withMemory(memory: InputMemory): WorkingMemory;
     withMonologue(content: string): WorkingMemory;
+    withOnlyRegions(...regionNames: string[]): WorkingMemory;
     withoutRegions(...regionNames: string[]): WorkingMemory;
     withRegion(regionName: string, ...memories: InputMemory[]): WorkingMemory;
     withRegionalOrder(...regionOrder: string[]): WorkingMemory;
