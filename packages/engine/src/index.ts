@@ -4,6 +4,7 @@ import { DeveloperInteractionRequest, Json, Perception } from '@opensouls/core';
 import { MentalProcess } from './mentalProcess.js'
 
 export * from "./mentalProcess.js"
+export * from "./load.js"
 export * from "@opensouls/core"
 export * from "@opensouls/soul"
 
@@ -58,46 +59,6 @@ export interface DefaultActions {
   dispatch: (evt: DeveloperInteractionRequest) => void
 }
 
-/* begin vectordb */
-
-export type VectorMetadata = Record<string, Json>
-
-export interface VectorRecord<T = Json> {
-  key: string
-  content: T
-  metadata: VectorMetadata
-  embedding?: Embedding
-}
-
-export interface VectorRecordWithDistance extends VectorRecord {
-  distance: number
-  similarity: number
-}
-
-/**
- * @deprecated use VectorRecordWithDistance instead
- */
-export type VectorRecordWithSimilarity = VectorRecordWithDistance
-
-/* end vectordb */
-
-export interface RagIngestionBody {
-  rootKey: string
-  content: string // base64 encoded binary data
-  contentType?: string
-  maxTokens?: number
-  metadata?: VectorMetadata
-}
-
-export interface WithRagContextOpts {
-  // currently no opts
-}
-
-export interface SoulStoreGetOpts {
-  includeMetadata?: boolean
-}
-
-export type Embedding = number[]
 
 
 /**
@@ -171,6 +132,47 @@ export type MemoryIntegratorReturnTypes<PropType = any> = undefined | [WorkingMe
 
 export type MemoryIntegrator = <PropType>(params: MemoryIntegratorParamaters) => Promise<MemoryIntegratorReturnTypes<PropType>> | MemoryIntegratorReturnTypes<PropType>
 
+
+/* begin vectordb */
+
+export type VectorMetadata = Record<string, Json>
+
+export interface VectorRecord<T = Json> {
+  key: string
+  content: T
+  metadata: VectorMetadata
+  embedding?: Embedding
+}
+
+export interface VectorRecordWithDistance extends VectorRecord {
+  distance: number
+  similarity: number
+}
+
+/**
+ * @deprecated use VectorRecordWithDistance instead
+ */
+export type VectorRecordWithSimilarity = VectorRecordWithDistance
+
+/* end vectordb */
+
+export interface RagIngestionBody {
+  rootKey: string
+  content: string // base64 encoded binary data
+  contentType?: string
+  maxTokens?: number
+  metadata?: VectorMetadata
+}
+
+export interface WithRagContextOpts {
+  // currently no opts
+}
+
+export interface SoulStoreGetOpts {
+  includeMetadata?: boolean
+}
+
+export type Embedding = number[]
 
 export interface RagConfigfile {
   bucket: string
