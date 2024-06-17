@@ -154,7 +154,7 @@ export interface Soul {
     // (undocumented)
     env?: Record<string, Json>;
     name: string;
-    staticMemories?: Record<string, string | Promise<string>>;
+    staticMemories: Record<string, string>;
 }
 
 // @public (undocumented)
