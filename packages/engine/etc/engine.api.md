@@ -149,12 +149,12 @@ export interface RagSearchOpts {
 // @public (undocumented)
 export interface Soul {
     // (undocumented)
-    __hooks: SoulHooks;
-    attributes: Record<string, any>;
+    __hooks?: SoulHooks;
+    attributes?: Record<string, any>;
     // (undocumented)
-    env: Record<string, Json>;
+    env?: Record<string, Json>;
     name: string;
-    staticMemories: Record<string, string>;
+    staticMemories?: Record<string, string | Promise<string>>;
 }
 
 // @public (undocumented)

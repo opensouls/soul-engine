@@ -105,7 +105,7 @@ export interface Soul {
   /**
    * attributes of the soul (previously the environment varaibles)
    */
-  attributes: Record<string, any>
+  attributes?: Record<string, any>
   /**
    * string memories of the soul (previously this would be the {soulName}.md file)
    */
@@ -114,11 +114,11 @@ export interface Soul {
   /**
    * @private
    */
-  __hooks: SoulHooks
+  __hooks?: SoulHooks
   /**
    * @private
    */
-  env: Record<string, Json>
+  env?: Record<string, Json>
 }
 
 export type MemoryIntegratorParamaters = {
