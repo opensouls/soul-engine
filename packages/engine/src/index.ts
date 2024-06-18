@@ -121,7 +121,7 @@ export interface Soul {
   env?: Record<string, Json>
 }
 
-export type MemoryIntegratorParamaters = {
+export type MemoryIntegratorParameters = {
   perception: Perception,
   currentProcess: MentalProcess<any>,
   workingMemory: WorkingMemory
@@ -130,7 +130,7 @@ export type MemoryIntegratorParamaters = {
 
 export type MemoryIntegratorReturnTypes<PropType = any> = undefined | [WorkingMemory] | [WorkingMemory, MentalProcess<PropType>] | [WorkingMemory, MentalProcess<PropType>, PropType]
 
-export type MemoryIntegrator = <PropType>(params: MemoryIntegratorParamaters) => Promise<MemoryIntegratorReturnTypes<PropType>> | MemoryIntegratorReturnTypes<PropType>
+export type MemoryIntegrator = <PropType>(params: MemoryIntegratorParameters) => Promise<MemoryIntegratorReturnTypes<PropType>> | MemoryIntegratorReturnTypes<PropType>
 
 
 /* begin vectordb */
