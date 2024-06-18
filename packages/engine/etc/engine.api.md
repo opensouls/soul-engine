@@ -61,10 +61,10 @@ export type Embedding = number[];
 export const load: (path: string) => Promise<string>;
 
 // @public (undocumented)
-export type MemoryIntegrator = <PropType>(params: MemoryIntegratorParamaters) => Promise<MemoryIntegratorReturnTypes<PropType>> | MemoryIntegratorReturnTypes<PropType>;
+export type MemoryIntegrator = <PropType>(params: MemoryIntegratorParameters) => Promise<MemoryIntegratorReturnTypes<PropType>> | MemoryIntegratorReturnTypes<PropType>;
 
 // @public (undocumented)
-export type MemoryIntegratorParamaters = {
+export type MemoryIntegratorParameters = {
     perception: Perception;
     currentProcess: MentalProcess<any>;
     workingMemory: WorkingMemory;
