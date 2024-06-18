@@ -4,6 +4,7 @@ import { DeveloperInteractionRequest, Json, Perception } from '@opensouls/core';
 import { MentalProcess } from './mentalProcess.js'
 
 export * from "./mentalProcess.js"
+export * from "./load.js"
 export * from "@opensouls/core"
 export * from "@opensouls/soul"
 
@@ -58,6 +59,80 @@ export interface DefaultActions {
   dispatch: (evt: DeveloperInteractionRequest) => void
 }
 
+
+
+/**
+ * @deprecated PerceptionProcessor is deprecated. Please use MemoryIntegrator instead.
+ */
+export type PerceptionProcessorReturnTypes<PropType = any> = undefined | [WorkingMemory] | [WorkingMemory, MentalProcess<PropType>] | [WorkingMemory, MentalProcess<PropType>, PropType]
+
+/**
+ * @deprecated PerceptionProcessor is deprecated. Please use MemoryIntegrator instead.
+ * 
+ * The PerceptionProcessor interface is now deprecated and will be removed in future versions.
+ * Developers should transition to using the MemoryIntegrator interface, which provides enhanced
+ * capabilities and better integration with the Soul object.
+ * 
+ * Example transition:
+ * 
+ * Before:
+ * const result = await perceptionProcessor({
+ *   perception,
+ *   currentProcess,
+ *   workingMemory,
+ * });
+ * 
+ * After:
+ * const result = await memoryIntegrator({
+ *   perception,
+ *   currentProcess,
+ *   workingMemory,
+ *   soul,
+ * });
+ */
+export type PerceptionProcessor = <PropType>(perceptionArgs: {
+  perception: Perception,
+  currentProcess: MentalProcess<any>,
+  workingMemory: WorkingMemory,
+}) => Promise<PerceptionProcessorReturnTypes<PropType>>
+
+
+export interface Soul {
+  /**
+   * The name of the soul from the blueprint (previously the soulName on the workingMemory)
+   */
+  name: string
+  /**
+   * attributes of the soul (previously the environment varaibles)
+   */
+  attributes?: Record<string, any>
+  /**
+   * string memories of the soul (previously this would be the {soulName}.md file)
+   */
+  staticMemories: Record<string, string>
+
+  /**
+   * @private
+   */
+  __hooks?: SoulHooks
+  /**
+   * @private
+   */
+  env?: Record<string, Json>
+}
+
+export type MemoryIntegratorParameters = {
+  perception: Perception,
+  currentProcess: MentalProcess<any>,
+  workingMemory: WorkingMemory
+  soul: Soul
+}
+
+export type MemoryIntegratorReturnTypes<PropType = any> = undefined | [WorkingMemory] | [WorkingMemory, MentalProcess<PropType>] | [WorkingMemory, MentalProcess<PropType>, PropType]
+
+export type MemoryIntegrator = <PropType>(params: MemoryIntegratorParameters) => Promise<MemoryIntegratorReturnTypes<PropType>> | MemoryIntegratorReturnTypes<PropType>
+
+
 /* begin vectordb */
 
 export type VectorMetadata = Record<string, Json>
@@ -98,14 +173,6 @@ export interface SoulStoreGetOpts {
 }
 
 export type Embedding = number[]
-
-export type PerceptionProcessorReturnTypes<PropType = any> = undefined | [WorkingMemory] | [WorkingMemory, MentalProcess<PropType>] | [WorkingMemory, MentalProcess<PropType>, PropType]
-
-export type PerceptionProcessor = <PropType>(perceptionArgs: {
-  perception: Perception,
-  currentProcess: MentalProcess<any>,
-  workingMemory: WorkingMemory,
-}) => Promise<PerceptionProcessorReturnTypes<PropType>>
 
 export interface RagConfigfile {
   bucket: string
