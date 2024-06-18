@@ -58,6 +58,23 @@ export const defaultRagBucketName: (blueprint: string) => string;
 export type Embedding = number[];
 
 // @public (undocumented)
+export const load: (path: string) => Promise<string>;
+
+// @public (undocumented)
+export type MemoryIntegrator = <PropType>(params: MemoryIntegratorParameters) => Promise<MemoryIntegratorReturnTypes<PropType>> | MemoryIntegratorReturnTypes<PropType>;
+
+// @public (undocumented)
+export type MemoryIntegratorParameters = {
+    perception: Perception;
+    currentProcess: MentalProcess<any>;
+    workingMemory: WorkingMemory;
+    soul: Soul;
+};
+
+// @public (undocumented)
+export type MemoryIntegratorReturnTypes<PropType = any> = undefined | [WorkingMemory] | [WorkingMemory, MentalProcess<PropType>] | [WorkingMemory, MentalProcess<PropType>, PropType];
+
+// @public (undocumented)
 export type MentalProcess<ParamType = Record<number | string, any>, CortexStepType = any> = (args: MentalProcessArguments<ParamType, CortexStepType>) => Promise<MentalProcessReturnTypes<CortexStepType, ParamType>>;
 
 // @public (undocumented)
@@ -87,14 +104,14 @@ export interface PendingCognitiveEvent extends CognitiveEventAbsolute {
     id: string;
 }
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export type PerceptionProcessor = <PropType>(perceptionArgs: {
     perception: Perception;
     currentProcess: MentalProcess<any>;
     workingMemory: WorkingMemory;
 }) => Promise<PerceptionProcessorReturnTypes<PropType>>;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export type PerceptionProcessorReturnTypes<PropType = any> = undefined | [WorkingMemory] | [WorkingMemory, MentalProcess<PropType>] | [WorkingMemory, MentalProcess<PropType>, PropType];
 
 // @public (undocumented)
@@ -127,6 +144,17 @@ export interface RagSearchOpts {
     maxDistance?: number;
     // (undocumented)
     query: Embedding | string;
+}
+
+// @public (undocumented)
+export interface Soul {
+    // (undocumented)
+    __hooks?: SoulHooks;
+    attributes?: Record<string, any>;
+    // (undocumented)
+    env?: Record<string, Json>;
+    name: string;
+    staticMemories: Record<string, string>;
 }
 
 // @public (undocumented)
