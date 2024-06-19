@@ -89,6 +89,8 @@ export class Soul extends EventEmitter<SoulEvents> {
     get store(): ReturnType<typeof syncedEventStore>;
 }
 
+export { SoulEvent }
+
 // @public (undocumented)
 export type SoulEvents = {
     [K in Actions]: (evt: ActionEvent) => void;

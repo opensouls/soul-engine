@@ -10,13 +10,14 @@ import { getConnectedWebsocket } from "./sockets/soul-engine-socket.js";
 import { ContentStreamer } from "./content-streamer.js";
 import { syncedEventStore } from "./event-log.js";
 import { ToolHandler } from './tool-handler.js';
+
+export type { InteractionRequest, SoulEvent } from "@opensouls/core"
+
 // syntactic sugar for listening to actions which tend to be in the past tense
 // but allowing to listen to things like Action.SAYS
 export enum Actions {
   SAYS = "says",
 }
-
-export type { InteractionRequest } from "@opensouls/core"
 
 export enum Events {
   // this one is sent by the server
