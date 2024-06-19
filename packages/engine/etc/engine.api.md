@@ -58,7 +58,7 @@ export const defaultRagBucketName: (blueprint: string) => string;
 export type Embedding = number[];
 
 // @public (undocumented)
-export const load: (path: string) => Promise<string>;
+export const load: (path: string) => string;
 
 // @public (undocumented)
 export type MemoryIntegrator = <PropType>(params: MemoryIntegratorParameters) => Promise<MemoryIntegratorReturnTypes<PropType>> | MemoryIntegratorReturnTypes<PropType>;
