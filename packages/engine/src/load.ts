@@ -3,7 +3,7 @@ import { fileURLToPath } from 'url';
 // The soul engine swaps out calls to load with an internal implementation
 // this is just for clarity locally.
 export const load = (path: string): string => {
-  if (typeof process !== 'undefined' && process.versions != null && process.versions.node != null) {
+  if (typeof window === "undefined" && typeof process !== 'undefined' && process.versions != null && process.versions.node != null) {
     // We are in Node.js environment
     const fs = require('node:fs');
     const pathModule = require('path');
