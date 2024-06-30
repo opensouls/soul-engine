@@ -10,7 +10,7 @@ title: Welcome
 
 :::info
 
-`socialagi` is deprecated in favor of the the `@opensouls/core` package. The [Soul Engine](https://docs.souls.chat) is the best way to start building AI souls, and is now in alpha, [join our discord](https://discord.gg/opensouls) for access!
+`socialagi` is no longer actively maintained. Thank you for your support in the project. [Join the Open Souls mailing list](https://opensouls.beehiiv.com/subscribe) to be the first to hear about the next updates!
 
 :::
 
