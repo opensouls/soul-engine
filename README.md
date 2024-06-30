@@ -16,7 +16,7 @@ AI Souls are agentic and embodied digital beings, one day comprising thousands o
 
 ## 📖 Repo structure
 
-- [`/packages/core`](./packages/core) contains the core library.
+- [`/packages/core`](./packages/core) contains the Open Souls SDK.
 - [`/packages/engine`](./packages/engine) contains the client side code for building and interacting with the [Soul Engine](https://docs.souls.chat)
 - [`/packages/soul-engine-cli`](./packages/soul-engine-cli/) contains the command line interface (CLI) for creating and developing AI souls with the [Soul Engine](https://docs.souls.chat).
 
