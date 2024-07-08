@@ -8,7 +8,7 @@
 
 Soul Engine provides developers clean, simple, and extensible abstractions for directing the cognitive processes of large language models (LLMs), steamlining the creation of more effective and engaging AI souls.
 
-This repo is the public facing SDK for the soul engine.
+This repo contains the SDK for the Soul Engine.
 
 ## 💫 AI Souls
 
@@ -16,7 +16,7 @@ AI Souls are agentic and embodied digital beings, one day comprising thousands o
 
 ## 📖 Repo structure
 
-- [`/packages/engine`](./packages/engine) contains the client side code for building and interacting with the soul engine.
+- [`/packages/engine`](./packages/engine) contains the client side code for building and interacting with the Soul Engine.
 
 ## 🚢 Releasing
 
