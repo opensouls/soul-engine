@@ -4,7 +4,7 @@
 
 ## 🤔 What is this?
 
-> The Soul Engine is currently in private alpha! [Join our mailing list](https://opensouls.beehiiv.com/subscribe) to be the first to hear about the next updates!
+> The Soul Engine is currently in closed Beta! [Join our mailing list](https://opensouls.beehiiv.com/subscribe) to be the first to hear about the next updates!
 
 Soul Engine provides developers clean, simple, and extensible abstractions for directing the cognitive processes of large language models (LLMs), steamlining the creation of more effective and engaging AI souls.
 
