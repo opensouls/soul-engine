@@ -17,16 +17,3 @@ AI Souls are agentic and embodied digital beings, one day comprising thousands o
 ## 📖 Repo structure
 
 - [`/packages/engine`](./packages/engine) contains the client side code for building and interacting with the Soul Engine.
-
-## 🚢 Releasing
-
-(Releasing is only applicable to the OPEN SOULS team).
-
-To release a new version, please follow these steps:
-
-1. Ensure you have the necessary access permissions.
-1. Run `git checkout -b bump/v0.1.XX` (where `XX` is the new version)
-1. Push the new branch to the origin: `git push origin bump/v0.1.XX`
-1. Run the bump script: `npm run bump`
-1. Wait until GitHub Actions releases the package.
-1. Don't forget to merge your bump branch to main
